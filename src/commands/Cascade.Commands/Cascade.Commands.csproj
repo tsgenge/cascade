@@ -1,0 +1,6 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Cascade.SharedKernel\Cascade.SharedKernel.csproj" />
+    <ProjectReference Include="..\Cascade.Commands.Abstractions\Cascade.Commands.Abstractions.csproj" />
+  </ItemGroup>
+</Project>

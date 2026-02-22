@@ -1,0 +1,27 @@
+using Cascade.Commands.Abstractions.Domain.ValueObjects;
+using Cascade.Commands.Abstractions.Handling;
+using Cascade.SharedKernel.Events;
+using Cascade.SharedKernel.ValueObjects;
+
+namespace Cascade.Commands.Handling;
+
+public record CommandResponse : ICommandResponse
+{
+    public Guid CommandId { get; }
+    public string CommandType { get; }
+    public ISubject Subject { get; }
+    public IReadOnlyList<IEventEnvelope> Events { get; } = new List<IEventEnvelope>();
+    public IReadOnlyCollection<AvailableAction> Actions { get; } = new List<AvailableAction>();
+    public CommandResponse(ICommandEnvelope cmd, ISubject subject, IReadOnlyList<IEventEnvelope> newEvents)
+    {
+        CommandId = cmd.Id;
+        CommandType = cmd.Type;
+        Subject = subject;
+        Events = newEvents;
+        Actions = new List<AvailableAction>();
+    }
+    public CommandResponse(ICommandEnvelope cmd, ISubject subject, IReadOnlyList<IEventEnvelope> newEvents, IReadOnlyList<AvailableAction> actions) : this(cmd, subject, newEvents)
+    {
+        Actions = actions;
+    }
+}

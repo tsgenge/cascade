@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Commands/">
+    <Project Path="src/commands/Cascade.Commands.Abstractions/Cascade.Commands.Abstractions.csproj" />
+    <Project Path="src/commands/Cascade.Commands/Cascade.Commands.csproj" />
+  </Folder>
+  <Folder Name="/Queries/">
+    <Project Path="src/queries/Cascade.Views.Abstractions/Cascade.Views.Abstractions.csproj" />
+    <Project Path="src/queries/Cascade.Views/Cascade.Views.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="src/shared/Cascade.SharedKernel.Abstractions/Cascade.SharedKernel.Abstractions.csproj" />
+    <Project Path="src/shared/Cascade.SharedKernel/Cascade.SharedKernel.csproj" />
+  </Folder>
+</Solution>
