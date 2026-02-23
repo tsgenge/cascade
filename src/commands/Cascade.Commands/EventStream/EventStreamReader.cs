@@ -1,9 +1,11 @@
 using Cascade.Commands.Hydration;
 using Cascade.SharedKernel.Aggregates;
 using Cascade.SharedKernel.Events;
+using Cascade.SharedKernel.Infrastructure.Storage;
+using Cascade.SharedKernel.Querying;
 using Cascade.SharedKernel.ValueObjects;
 
-namespace Cascade.Commands.Infrastructure;
+namespace Cascade.Commands.EventStream;
 
 internal interface IEventStreamReader
 {

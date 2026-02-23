@@ -32,7 +32,7 @@ public abstract record CommandEnvelope : ICommandEnvelope
     public DateTimeOffset Time { get; }
     public string Type { get; protected set; } = "NotSet";
     public virtual ICommand Command { get; }
-    public CommandEnvelope(ICommand content, AuthenticatedContext context, ClientChannel channel, DateTimeOffset time)
+    protected CommandEnvelope(ICommand content, AuthenticatedContext context, ClientChannel channel, DateTimeOffset time)
     {
         Id = Guid.NewGuid();
         SecurityContext = context;
@@ -40,7 +40,7 @@ public abstract record CommandEnvelope : ICommandEnvelope
         Time = time;
         Command = content;
     }
-    public CommandEnvelope(ICommand content, AuthenticatedContext context, ClientChannel channel)
+    protected CommandEnvelope(ICommand content, AuthenticatedContext context, ClientChannel channel)
     {
         Id = Guid.NewGuid();
         SecurityContext = context;

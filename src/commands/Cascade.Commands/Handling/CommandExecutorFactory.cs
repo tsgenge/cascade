@@ -1,6 +1,7 @@
 using Cascade.Commands.Exceptions;
 using Cascade.SharedKernel.Aggregates;
 using Cascade.SharedKernel.Events;
+using Cascade.SharedKernel.Security;
 
 namespace Cascade.Commands.Handling;
 
@@ -11,12 +12,12 @@ internal interface ICommandExecutorFactory<TAggregate>
         where TCommand : ICommand;
 }
 
-internal interface ICommandExecutor<TCommand, TAggregate> : ICommandExecutor<TAggregate>
+internal interface ICommandExecutor<in TCommand, TAggregate> : ICommandExecutor<TAggregate>
     where TCommand : ICommand
     where TAggregate : IAggregateRoot
 {
-    IAsyncEnumerable<EventEnvelope> ExecuteAsync(CommandEnvelope<TCommand> envelope, TAggregate aggregate);
-    Task<SecurityDescriptor?> GetSecurityDescriptorAsync(CommandEnvelope<TCommand> envelope, TAggregate aggregate);
+    IAsyncEnumerable<EventEnvelope> ExecuteAsync(ICommandEnvelope<TCommand> envelope, TAggregate aggregate);
+    Task<IAccessControlList?> GetSecurityDescriptorAsync(ICommandEnvelope<TCommand> envelope, TAggregate aggregate);
 }
 
 internal interface ICommandExecutor<TAggregate>

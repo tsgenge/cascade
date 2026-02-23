@@ -3,6 +3,9 @@
     <Project Path="src/commands/Cascade.Commands.Abstractions/Cascade.Commands.Abstractions.csproj" />
     <Project Path="src/commands/Cascade.Commands/Cascade.Commands.csproj" />
   </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="src/infrastructure/Cascade.Storage.CosmosDb/Cascade.Storage.CosmosDb.csproj" />
+  </Folder>
   <Folder Name="/Queries/">
     <Project Path="src/queries/Cascade.Views.Abstractions/Cascade.Views.Abstractions.csproj" />
     <Project Path="src/queries/Cascade.Views/Cascade.Views.csproj" />

@@ -1,7 +1,10 @@
 using Cascade.Commands.Abstractions.Handling;
+using Cascade.Commands.Exceptions;
 using Cascade.Commands.Hydration;
+using Cascade.Commands.Security;
 using Cascade.SharedKernel.Aggregates;
 using Cascade.SharedKernel.Events;
+using Cascade.SharedKernel.Exceptions;
 
 namespace Cascade.Commands.Handling;
 
@@ -11,10 +14,15 @@ internal abstract class CommandHandler<TCommand, TAggregate, TResponse> : IComma
     where TResponse : ICommandResponse
 {
     private readonly IAggregateHydrator<TAggregate> _hydrator;
+    private readonly ICommandAuthoriser _authoriser;
     private readonly ICommandExecutorFactory<TAggregate> _executorFactory;
-    protected CommandHandler(IAggregateHydrator<TAggregate> hydrator)
+
+    protected CommandHandler(IAggregateHydrator<TAggregate> hydrator, ICommandAuthoriser authoriser,
+        ICommandExecutorFactory<TAggregate> executorFactory)
     {
         _hydrator = hydrator ?? throw new ArgumentNullException(nameof(hydrator));
+        _authoriser = authoriser ?? throw new ArgumentNullException(nameof(authoriser));
+        _executorFactory = executorFactory ?? throw new ArgumentNullException(nameof(executorFactory));
     }
 
     public async Task<TResponse> HandleAsync(ICommandEnvelope<TCommand> commandEnvelope)
@@ -28,8 +36,33 @@ internal abstract class CommandHandler<TCommand, TAggregate, TResponse> : IComma
 
     protected virtual async Task<IReadOnlyList<EventEnvelope>> ExecuteCommandAsync(ICommandEnvelope<TCommand> envelope, TAggregate aggregate)
     {
-        return await aggregate.ExecuteAsync(envelope);
+        var executor = _executorFactory.GetFor<TCommand>();
+
+        await _authoriser.CanAsync(envelope,
+            await executor.GetSecurityDescriptorAsync(envelope, aggregate));
+
+        var events = new List<EventEnvelope>();
+        try
+        {
+            var eventFeed = executor.ExecuteAsync(envelope, aggregate);
+
+            await foreach (var evt in eventFeed)
+            {
+                events.Add(evt);
+            }
+        }
+        catch (ExceptionBase)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new CommandProcessingException(ex);
+        }
+
+        return events;
     }
+    
     protected virtual Guid GetSubjectId(ICommandEnvelope<TCommand> commandEnvelope)
     {
         return commandEnvelope.Command.GetSubject(commandEnvelope).Id;
@@ -42,7 +75,7 @@ internal abstract class CommandHandler<TCommand, TAggregate> : CommandHandler<TC
     where TCommand : ICommand
     where TAggregate : IAggregateRoot
 {
-    protected CommandHandler(IAggregateHydrator<TAggregate> hydrator) : base(hydrator)
+    protected CommandHandler(IAggregateHydrator<TAggregate> hydrator, ICommandAuthoriser authoriser, ICommandExecutorFactory<TAggregate> executorFactory) : base(hydrator, authoriser, executorFactory)
     {
     }
 
