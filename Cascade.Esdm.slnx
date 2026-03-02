@@ -1,20 +1,20 @@
 <Solution>
   <Folder Name="/Commands/">
-    <Project Path="src/commands/Cascade.Commands.Abstractions/Cascade.Commands.Abstractions.csproj" />
-    <Project Path="src/commands/Cascade.Commands/Cascade.Commands.csproj" />
+    <Project Path="src/commands/CascadeEsdm.Commands.Abstractions/CascadeEsdm.Commands.Abstractions.csproj" />
+    <Project Path="src/commands/CascadeEsdm.Commands/CascadeEsdm.Commands.csproj" />
   </Folder>
   <Folder Name="/Infrastructure/">
-    <Project Path="src/infrastructure/Cascade.Storage.CosmosDb/Cascade.Storage.CosmosDb.csproj" />
+    <Project Path="src/infrastructure/CascadeEsdm.Storage.CosmosDb/CascadeEsdm.Storage.CosmosDb.csproj" />
   </Folder>
   <Folder Name="/Queries/">
-    <Project Path="src/queries/Cascade.Views.Abstractions/Cascade.Views.Abstractions.csproj" />
-    <Project Path="src/queries/Cascade.Views/Cascade.Views.csproj" />
+    <Project Path="src/queries/CascadeEsdm.Views.Abstractions/CascadeEsdm.Views.Abstractions.csproj" />
+    <Project Path="src/queries/CascadeEsdm.Views/CascadeEsdm.Views.csproj" />
   </Folder>
   <Folder Name="/Shared/">
-    <Project Path="src/shared/Cascade.SharedKernel.Abstractions/Cascade.SharedKernel.Abstractions.csproj" />
-    <Project Path="src/shared/Cascade.SharedKernel/Cascade.SharedKernel.csproj" />
+    <Project Path="src/shared/CascadeEsdm.SharedKernel.Abstractions/CascadeEsdm.SharedKernel.Abstractions.csproj" />
+    <Project Path="src/shared/CascadeEsdm.SharedKernel/CascadeEsdm.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="tests/Cascade.Commands.Tests/Cascade.Commands.Tests.csproj" />
+    <Project Path="tests/CascadeEsdm.Commands.Tests/CascadeEsdm.Commands.Tests.csproj" />
   </Folder>
 </Solution>

@@ -75,12 +75,12 @@ jobs:
           
           # Define projects in dependency order
           PROJECTS=(
-            "src/shared/Cascade.SharedKernel.Abstractions/Cascade.SharedKernel.Abstractions.csproj"
-            "src/shared/Cascade.SharedKernel/Cascade.SharedKernel.csproj"
-            "src/commands/Cascade.Commands.Abstractions/Cascade.Commands.Abstractions.csproj"
-            "src/commands/Cascade.Commands/Cascade.Commands.csproj"
-            "src/queries/Cascade.Views.Abstractions/Cascade.Views.Abstractions.csproj"
-            "src/queries/Cascade.Views/Cascade.Views.csproj"
+            "src/shared/CascadeEsdm.SharedKernel.Abstractions/CascadeEsdm.SharedKernel.Abstractions.csproj"
+            "src/shared/CascadeEsdm.SharedKernel/CascadeEsdm.SharedKernel.csproj"
+            "src/commands/CascadeEsdm.Commands.Abstractions/CascadeEsdm.Commands.Abstractions.csproj"
+            "src/commands/CascadeEsdm.Commands/CascadeEsdm.Commands.csproj"
+            "src/queries/CascadeEsdm.Views.Abstractions/CascadeEsdm.Views.Abstractions.csproj"
+            "src/queries/CascadeEsdm.Views/CascadeEsdm.Views.csproj"
           )
           
           # Pack each project and add to local feed

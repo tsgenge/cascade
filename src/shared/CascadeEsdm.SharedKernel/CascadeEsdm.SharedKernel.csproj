@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>CascadeEsdm.SharedKernel</PackageId>
+    <Description>Core implementation for the Cascade Event Sourcing framework</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="docs\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
+    <ProjectReference Include="..\CascadeEsdm.SharedKernel.Abstractions\CascadeEsdm.SharedKernel.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
+    <PackageReference Include="CascadeEsdm.SharedKernel.Abstractions" Version="$(CascadeVersion)" />
+  </ItemGroup>
+
+</Project>
