@@ -64,12 +64,14 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           echo "Building packages with version: $VERSION"
           
-          # Create directories
+          # Create directories with absolute paths
           mkdir -p ./artifacts
           mkdir -p ./local-feed
+          LOCAL_FEED_PATH="$(pwd)/local-feed"
           
-          # Add local feed as a NuGet source
-          dotnet nuget add source ./local-feed --name LocalFeed
+          # Add local feed as a NuGet source with absolute path
+          dotnet nuget add source "$LOCAL_FEED_PATH" --name LocalFeed
+          echo "Local feed path: $LOCAL_FEED_PATH"
           
           # Define projects in dependency order
           PROJECTS=(
