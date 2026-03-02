@@ -59,12 +59,25 @@ jobs:
             echo "version=${{ steps.version-release.outputs.version }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Pack all packages
+      - name: Pack and Push packages in dependency order
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          echo "Packing all projects with version: $VERSION"
+          echo "Building and publishing packages with version: $VERSION"
+          
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "⚠️ NUGET_API_KEY secret is not set. Skipping NuGet push."
+            echo "To publish packages, add your NuGet API key as a repository secret named NUGET_API_KEY"
+            exit 0
+          fi
+          
+          # Create artifacts directory
+          mkdir -p ./artifacts
           
           # Define projects in dependency order
+          # Each package is packed and pushed immediately before the next one
+          # This ensures dependent packages can find their dependencies on NuGet
           PROJECTS=(
             "src/shared/Cascade.SharedKernel.Abstractions/Cascade.SharedKernel.Abstractions.csproj"
             "src/shared/Cascade.SharedKernel/Cascade.SharedKernel.csproj"
@@ -74,37 +87,45 @@ jobs:
             "src/queries/Cascade.Views/Cascade.Views.csproj"
           )
           
-          # Pack each project
+          # Pack and push each project immediately
           for PROJECT in "${PROJECTS[@]}"; do
-            echo "📦 Packing $PROJECT..."
+            PROJECT_NAME=$(basename "$PROJECT" .csproj)
+            echo ""
+            echo "📦 Packing $PROJECT_NAME..."
+            
             dotnet pack "$PROJECT" \
               --configuration Release \
               --output ./artifacts \
               /p:Version="$VERSION" \
               /p:UseProjectReferences=false \
               /p:CascadeVersion="$VERSION"
+            
+            if [ $? -ne 0 ]; then
+              echo "❌ Failed to pack $PROJECT_NAME"
+              exit 1
+            fi
+            
+            echo "📤 Pushing $PROJECT_NAME to NuGet..."
+            dotnet nuget push "./artifacts/${PROJECT_NAME}.${VERSION}.nupkg" \
+              --api-key "$NUGET_API_KEY" \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+            
+            if [ $? -ne 0 ]; then
+              echo "❌ Failed to push $PROJECT_NAME"
+              exit 1
+            fi
+            
+            echo "✅ $PROJECT_NAME published successfully"
+            
+            # Wait a few seconds for NuGet to index the package
+            echo "⏳ Waiting for NuGet to index..."
+            sleep 10
           done
           
-          echo "✅ All packages packed successfully"
+          echo ""
+          echo "✅ All packages published successfully"
           ls -lh ./artifacts/
-
-      - name: Push to NuGet
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: |
-          if [ -z "$NUGET_API_KEY" ]; then
-            echo "⚠️ NUGET_API_KEY secret is not set. Skipping NuGet push."
-            echo "To publish packages, add your NuGet API key as a repository secret named NUGET_API_KEY"
-            exit 0
-          fi
-          
-          echo "📤 Pushing packages to NuGet..."
-          dotnet nuget push ./artifacts/*.nupkg \
-            --api-key "$NUGET_API_KEY" \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
-          
-          echo "✅ Packages published successfully"
 
       - name: Create GitHub Release
         if: ${{ !inputs.is-prerelease && startsWith(github.ref, 'refs/tags/') }}

@@ -14,4 +14,7 @@
     <Project Path="src/shared/Cascade.SharedKernel.Abstractions/Cascade.SharedKernel.Abstractions.csproj" />
     <Project Path="src/shared/Cascade.SharedKernel/Cascade.SharedKernel.csproj" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/Cascade.Commands.Tests/Cascade.Commands.Tests.csproj" />
+  </Folder>
 </Solution>
