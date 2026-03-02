@@ -3,5 +3,10 @@
     <RootNamespace>Cascade.SharedKernel</RootNamespace>
     <PackageId>Cascade.SharedKernel.Abstractions</PackageId>
     <Description>Abstractions and interfaces for the Cascade Event Sourcing framework</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="docs\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>

@@ -13,7 +13,7 @@
         <Authors>Tim Genge</Authors>
         <Company>Mindfish</Company>
         <Copyright>Copyright (c) $(Company) $([System.DateTime]::Now.Year)</Copyright>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/tsgenge/cascade</PackageProjectUrl>
         <RepositoryUrl>https://github.com/tsgenge/cascade</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
