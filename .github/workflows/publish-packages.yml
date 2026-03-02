@@ -105,8 +105,12 @@ jobs:
               exit 1
             fi
             
+            # NuGet strips build metadata (+sha) from package filenames
+            # Version 1.0.0-beta.8+6be4772 creates file 1.0.0-beta.8.nupkg
+            PACKAGE_VERSION="${VERSION%%+*}"
+            
             echo "📤 Pushing $PROJECT_NAME to NuGet..."
-            dotnet nuget push "./artifacts/${PROJECT_NAME}.${VERSION}.nupkg" \
+            dotnet nuget push "./artifacts/${PROJECT_NAME}.${PACKAGE_VERSION}.nupkg" \
               --api-key "$NUGET_API_KEY" \
               --source https://api.nuget.org/v3/index.json \
               --skip-duplicate
