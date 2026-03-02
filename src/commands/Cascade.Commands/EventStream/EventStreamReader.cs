@@ -10,7 +10,7 @@ namespace Cascade.Commands.EventStream;
 internal interface IEventStreamReader
 {
     Task<IEnumerable<IEventEnvelope>> ReadAllAsync<TAggregate>(Guid id) where TAggregate : IAggregateRoot;
-    Task<EventEnvelope?> ReadSingleAsync<TAggregate>(Guid id);
+    Task<IEventEnvelope?> ReadSingleAsync<TAggregate>(Guid id);
 }
 
 internal class EventStreamReader<TContainer> : IEventStreamReader
@@ -30,7 +30,7 @@ internal class EventStreamReader<TContainer> : IEventStreamReader
     {
         var partitionKey = _partitionLocator.GetPartition(new Subject(id, typeof(TAggregate).Name));
 
-        var allEvents = new List<EventEnvelope>();
+        var allEvents = new List<IEventEnvelope>();
         string? continuationToken = null;
         var events = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(new PageFilter(string.Empty, 100, continuationToken), partitionKey, new Dictionary<string, string>()));
         do {
@@ -46,7 +46,7 @@ internal class EventStreamReader<TContainer> : IEventStreamReader
         return allEvents;
     }
 
-    public async Task<EventEnvelope?> ReadSingleAsync<TAggregate>(Guid id)
+    public async Task<IEventEnvelope?> ReadSingleAsync<TAggregate>(Guid id)
     {
         var partitionKey = _partitionLocator.GetPartition(new Subject(id, typeof(TAggregate).Name));
         var any = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(new PageFilter(string.Empty, 1), partitionKey, new Dictionary<string, string>()));
@@ -54,7 +54,7 @@ internal class EventStreamReader<TContainer> : IEventStreamReader
         return ConvertToEvent(rawEvent);
     }
 
-    private static EventEnvelope? ConvertToEvent(EventDocument? doc)
+    private static IEventEnvelope? ConvertToEvent(EventDocument? doc)
     {
         return doc?.Envelope;
     }

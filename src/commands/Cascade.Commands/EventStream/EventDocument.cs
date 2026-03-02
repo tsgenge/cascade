@@ -7,9 +7,9 @@ public record EventDocument : IDocument
 {
     public Guid Id { get; }
     public string PartitionKey { get; }
-    public EventEnvelope Envelope { get; }
+    public IEventEnvelope Envelope { get; }
 
-    public EventDocument(Guid id, string partitionKey, EventEnvelope envelope)
+    public EventDocument(Guid id, string partitionKey, IEventEnvelope envelope)
     {
         Id = id;
         PartitionKey = partitionKey;
