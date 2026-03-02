@@ -1,7 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
+  <PropertyGroup>
+    <PackageId>Cascade.SharedKernel</PackageId>
+    <Description>Core implementation for the Cascade Event Sourcing framework</Description>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
     <ProjectReference Include="..\Cascade.SharedKernel.Abstractions\Cascade.SharedKernel.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
+    <PackageReference Include="Cascade.SharedKernel.Abstractions" Version="$(CascadeVersion)" />
   </ItemGroup>
 
 </Project>

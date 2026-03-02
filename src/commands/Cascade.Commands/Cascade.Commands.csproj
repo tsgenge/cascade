@@ -1,9 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
+  <PropertyGroup>
+    <PackageId>Cascade.Commands</PackageId>
+    <Description>Command handling implementation for the Cascade Event Sourcing framework</Description>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
     <ProjectReference Include="..\..\shared\Cascade.SharedKernel\Cascade.SharedKernel.csproj" />
     <ProjectReference Include="..\Cascade.Commands.Abstractions\Cascade.Commands.Abstractions.csproj" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
+    <PackageReference Include="Cascade.SharedKernel" Version="$(CascadeVersion)" />
+    <PackageReference Include="Cascade.Commands.Abstractions" Version="$(CascadeVersion)" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Composition\" />
   </ItemGroup>
 </Project>

@@ -4,5 +4,27 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>latest</LangVersion>
+        
+        <!-- Use project references by default for local development -->
+        <!-- Set to false in CI/CD to use NuGet package references -->
+        <UseProjectReferences Condition="'$(UseProjectReferences)' == ''">true</UseProjectReferences>
+        
+        <!-- NuGet Package Properties -->
+        <Authors>Tim Genge</Authors>
+        <Company>Mindfish</Company>
+        <Copyright>Copyright (c) $(Company) $([System.DateTime]::Now.Year)</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/tsgenge/cascade</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/tsgenge/cascade</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>eventsourcing;ddd;cqrs;domain-driven-design</PackageTags>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+        
+        <!-- Version will be set by CI/CD pipeline -->
+        <Version Condition="'$(Version)' == ''">1.0.0-local</Version>
     </PropertyGroup>
 </Project>

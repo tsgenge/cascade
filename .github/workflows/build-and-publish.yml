@@ -1,0 +1,231 @@
+name: Build, Test, and Publish
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/**/*'
+
+  publish-prerelease:
+    name: Publish Pre-release Packages
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Calculate version
+        id: version
+        run: |
+          # Get the short commit SHA
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          # Get the build number (total commits on develop)
+          BUILD_NUMBER=$(git rev-list --count develop)
+          # Create pre-release version
+          VERSION="1.0.0-beta.$BUILD_NUMBER+$SHORT_SHA"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Pre-release version: $VERSION"
+
+      - name: Pack packages
+        run: |
+          dotnet pack src/shared/Cascade.SharedKernel.Abstractions/Cascade.SharedKernel.Abstractions.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+          
+          dotnet pack src/shared/Cascade.SharedKernel/Cascade.SharedKernel.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+          
+          dotnet pack src/commands/Cascade.Commands.Abstractions/Cascade.Commands.Abstractions.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+          
+          dotnet pack src/commands/Cascade.Commands/Cascade.Commands.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+          
+          dotnet pack src/queries/Cascade.Views.Abstractions/Cascade.Views.Abstractions.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+          
+          dotnet pack src/queries/Cascade.Views/Cascade.Views.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+
+      - name: Push to NuGet
+        run: |
+          dotnet nuget push ./artifacts/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages-prerelease
+          path: ./artifacts/*.nupkg
+
+  publish-release:
+    name: Publish Release Packages
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Calculate version
+        id: version
+        run: |
+          # Extract version from git tag or use default
+          if git describe --tags --exact-match 2>/dev/null; then
+            VERSION=$(git describe --tags --exact-match | sed 's/^v//')
+          else
+            # Get the build number (total commits on master)
+            BUILD_NUMBER=$(git rev-list --count master)
+            VERSION="1.0.$BUILD_NUMBER"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Pack packages
+        run: |
+          dotnet pack src/shared/Cascade.SharedKernel.Abstractions/Cascade.SharedKernel.Abstractions.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+          
+          dotnet pack src/shared/Cascade.SharedKernel/Cascade.SharedKernel.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+          
+          dotnet pack src/commands/Cascade.Commands.Abstractions/Cascade.Commands.Abstractions.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+          
+          dotnet pack src/commands/Cascade.Commands/Cascade.Commands.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+          
+          dotnet pack src/queries/Cascade.Views.Abstractions/Cascade.Views.Abstractions.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+          
+          dotnet pack src/queries/Cascade.Views/Cascade.Views.csproj \
+            --configuration Release \
+            --output ./artifacts \
+            /p:Version=${{ steps.version.outputs.version }} \
+            /p:UseProjectReferences=false \
+            /p:CascadeVersion=${{ steps.version.outputs.version }}
+
+      - name: Push to NuGet
+        run: |
+          dotnet nuget push ./artifacts/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ./artifacts/*.nupkg
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages-release
+          path: ./artifacts/*.nupkg
