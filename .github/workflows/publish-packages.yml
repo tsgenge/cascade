@@ -80,10 +80,10 @@ jobs:
           PROJECTS=(
             "src/shared/CascadeEsdm.SharedKernel.Abstractions/CascadeEsdm.SharedKernel.Abstractions.csproj"
             "src/shared/CascadeEsdm.SharedKernel/CascadeEsdm.SharedKernel.csproj"
-            "src/commands/CascadeEsdm.WriteModel.Abstractions/CascadeEsdm.WriteModel.Abstractions.csproj"
-            "src/commands/CascadeEsdm.WriteModel/CascadeEsdm.WriteModel.csproj"
-            "src/queries/CascadeEsdm.ReadModel.Abstractions/CascadeEsdm.ReadModel.Abstractions.csproj"
-            "src/queries/CascadeEsdm.ReadModel/CascadeEsdm.ReadModel.csproj"
+            "src/write/CascadeEsdm.WriteModel.Abstractions/CascadeEsdm.WriteModel.Abstractions.csproj"
+            "src/write/CascadeEsdm.WriteModel/CascadeEsdm.WriteModel.csproj"
+            "src/read/CascadeEsdm.ReadModel.Abstractions/CascadeEsdm.ReadModel.Abstractions.csproj"
+            "src/read/CascadeEsdm.ReadModel/CascadeEsdm.ReadModel.csproj"
           )
           
           # Pack each project and add to local feed
