@@ -10,6 +10,9 @@ on:
 
 env:
   DOTNET_VERSION: '10.0.x'
+  VERSION_MAJOR: '1'
+  VERSION_MINOR: '0'
+  VERSION_PATCH: '0'
 
 jobs:
   publish:
@@ -33,7 +36,7 @@ jobs:
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
           BUILD_NUMBER=$(git rev-list --count develop)
-          VERSION="1.0.0-beta.$BUILD_NUMBER+$SHORT_SHA"
+          VERSION="${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ env.VERSION_PATCH }}-alpha.$BUILD_NUMBER+$SHORT_SHA"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Pre-release version: $VERSION"
 
@@ -45,7 +48,7 @@ jobs:
             VERSION=$(git describe --tags --exact-match | sed 's/^v//')
           else
             BUILD_NUMBER=$(git rev-list --count master)
-            VERSION="1.0.$BUILD_NUMBER"
+            VERSION="${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.$BUILD_NUMBER"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Release version: $VERSION"
@@ -77,10 +80,10 @@ jobs:
           PROJECTS=(
             "src/shared/CascadeEsdm.SharedKernel.Abstractions/CascadeEsdm.SharedKernel.Abstractions.csproj"
             "src/shared/CascadeEsdm.SharedKernel/CascadeEsdm.SharedKernel.csproj"
-            "src/commands/CascadeEsdm.Commands.Abstractions/CascadeEsdm.Commands.Abstractions.csproj"
-            "src/commands/CascadeEsdm.Commands/CascadeEsdm.Commands.csproj"
-            "src/queries/CascadeEsdm.Views.Abstractions/CascadeEsdm.Views.Abstractions.csproj"
-            "src/queries/CascadeEsdm.Views/CascadeEsdm.Views.csproj"
+            "src/commands/CascadeEsdm.WriteModel.Abstractions/CascadeEsdm.WriteModel.Abstractions.csproj"
+            "src/commands/CascadeEsdm.WriteModel/CascadeEsdm.WriteModel.csproj"
+            "src/queries/CascadeEsdm.ReadModel.Abstractions/CascadeEsdm.ReadModel.Abstractions.csproj"
+            "src/queries/CascadeEsdm.ReadModel/CascadeEsdm.ReadModel.csproj"
           )
           
           # Pack each project and add to local feed

@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>CascadeEsdm.ReadModel</PackageId>
+    <Description>View/Query implementation for the Cascade Event Sourcing framework</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="docs\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
+    <ProjectReference Include="..\CascadeEsdm.ReadModel.Abstractions\CascadeEsdm.ReadModel.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
+    <PackageReference Include="CascadeEsdm.ReadModel.Abstractions" Version="$(CascadeVersion)" />
+  </ItemGroup>
+
+</Project>
