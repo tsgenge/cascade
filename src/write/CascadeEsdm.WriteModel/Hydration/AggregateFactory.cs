@@ -56,17 +56,17 @@ internal class AggregateFactory<TAggregate> : IAggregateFactory<TAggregate>
 
             if (parameters.Length > 0)
             {
-                try
-                {
-                    applyMethod.Invoke(this, parameters);
+                try {
+                    applyMethod.Invoke(aggregate, parameters);
                 }
-                catch (ExceptionBase)
-                {
-                    throw;
+                catch (TargetInvocationException ex) when (ex.InnerException is ExceptionBase) {
+                    throw ex.InnerException;
                 }
-                catch (Exception ex)
-                {
-                    throw new EventHydrationException(ex, eventType, GetType());
+                catch (TargetInvocationException ex) when (ex.InnerException is not null) {
+                    throw new EventHydrationException(ex.InnerException, eventType, aggregate.GetType());
+                }
+                catch (Exception ex) {
+                    throw new EventHydrationException(ex, eventType, aggregate.GetType());
                 }
             }
         }
@@ -79,13 +79,14 @@ internal class AggregateFactory<TAggregate> : IAggregateFactory<TAggregate>
                 applier!.GetType().GetMethod(nameof(IEventApplier<IDomainEvent, TAggregate>.Apply))!
                     .Invoke(applier, [ aggregate, @event.Event, @event ]);
             }
-            catch (ExceptionBase)
-            {
-                throw;
+            catch (TargetInvocationException ex) when (ex.InnerException is ExceptionBase) {
+                throw ex.InnerException;
             }
-            catch (Exception ex)
-            {
-                throw new EventHydrationException(ex, @event.Event.GetType(), GetType());
+            catch (TargetInvocationException ex) when (ex.InnerException is not null) {
+                throw new EventHydrationException(ex.InnerException, eventType, aggregate.GetType());
+            }
+            catch (Exception ex) {
+                throw new EventHydrationException(ex, eventType, aggregate.GetType());
             }
         }
 
@@ -99,7 +100,7 @@ internal class AggregateFactory<TAggregate> : IAggregateFactory<TAggregate>
         }
         catch (TargetInvocationException ex)
         {
-            throw ex.InnerException ?? ex;
+            throw new EventHydrationException(ex.InnerException ?? ex, eventType, typeof(TAggregate));
         }
     }
 }

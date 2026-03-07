@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace CascadeEsdm.WriteModel;
 
-public record CommandEnvelope<TCommand> : CommandEnvelope
+public record CommandEnvelope<TCommand> : CommandEnvelope, ICommandEnvelope<TCommand>
     where TCommand : ICommand
 {
     public new TCommand Command { get; }

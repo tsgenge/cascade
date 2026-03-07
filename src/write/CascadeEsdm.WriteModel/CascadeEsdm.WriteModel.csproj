@@ -25,4 +25,9 @@
   <ItemGroup>
     <Folder Include="Composition\" />
   </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="CascadeEsdm.WriteModel.Tests"/>
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+    </ItemGroup>
 </Project>

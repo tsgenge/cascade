@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <PackageId>CascadeEsdm.Logging.OpenTelemetry</PackageId>
+        <Description>Provides an implementation of ITelemetryLogger using Azure.Monitor.OpenTelemetry.</Description>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.6.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="docs\" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="docs\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+</Project>

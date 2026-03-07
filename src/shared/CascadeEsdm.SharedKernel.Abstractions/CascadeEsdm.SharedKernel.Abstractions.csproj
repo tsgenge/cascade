@@ -9,4 +9,9 @@
   <ItemGroup>
     <None Include="docs\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CascadeEsdm.WriteModel.Tests"/>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+  </ItemGroup>  
 </Project>

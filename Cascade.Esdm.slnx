@@ -1,18 +1,20 @@
 <Solution>
-  <Folder Name="/Write/">
+  <Folder Name="/1. Shared/">
+    <Project Path="src/shared/CascadeEsdm.SharedKernel.Abstractions/CascadeEsdm.SharedKernel.Abstractions.csproj" />
+    <Project Path="src/shared/CascadeEsdm.SharedKernel/CascadeEsdm.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/2. Write/">
     <Project Path="src/write/CascadeEsdm.WriteModel.Abstractions/CascadeEsdm.WriteModel.Abstractions.csproj" />
     <Project Path="src/write/CascadeEsdm.WriteModel/CascadeEsdm.WriteModel.csproj" />
   </Folder>
-  <Folder Name="/Infrastructure/">
-    <Project Path="src/infrastructure/CascadeEsdm.Storage.CosmosDb/CascadeEsdm.Storage.CosmosDb.csproj" />
-  </Folder>
-  <Folder Name="/Read/">
+  <Folder Name="/3. Read/">
     <Project Path="src/read/CascadeEsdm.ReadModel.Abstractions/CascadeEsdm.ReadModel.Abstractions.csproj" />
     <Project Path="src/read/CascadeEsdm.ReadModel/CascadeEsdm.ReadModel.csproj" />
   </Folder>
-  <Folder Name="/Shared/">
-    <Project Path="src/shared/CascadeEsdm.SharedKernel.Abstractions/CascadeEsdm.SharedKernel.Abstractions.csproj" />
-    <Project Path="src/shared/CascadeEsdm.SharedKernel/CascadeEsdm.SharedKernel.csproj" />
+  <Folder Name="/4. Infrastructure/">
+    <Project Path="src/infrastructure/CascadeEsdm.DistributedLocks/CascadeEsdm.DistributedLocks.csproj" />
+    <Project Path="src/infrastructure/CascadeEsdm.Logging.OpenTelemetry/CascadeEsdm.Logging.OpenTelemetry.csproj" />
+    <Project Path="src/infrastructure/CascadeEsdm.Storage.CosmosDb/CascadeEsdm.Storage.CosmosDb.csproj" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="tests/CascadeEsdm.WriteModel.Tests/CascadeEsdm.WriteModel.Tests.csproj" />

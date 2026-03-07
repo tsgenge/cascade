@@ -3,11 +3,13 @@
   <PropertyGroup>
     <PackageId>CascadeEsdm.SharedKernel</PackageId>
     <Description>Core implementation for the Cascade Event Sourcing framework</Description>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="docs\README.md" Pack="true" PackagePath="\" />
+    <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
+    <None Include="docs\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
@@ -18,4 +20,13 @@
     <PackageReference Include="CascadeEsdm.SharedKernel.Abstractions" Version="$(CascadeVersion)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CascadeEsdm.WriteModel.Tests"/>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+  </ItemGroup>  
 </Project>
