@@ -28,5 +28,30 @@ globs: **/Events/*
 - Implement `EventAppliers<TEvent, TAggregate>` in the same file as the event. The applier will use the supplied aggregate (with public properties with entities) and amend the aggregate directly.
 - The EventApplier should be implemented as an internal class.
 - The EventApplier will apply the event data to the aggregate, usually by mutating an entity in the aggregate.
+- When setting the ValueObject properties of an entity during applier execution, remember to use new() reduce reduce `using` statements, rather than explicitly describing the ValueObject type.
+
+``` csharp
+    aggregate.Person.FirstName = new (@event.FirstName);
+
+    \\ Rather than...
+    aggregate.Person.FirstName = new FirstName(@event.FirstName);
+```
+
 - The EventApplier does not need (and indeed should not) change the LastSequence property of the aggregate.
 - EventAppliers are discovered and registered in the Composition Root for use by the IEventApplierFactory during Hydration. This registration is not a concern of the EventApplier itself.
+- EventAppliers should be optimistic in approach - since they are replaying historical events, they do not need to verify or validate using if statements. For example, this is not necessary on a PersonFirstNameChanged event;
+
+``` csharp
+internal class PersonFirstNameChangedApplier : IEventApplier<PersonFirstNameChanged, PersonAggregate>
+{
+    public void Apply(PersonAggregate aggregate, PersonFirstNameChanged @event, IEventEnvelope envelope)
+    {
+        // Since this is a replay of a historical event, we don't need to verify or validate
+        // The event data is already valid and we can directly apply it
+        if (aggregate.Person != null)
+        {
+            aggregate.Person.FirstName = new FirstName(@event.FirstName);
+        }
+    }
+}
+```

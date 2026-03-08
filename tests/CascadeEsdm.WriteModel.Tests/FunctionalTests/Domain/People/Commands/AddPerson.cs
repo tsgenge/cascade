@@ -35,7 +35,7 @@ internal class AddPersonExecutor : ICommandExecutor<AddPerson, PersonAggregate>
         await Task.CompletedTask;
     }
 
-    public Task<ISecurityDescriptor?> GetAccessControlListAsync(ICommandEnvelope<AddPerson> envelope, PersonAggregate aggregate)
+    public Task<ISecurityDescriptor?> GetSecurityDescriptorAsync(ICommandEnvelope<AddPerson> envelope, PersonAggregate aggregate)
     {
         return Task.FromResult<ISecurityDescriptor?>(aggregate.SecurityDescriptor);
     }

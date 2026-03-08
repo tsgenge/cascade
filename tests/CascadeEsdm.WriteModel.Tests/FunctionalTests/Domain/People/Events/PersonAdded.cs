@@ -11,6 +11,8 @@ internal class PersonAddedApplier : IEventApplier<PersonAdded, PersonAggregate>
 {
     public void Apply(PersonAggregate aggregate, PersonAdded @event, IEventEnvelope envelope)
     {
+        aggregate.Id = @event.Id;
+        
         aggregate.Person = new Person(
             new(@event.Id),
             new(@event.FirstName),

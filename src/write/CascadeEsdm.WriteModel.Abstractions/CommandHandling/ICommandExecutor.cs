@@ -12,7 +12,7 @@ public interface ICommandExecutor<in TCommand, TAggregate> : ICommandExecutor<TA
     where TAggregate : IAggregateRoot
 {
     IAsyncEnumerable<IEventEnvelope> ExecuteAsync(ICommandEnvelope<TCommand> envelope, TAggregate aggregate);
-    Task<ISecurityDescriptor?> GetAccessControlListAsync(ICommandEnvelope<TCommand> envelope, TAggregate aggregate);
+    Task<ISecurityDescriptor?> GetSecurityDescriptorAsync(ICommandEnvelope<TCommand> envelope, TAggregate aggregate);
 }
 
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]

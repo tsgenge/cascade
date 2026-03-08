@@ -38,7 +38,7 @@ internal abstract class CommandHandler<TCommand, TAggregate, TResponse> : IComma
         var executor = _executorFactory.GetFor<TCommand>();
 
         await _authoriser.CanAsync(envelope,
-            await executor.GetAccessControlListAsync(envelope, aggregate));
+            await executor.GetSecurityDescriptorAsync(envelope, aggregate));
 
         var events = new List<IEventEnvelope>();
         try

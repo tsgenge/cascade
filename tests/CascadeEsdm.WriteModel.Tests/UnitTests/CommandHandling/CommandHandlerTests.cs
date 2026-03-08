@@ -75,7 +75,7 @@ public class CommandHandlerTests
         _mockHydrator.HydrateAsync(subjectId, commandEnvelope.SecurityContext)
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
-        _mockExecutor.GetAccessControlListAsync(commandEnvelope, aggregate)
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
             .Returns(Task.FromResult<ISecurityDescriptor?>(null));
         _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
             .Returns(AsyncEnumerable.Empty<EventEnvelope>());
@@ -96,7 +96,7 @@ public class CommandHandlerTests
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
-        _mockExecutor.GetAccessControlListAsync(commandEnvelope, aggregate)
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
             .Returns(Task.FromResult<ISecurityDescriptor?>(null));
         _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
             .Returns(AsyncEnumerable.Empty<EventEnvelope>());
@@ -118,7 +118,7 @@ public class CommandHandlerTests
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
-        _mockExecutor.GetAccessControlListAsync(commandEnvelope, aggregate)
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
             .Returns(acl);
         _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
             .Returns(AsyncEnumerable.Empty<EventEnvelope>());
@@ -144,7 +144,7 @@ public class CommandHandlerTests
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
-        _mockExecutor.GetAccessControlListAsync(commandEnvelope, aggregate)
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
             .Returns(Task.FromResult<ISecurityDescriptor?>(null));
         _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
             .Returns(events.ToAsyncEnumerable());
@@ -168,7 +168,7 @@ public class CommandHandlerTests
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
-        _mockExecutor.GetAccessControlListAsync(commandEnvelope, aggregate)
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
             .Returns(Task.FromResult<ISecurityDescriptor?>(null));
         _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
             .Throws(expectedException);
@@ -189,7 +189,7 @@ public class CommandHandlerTests
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
-        _mockExecutor.GetAccessControlListAsync(commandEnvelope, aggregate)
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
             .Returns(Task.FromResult<ISecurityDescriptor?>(null));
         _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
             .Throws(innerException);
@@ -209,7 +209,7 @@ public class CommandHandlerTests
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
-        _mockExecutor.GetAccessControlListAsync(commandEnvelope, aggregate)
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
             .Returns(Task.FromResult<ISecurityDescriptor?>(null));
         _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
             .Returns(AsyncEnumerable.Empty<EventEnvelope>());
@@ -231,7 +231,7 @@ public class CommandHandlerTests
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
-        _mockExecutor.GetAccessControlListAsync(commandEnvelope, aggregate)
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
             .Returns(Task.FromResult<ISecurityDescriptor?>(null));
         _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
             .Returns(events.ToAsyncEnumerable());
@@ -256,7 +256,7 @@ public class CommandHandlerTests
         _mockHydrator.HydrateAsync(subjectId, Arg.Any<IAuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
-        _mockExecutor.GetAccessControlListAsync(commandEnvelope, aggregate)
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
             .Returns(Task.FromResult<ISecurityDescriptor?>(null));
         _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
             .Returns(AsyncEnumerable.Empty<EventEnvelope>());
@@ -279,7 +279,7 @@ public class CommandHandlerTests
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
-        _mockExecutor.GetAccessControlListAsync(commandEnvelope, aggregate)
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
             .Returns(Task.FromResult<ISecurityDescriptor?>(null));
         _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
             .Returns(events.ToAsyncEnumerable());
