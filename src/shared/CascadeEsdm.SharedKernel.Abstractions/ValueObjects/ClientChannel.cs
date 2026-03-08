@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace CascadeEsdm.SharedKernel.ValueObjects;
 
+public interface IClientChannel : IValueObject<string>;
 public record ClientChannel : IClientChannel
 {
     private const string Pattern = @"^[0-9a-zA-Z-_]{15,32}$";

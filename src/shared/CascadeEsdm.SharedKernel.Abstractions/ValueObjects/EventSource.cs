@@ -3,6 +3,13 @@ using System.Text.RegularExpressions;
 
 namespace CascadeEsdm.SharedKernel.ValueObjects;
 
+public interface IEventSource : IValueObject<string>
+{
+    string Aggregate { get; }
+    Guid CommandId { get; }
+    string Command { get; }
+}
+
 public record EventSource : IValueObject<string>, IEventSource
 {
     private const string Pattern = @"([\w\.^\/]+)\/([\w^\/]+)\/([\w^\/]+)\/((?im)[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?)";

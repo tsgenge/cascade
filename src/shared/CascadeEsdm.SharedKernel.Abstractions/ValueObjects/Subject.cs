@@ -5,6 +5,14 @@ using System.Text.RegularExpressions;
 
 namespace CascadeEsdm.SharedKernel.ValueObjects;
 
+public interface ISubject : IValueObject<string>
+{
+    Guid Id { get; }
+    Guid? Parent { get; }
+    string Type { get; }
+    string ForStorage();
+}
+
 public record Subject : ISubject
 {
     private const string Pattern = $@"([\w]+)(\/({ValidationPatterns.GuidPattern}))?\/({ValidationPatterns.GuidPattern})";

@@ -2,6 +2,7 @@ using CascadeEsdm.SharedKernel.Aggregates;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Security;
 using CascadeEsdm.WriteModel.Exceptions;
+#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace CascadeEsdm.WriteModel.CommandHandling;
 

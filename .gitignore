@@ -27,6 +27,7 @@ pids
 lib-cov
 
 artifacts
+local-feed
 
 # Coverage directory used by tools like istanbul
 coverage
