@@ -12,7 +12,7 @@ public class AddPersonTests : TestBase
     
     public AddPersonTests(ITestOutputHelper output, WriteContext environment) : base(output, environment)
     {
-        _sut = environment.ServiceProvider.GetRequiredService<ICommandHandler<AddPerson>>();
+        //_sut = environment.ServiceProvider.GetRequiredService<ICommandHandler<AddPerson>>();
     }
 
     [Fact]
