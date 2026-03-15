@@ -2,8 +2,14 @@
     <PropertyGroup>
         <PackageId>CascadeEsdm.Storage.CosmosDb</PackageId>
         <Description>Provides a CosmosDb implementation of the IPartitionedContainer interface for EventStream hydration and writing.</Description>
+        <PackageIcon>icon.jpg</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
+        <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.57.0"/>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
@@ -12,11 +18,5 @@
     </ItemGroup>    
     <ItemGroup>
         <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel.Abstractions\CascadeEsdm.SharedKernel.Abstractions.csproj" />
-    </ItemGroup>    
-    <ItemGroup>
-      <Folder Include="docs\" />
-    </ItemGroup>
-    <ItemGroup>
-        <None Include="docs\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>    
 </Project>

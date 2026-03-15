@@ -1,0 +1,18 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org">
+  <defs>
+    <bx:export>
+      <bx:file format="jpeg" excluded="true"></bx:file>
+      <bx:file format="png"></bx:file>
+    </bx:export>
+  </defs>
+  <rect width="128" height="128" fill="#f0f0f0" y="0"></rect>
+  <g fill="none" stroke="#c26d19" stroke-linecap="round" transform="matrix(1, 0, 0, 1, 6.333637, 2)">
+    <line x1="24" y1="115" x2="24" y2="105" stroke-width="8"></line>
+    <line x1="36" y1="115" x2="36" y2="70" stroke-width="8"></line>
+    <line x1="48" y1="115" x2="48" y2="50" stroke-width="8"></line>
+    <line x1="60" y1="115" x2="60" y2="10" stroke-width="8"></line>
+    <line x1="72" y1="115" x2="72" y2="50" stroke-width="8" stroke="#804912"></line>
+    <line x1="84" y1="115" x2="84" y2="70" stroke-width="8" stroke="#6b3d0f"></line>
+    <line x1="96" y1="115" x2="96" y2="105" stroke-width="8" stroke="#4a2908"></line>
+  </g>
+</svg>

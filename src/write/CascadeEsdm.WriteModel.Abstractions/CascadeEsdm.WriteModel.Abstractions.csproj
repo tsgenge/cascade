@@ -3,11 +3,13 @@
     <RootNamespace>CascadeEsdm.WriteModel</RootNamespace>
     <PackageId>CascadeEsdm.WriteModel.Abstractions</PackageId>
     <Description>Command abstractions for the Cascade Event Sourcing framework</Description>
+    <PackageIcon>icon.jpg</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="docs\README.md" Pack="true" PackagePath="\" />
+    <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
+    <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">

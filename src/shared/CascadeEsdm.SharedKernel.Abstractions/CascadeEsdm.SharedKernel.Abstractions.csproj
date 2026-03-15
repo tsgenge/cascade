@@ -3,11 +3,13 @@
     <RootNamespace>CascadeEsdm.SharedKernel</RootNamespace>
     <PackageId>CascadeEsdm.SharedKernel.Abstractions</PackageId>
     <Description>Abstractions and interfaces for the Cascade Event Sourcing framework</Description>
+    <PackageIcon>icon.jpg</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="docs\README.md" Pack="true" PackagePath="\" />
+    <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
+    <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

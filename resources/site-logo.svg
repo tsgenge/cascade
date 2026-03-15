@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <rect width="420.155" height="128" fill="#ffff00" x="14.449" y="59.986" style="stroke-width: 1;"></rect>
+  <g fill="none" stroke="#c26d19" stroke-linecap="round" transform="matrix(1, 0, 0, 1, 6.333637, 60.436436)">
+    <line x1="24" y1="115" x2="24" y2="105" stroke-width="8"></line>
+    <line x1="36" y1="115" x2="36" y2="70" stroke-width="8"></line>
+    <line x1="48" y1="115" x2="48" y2="50" stroke-width="8"></line>
+    <line x1="60" y1="115" x2="60" y2="10" stroke-width="8"></line>
+    <line x1="72" y1="115" x2="72" y2="50" stroke-width="8" stroke="#804912"></line>
+    <line x1="84" y1="115" x2="84" y2="70" stroke-width="8" stroke="#6b3d0f"></line>
+    <line x1="96" y1="115" x2="96" y2="105" stroke-width="8" stroke="#4a2908"></line>
+  </g>
+  <text style="white-space: pre; fill: rgb(51, 51, 51); font-family: Arial, sans-serif; font-size: 74.8px;" x="131.712" y="148.618">cascade</text>
+</svg>

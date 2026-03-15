@@ -2,15 +2,18 @@
     <PropertyGroup>
         <PackageId>CascadeEsdm.DistributedLocks</PackageId>
         <Description>Provides implementation of the IDistributedLockProvider using DistributedLock.Azure</Description>
+        <PackageIcon>icon.jpg</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-    </PropertyGroup>    
+    </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
+    <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
+  </ItemGroup>  
     <ItemGroup>
         <PackageReference Include="DistributedLock.Azure" Version="1.0.2" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-        <None Include="docs\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 </Project>

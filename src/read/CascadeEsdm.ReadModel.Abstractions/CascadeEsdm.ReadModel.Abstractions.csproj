@@ -3,10 +3,12 @@
     <RootNamespace>CascadeEsdm.ReadModel</RootNamespace>
     <PackageId>CascadeEsdm.ReadModel.Abstractions</PackageId>
     <Description>View/Query abstractions for the Cascade Event Sourcing framework</Description>
+    <PackageIcon>icon.jpg</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="docs\README.md" Pack="true" PackagePath="\" />
+    <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
+    <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
