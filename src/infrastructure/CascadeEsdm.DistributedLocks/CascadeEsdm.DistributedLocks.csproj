@@ -12,6 +12,7 @@
   </ItemGroup>  
     <ItemGroup>
         <PackageReference Include="DistributedLock.Azure" Version="1.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />

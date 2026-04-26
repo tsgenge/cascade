@@ -1,3 +1,4 @@
+using CascadeEsdm.SharedKernel.Composition;
 using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
@@ -5,6 +6,13 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {
+    public static IServiceCollection AddCascadeEsdm(this IServiceCollection services, Action<CascadeBuilder> configure)
+    {
+        var builder = new CascadeBuilder(services);
+        configure(builder);
+        return services;
+    }
+    
     public static IServiceCollection AddGeneric(
         this IServiceCollection services,
         Type interfaceType,

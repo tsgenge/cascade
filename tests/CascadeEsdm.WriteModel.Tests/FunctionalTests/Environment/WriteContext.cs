@@ -1,14 +1,17 @@
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Infrastructure.Storage;
 using CascadeEsdm.SharedKernel.Querying;
+using CascadeEsdm.WriteModel.Composition;
 using CascadeEsdm.WriteModel.EventStream;
+using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People;
+using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Commands;
+using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NSubstitute;
+using System.Runtime.Intrinsics.X86;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests.Environment;
 
@@ -23,10 +26,32 @@ public class WriteContext
         Fixture.Customize(new AutoNSubstituteCustomization());
         
         var builder = new HostBuilder()
-            .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-            .ConfigureContainer<ContainerBuilder>((h, b) => { })
             .ConfigureAppConfiguration((context, config) => { })
-            .ConfigureServices((b, services) => { });
+            .ConfigureServices((b, services) =>
+            {
+                services.AddCascadeEsdm(o =>
+                {
+                    o.WithInfrastructure(i =>
+                    {
+                        i.UseCosmosDbStorage(cosmosConfig =>
+                        {
+                            cosmosConfig.WithConnectionString("UseDevelopmentStorage=true");
+                        })
+                        .UseApplicationInsights()
+                        .UseAzureDistributedLocks(lb =>
+                        {
+                            lb.WithConnectionString("UseDevelopmentStorage=true");
+                        });
+                    })
+                    .WithWriteModel(b1 => 
+                        b1
+                            .WithExecutors(
+                                h => h.AddCommandExecutor<AddPerson, PersonAggregate, AddPersonExecutor>())
+                            .WithAppliers(h => h.RegisterEventApplier<PersonAdded, PersonAggregate, PersonAddedApplier>())
+                        );
+                });
+                    
+            });
         
         var app= builder.Build();
         ServiceProvider = app.Services;

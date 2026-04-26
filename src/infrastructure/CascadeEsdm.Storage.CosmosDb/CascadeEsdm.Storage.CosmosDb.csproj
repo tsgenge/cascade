@@ -17,6 +17,6 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     </ItemGroup>    
     <ItemGroup>
-        <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel.Abstractions\CascadeEsdm.SharedKernel.Abstractions.csproj" />
+        <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />
     </ItemGroup>    
 </Project>
