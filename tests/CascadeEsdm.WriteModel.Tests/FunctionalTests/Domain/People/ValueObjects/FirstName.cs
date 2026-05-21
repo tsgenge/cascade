@@ -5,4 +5,5 @@ namespace CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.ValueObject
 public record FirstName(string Value) : IValueObject<string>
 {
     public static implicit operator string(FirstName value) => value.Value;
+    public static implicit operator FirstName(string value) => new(value);
 }

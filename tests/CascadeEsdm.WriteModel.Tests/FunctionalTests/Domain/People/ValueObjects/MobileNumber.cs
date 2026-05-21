@@ -7,4 +7,5 @@ public record MobileNumber(string Value) : IValueObject<string>
 {
     public Guid ToGuid() => Value.ToGuid();
     public static implicit operator string(MobileNumber value) => value.Value;
+    public static implicit operator MobileNumber(string value) => new(value);
 }

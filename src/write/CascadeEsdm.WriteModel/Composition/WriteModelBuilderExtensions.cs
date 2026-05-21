@@ -44,7 +44,7 @@ public static class WriteModelBuilderExtensions
         return builder;
     }
     
-        public static WriteModelBuilder WithAppliers(this WriteModelBuilder builder, Action<EventApplierBuilder> eventAppliers)
+    public static WriteModelBuilder WithAppliers(this WriteModelBuilder builder, Action<EventApplierBuilder> eventAppliers)
     {
         var services = builder.Services;
         

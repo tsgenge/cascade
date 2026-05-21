@@ -1,6 +1,7 @@
 using CascadeEsdm.SharedKernel.Composition;
 using CascadeEsdm.Storage.CosmosDb;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class InfrastructureBuilderExtensions

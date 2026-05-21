@@ -5,6 +5,7 @@ using CascadeEsdm.SharedKernel.Infrastructure.Concurrency;
 using Medallion.Threading.Azure;
 using Microsoft.Extensions.Options;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class InfrastructureBuilderExtensions
@@ -15,21 +16,11 @@ public static class InfrastructureBuilderExtensions
         this InfrastructureBuilder builder,
         Action<DistributedLockBuilder> configure)
     {
-        var lockBuilder = new DistributedLockBuilder();
+        var lockBuilder = new DistributedLockBuilder(builder);
 
         configure(lockBuilder);
 
-        lockBuilder.Validate();
-
-        builder.Services.AddSingleton(serviceProvider =>
-        {
-            return new BlobContainerClient(lockBuilder.ConnectionString, ContainerName);
-        });
-        
-        builder.Services
-            .AddTransient<Medallion.Threading.IDistributedLockProvider,
-                AzureBlobLeaseDistributedSynchronizationProvider>();
-        builder.Services.AddTransient<IDistributedLockProvider, DistributedLockProvider>();
+        lockBuilder.Build();
         
         return builder;
     }

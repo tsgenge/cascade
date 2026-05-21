@@ -10,6 +10,7 @@ public class CosmosStorageBuilder
     private string _databaseName = "cascade";
     private string _connectionString = string.Empty;
     private readonly InfrastructureBuilder _infraBuilder;
+    private CosmosClientOptions? _options;
     
     internal CosmosStorageBuilder(InfrastructureBuilder infraBuilder)
     {
@@ -35,6 +36,12 @@ public class CosmosStorageBuilder
         _databaseName = databaseName;
         return this;
     }
+
+    public CosmosStorageBuilder WithOptions(CosmosClientOptions options)
+    {
+        _options = options;
+        return this;
+    }
     
     internal void Build()
     {
@@ -50,7 +57,7 @@ public class CosmosStorageBuilder
             DatabaseName = _databaseName
         });
 
-        _infraBuilder.Services.AddSingleton(_ => new CosmosClient(_connectionString));
+        _infraBuilder.Services.AddSingleton(_ => new CosmosClient(_connectionString, _options));
         _infraBuilder.Services.AddGeneric(typeof(IPartitionedContainer<>), typeof(CosmosDbContainer<>));
     }
 }

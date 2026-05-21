@@ -1,3 +1,5 @@
+using CascadeEsdm.SharedKernel.Security;
+using CascadeEsdm.SharedKernel.ValueObjects;
 using CascadeEsdm.WriteModel.CommandHandling;
 using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Commands;
 using CascadeEsdm.WriteModel.Tests.FunctionalTests.Environment;
@@ -15,9 +17,15 @@ public class AddPersonTests : TestBase
         _sut = environment.ServiceProvider.GetRequiredService<ICommandHandler<AddPerson>>();
     }
 
-    [Fact(Skip = "AddPerson doesn't work properly")]
+    [Fact]
     public async Task AddsPerson()
     {
-        await Task.CompletedTask;
+        await _sut.HandleAsync(new CommandEnvelope<AddPerson>(
+            new AddPerson(new("Tim"), new ("Genge"), new("07545778041")),
+            new AuthenticatedContext(
+                new UserIdentity(Guid.NewGuid()),
+                new Tenant(Guid.NewGuid())),
+            ClientChannel.Empty
+            ));
     }
 }

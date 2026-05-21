@@ -4,6 +4,8 @@ using CascadeEsdm.WriteModel.CommandHandling;
 using CascadeEsdm.WriteModel.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 
+namespace CascadeEsdm.WriteModel.Composition;
+
 public class CommandExecutorBuilder
 {
     private readonly IServiceCollection _services;
@@ -18,7 +20,7 @@ public class CommandExecutorBuilder
     {
         var targetAssembly = typeof(TExampleType).Assembly;
         var assemblyTypes = targetAssembly.GetTypes();
-        var aggregateTypes = assemblyTypes.Where(t => t.IsClass && !t.IsAbstract && typeof(IAggregateRoot).IsAssignableFrom(t));
+        var aggregateTypes = assemblyTypes.Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IAggregateRoot).IsAssignableFrom(t));
 
         var missingExecutors = new List<Type>();
         foreach (var aggregateType in aggregateTypes)
@@ -30,11 +32,13 @@ public class CommandExecutorBuilder
                 var interfaceType = typeof(ICommandHandler<>).MakeGenericType(commandType);
                 
                 var executorInterface = typeof(ICommandExecutor<,>).MakeGenericType(commandType, aggregateType);
+                var executorBaseInterface = typeof(ICommandExecutor<>).MakeGenericType(aggregateType);
                 var executorType = assemblyTypes.FirstOrDefault(t => executorInterface.IsAssignableFrom(t));
 
                 _services.AddScoped(interfaceType, handlerType);
                 if (executorType != null) {
                     _services.AddScoped(executorInterface, executorType);
+                    _services.AddScoped(executorBaseInterface, sp => sp.GetRequiredService(executorType));
                 }
                 else {
                     missingExecutors.Add(executorInterface);
@@ -55,6 +59,10 @@ public class CommandExecutorBuilder
         where TAggregate : IAggregateRoot
     {
         _services.AddScoped<ICommandExecutor<TCommand, TAggregate>, TExecutor>();
+
+        _services.AddScoped<ICommandExecutor<TAggregate>>(sp => sp.GetRequiredService<ICommandExecutor<TCommand, TAggregate>>());
+        _services.AddScoped<ICommandHandler<TCommand>, CommandHandler<TCommand, TAggregate>>();
+        
         return this;
     }
 }

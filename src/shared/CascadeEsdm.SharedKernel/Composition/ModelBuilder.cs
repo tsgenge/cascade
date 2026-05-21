@@ -3,12 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CascadeEsdm.SharedKernel.Composition;
 
-public class ModelSelector
+public class ModelBuilder
 {
     private readonly IServiceCollection _services;
     private readonly InfrastructureBuilder _infraBuilder;
     
-    internal ModelSelector(IServiceCollection services, InfrastructureBuilder infraBuilder)
+    internal ModelBuilder(IServiceCollection services, InfrastructureBuilder infraBuilder)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         _infraBuilder = infraBuilder ?? throw new ArgumentNullException(nameof(infraBuilder));

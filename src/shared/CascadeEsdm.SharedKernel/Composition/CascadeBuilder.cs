@@ -12,13 +12,18 @@ public class CascadeBuilder
         Services = services ?? throw new ArgumentNullException(nameof(services));
     }
     
-    public ModelSelector WithInfrastructure(Action<InfrastructureBuilder> configure)
+    public ModelBuilder WithInfrastructure(Action<InfrastructureBuilder> configure)
     {
         var builder = new InfrastructureBuilder(Services);
         configure(builder);
 
         builder.Validate();
+
+        return new ModelBuilder(Services, builder);
+    }
+
+    public void WithSerialisationOnly(Action<SerialisationBuilder> configure)
+    {
         
-        return new ModelSelector(Services, builder);
     }
 }
