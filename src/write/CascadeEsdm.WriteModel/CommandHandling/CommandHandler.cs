@@ -70,11 +70,11 @@ internal abstract class CommandHandler<TCommand, TAggregate, TResponse> : IComma
     protected abstract TResponse CreateResponse(ICommandEnvelope<TCommand> commandEnvelope, TAggregate aggregate, IReadOnlyList<IEventEnvelope> @events);
 }
 
-internal abstract class CommandHandler<TCommand, TAggregate> : CommandHandler<TCommand, TAggregate, ICommandResponse>, ICommandHandler<TCommand>
+internal class CommandHandler<TCommand, TAggregate> : CommandHandler<TCommand, TAggregate, ICommandResponse>, ICommandHandler<TCommand>
     where TCommand : ICommand
     where TAggregate : IAggregateRoot
 {
-    protected CommandHandler(IAggregateHydrator<TAggregate> hydrator, ICommandAuthoriser authoriser, ICommandExecutorFactory<TAggregate> executorFactory) : base(hydrator, authoriser, executorFactory)
+    public CommandHandler(IAggregateHydrator<TAggregate> hydrator, ICommandAuthoriser authoriser, ICommandExecutorFactory<TAggregate> executorFactory) : base(hydrator, authoriser, executorFactory)
     {
     }
 

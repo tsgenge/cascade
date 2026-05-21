@@ -59,5 +59,6 @@ public class CosmosStorageBuilder
 
         _infraBuilder.Services.AddSingleton(_ => new CosmosClient(_connectionString, _options));
         _infraBuilder.Services.AddGeneric(typeof(IPartitionedContainer<>), typeof(CosmosDbContainer<>));
+        _infraBuilder.Services.AddGeneric(typeof(IPagedContainer<>), typeof(CosmosDbContainer<>));
     }
 }
