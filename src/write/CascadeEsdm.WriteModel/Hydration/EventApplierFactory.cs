@@ -13,9 +13,9 @@ internal class EventApplierFactory<TAggregate> : IEventApplierFactory<TAggregate
 {
     private readonly IEventApplier<TAggregate>[] _appliers;
 
-    public EventApplierFactory(IEventApplier<TAggregate>[] appliers)
+    public EventApplierFactory(IEnumerable<IEventApplier<TAggregate>> appliers)
     {
-        _appliers = appliers ?? throw new ArgumentNullException(nameof(appliers));
+        _appliers = (appliers ?? throw new ArgumentNullException(nameof(appliers))).ToArray();
     }
 
     public IEventApplier<TEvent, TAggregate> GetFor<TEvent>()

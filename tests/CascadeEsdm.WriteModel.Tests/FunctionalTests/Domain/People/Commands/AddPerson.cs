@@ -8,7 +8,8 @@ using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.ValueObjects;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Commands;
 
-public record AddPerson(FirstName FirstName, LastName LastName, MobileNumber MobileNumber) : ICommand {
+public record AddPerson(FirstName FirstName, LastName LastName, MobileNumber MobileNumber) : ICommand
+{
     public ISubject GetSubject(ICommandEnvelope envelope)
     {
         return Subject.ForAggregate<PersonAggregate>(MobileNumber.ToGuid());
@@ -17,12 +18,13 @@ public record AddPerson(FirstName FirstName, LastName LastName, MobileNumber Mob
 
 internal class AddPersonExecutor : ICommandExecutor<AddPerson, PersonAggregate>
 {
-    public async IAsyncEnumerable<IEventEnvelope> ExecuteAsync(ICommandEnvelope<AddPerson> envelope, PersonAggregate aggregate)
+    public async IAsyncEnumerable<IEventEnvelope> ExecuteAsync(ICommandEnvelope<AddPerson> envelope,
+        PersonAggregate aggregate)
     {
-        if(aggregate.Exists)
+        if (aggregate.Exists)
             throw new ConflictException("The person already exists");
 
-        yield return envelope.CreateEvent<PersonAggregate>(new PersonAdded(
+        yield return envelope.CreateEvent(new PersonAdded(
             envelope.Command.MobileNumber.ToGuid(),
             envelope.Command.FirstName,
             envelope.Command.LastName,
@@ -31,11 +33,12 @@ internal class AddPersonExecutor : ICommandExecutor<AddPerson, PersonAggregate>
         yield return envelope.CreateEvent(new SecurityDescriptorSet(
             aggregate.SecurityDescriptor
         ), aggregate);
-        
+
         await Task.CompletedTask;
     }
 
-    public Task<ISecurityDescriptor?> GetSecurityDescriptorAsync(ICommandEnvelope<AddPerson> envelope, PersonAggregate aggregate)
+    public Task<ISecurityDescriptor?> GetSecurityDescriptorAsync(ICommandEnvelope<AddPerson> envelope,
+        PersonAggregate aggregate)
     {
         return Task.FromResult<ISecurityDescriptor?>(aggregate.SecurityDescriptor);
     }

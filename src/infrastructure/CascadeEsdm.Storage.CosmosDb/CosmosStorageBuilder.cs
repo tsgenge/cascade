@@ -7,30 +7,30 @@ namespace CascadeEsdm.Storage.CosmosDb;
 
 public class CosmosStorageBuilder
 {
-    private string _databaseName = "cascade";
-    private string _connectionString = string.Empty;
     private readonly InfrastructureBuilder _infraBuilder;
+    private string _connectionString = string.Empty;
+    private string _databaseName = "cascade";
     private CosmosClientOptions? _options;
-    
+
     internal CosmosStorageBuilder(InfrastructureBuilder infraBuilder)
     {
         _infraBuilder = infraBuilder ?? throw new ArgumentNullException(nameof(infraBuilder));
     }
-    
+
     public CosmosStorageBuilder WithEventStreamContainer<TContainer>()
         where TContainer : IDocumentContainerDefinition, new()
     {
         _infraBuilder.EventStreamContainerType = typeof(TContainer);
-        
+
         return this;
     }
-    
+
     public CosmosStorageBuilder WithConnectionString(string connectionString)
     {
         _connectionString = connectionString;
         return this;
     }
-    
+
     public CosmosStorageBuilder WithDatabaseName(string databaseName)
     {
         _databaseName = databaseName;
@@ -42,7 +42,7 @@ public class CosmosStorageBuilder
         _options = options;
         return this;
     }
-    
+
     internal void Build()
     {
         if (string.IsNullOrWhiteSpace(_connectionString))
@@ -52,10 +52,16 @@ public class CosmosStorageBuilder
         if (_infraBuilder.EventStreamContainerType == null)
             throw new InvalidOperationException("Set the Event Stream Container using WithEventStreamContainer()");
 
-        _infraBuilder.Services.AddSingleton<CosmosOptions>(_ => new CosmosOptions
+        _infraBuilder.Services.AddSingleton<CosmosOptions>(_ => new CosmosOptions { DatabaseName = _databaseName });
+
+        _options = _options ?? new CosmosClientOptions
         {
-            DatabaseName = _databaseName
-        });
+            ConnectionMode = ConnectionMode.Direct,
+            CosmosClientTelemetryOptions = new CosmosClientTelemetryOptions { DisableDistributedTracing = false }
+        };
+
+        if (_options.Serializer is not CosmosJsonNetSerializer)
+            _options.Serializer = new CosmosJsonNetSerializer();
 
         _infraBuilder.Services.AddSingleton(_ => new CosmosClient(_connectionString, _options));
         _infraBuilder.Services.AddGeneric(typeof(IPartitionedContainer<>), typeof(CosmosDbContainer<>));

@@ -25,6 +25,7 @@ public static class WriteModelBuilderExtensions
         services.AddGeneric(typeof(IEventApplierFactory<>), typeof(EventApplierFactory<>));
         services.AddScoped<IAggregatePartitionLocator, AggregatePartitionLocator>();
         services.AddGeneric(typeof(ICommandExecutorFactory<>), typeof(CommandExecutorFactory<>));
+        services.AddGeneric(typeof(ISnapshotReader<>), typeof(SnapshotReader<>));
         
         var eventReader = typeof(EventStreamReader<>).MakeGenericType(eventStreamContainerType);
         var eventWriter = typeof(EventStreamWriter<>).MakeGenericType(eventStreamContainerType);

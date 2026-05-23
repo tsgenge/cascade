@@ -18,9 +18,9 @@ internal class CommandExecutorFactory<TAggregate> : ICommandExecutorFactory<TAgg
 {
     private readonly ICommandExecutor<TAggregate>[] _executors;
 
-    public CommandExecutorFactory(ICommandExecutor<TAggregate>[] executors)
+    public CommandExecutorFactory(IEnumerable<ICommandExecutor<TAggregate>> executors)
     {
-        _executors = executors ?? throw new ArgumentNullException(nameof(executors));
+        _executors = (executors ?? throw new ArgumentNullException(nameof(executors))).ToArray();
     }
 
     public ICommandExecutor<TCommand, TAggregate> GetFor<TCommand>() where TCommand : ICommand

@@ -2,6 +2,9 @@ using CascadeEsdm.SharedKernel.Aggregates;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.WriteModel.Hydration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
+namespace CascadeEsdm.WriteModel.Composition;
 
 public class EventApplierBuilder
 {
@@ -16,11 +19,21 @@ public class EventApplierBuilder
     {
         var targetAssembly = typeof(TExampleType).Assembly;
         var assemblyTypes = targetAssembly.GetTypes();
-        var eventApplierTypes = assemblyTypes.Where(t => t.IsClass && !t.IsAbstract && typeof(IEventApplier<,>).IsAssignableFrom(t));
+        var eventApplierTypes = assemblyTypes
+            .Where(t => t.IsClass && !t.IsAbstract)
+            .Where(t => t.GetInterfaces().Any(i => 
+                i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventApplier<,>)));
 
         foreach (var eventApplierType in eventApplierTypes)
         {
-            _services.AddScoped(eventApplierType);
+            var eventApplierInterface = eventApplierType.GetInterfaces()
+                .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventApplier<,>));
+            
+            var aggregateType = eventApplierInterface.GetGenericArguments()[1];
+            var aggregateApplierInterface = typeof(IEventApplier<>).MakeGenericType(aggregateType);
+            
+            _services.AddScoped(eventApplierInterface, eventApplierType);
+            _services.AddScoped(aggregateApplierInterface, sp => sp.GetRequiredService(eventApplierType));
         }
 
         return this;
@@ -31,7 +44,9 @@ public class EventApplierBuilder
         where TEvent : IDomainEvent
         where TAggregate : IAggregateRoot
     {
-        _services.AddScoped<IEventApplier<TEvent, TAggregate>, TApplier>();
+        _services.AddScoped<TApplier>();
+        _services.AddScoped<IEventApplier<TEvent, TAggregate>, TApplier>(sp => sp.GetRequiredService<TApplier>());
+        _services.AddScoped<IEventApplier<TAggregate>, TApplier>(sp => sp.GetRequiredService<TApplier>());
         return this;
     }
 }
