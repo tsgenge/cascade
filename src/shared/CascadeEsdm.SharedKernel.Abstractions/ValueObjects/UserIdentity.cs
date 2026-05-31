@@ -2,12 +2,8 @@ using System.Security.Claims;
 
 namespace CascadeEsdm.SharedKernel.ValueObjects;
 
-public interface IUserIdentity : IValueObject<Guid>;
-
-public record UserIdentity : IUserIdentity
+public record UserIdentity : IValueObject<Guid>
 {
-    public Guid Value { get; }
-
     public UserIdentity(string value)
     {
         if (!Guid.TryParse(value, out var id))
@@ -20,6 +16,8 @@ public record UserIdentity : IUserIdentity
     {
         Value = id;
     }
+
+    public Guid Value { get; }
 
     public override string ToString()
     {

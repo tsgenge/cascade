@@ -5,17 +5,10 @@ using System.Text.RegularExpressions;
 
 namespace CascadeEsdm.SharedKernel.ValueObjects;
 
-public interface ISubject : IValueObject<string>
+public record Subject : IValueObject<string>
 {
-    Guid Id { get; }
-    Guid? Parent { get; }
-    string Type { get; }
-    string ForStorage();
-}
-
-public record Subject : ISubject
-{
-    private const string Pattern = $@"([\w]+)(\/({ValidationPatterns.GuidPattern}))?\/({ValidationPatterns.GuidPattern})";
+    private const string Pattern =
+        $@"([\w]+)(\/({ValidationPatterns.GuidPattern}))?\/({ValidationPatterns.GuidPattern})";
 
     public Subject(string value)
     {
@@ -34,10 +27,11 @@ public record Subject : ISubject
         Value = FormatValue(Type, Id, Parent);
     }
 
-    public string Value { get; }
     public Guid Id { get; }
     public Guid? Parent { get; }
     public string Type { get; }
+
+    public string Value { get; }
 
     public static Subject ForAggregate(IAggregateRoot aggregate)
     {
@@ -48,11 +42,11 @@ public record Subject : ISubject
     {
         return ForAggregate(aggregate, explicitId, null);
     }
-    
+
     public static Subject ForAggregate<TAggregate>(Guid explicitId)
-    where TAggregate : IAggregateRoot
+        where TAggregate : IAggregateRoot
     {
-        return new Subject(explicitId, typeof(TAggregate).Name, null);
+        return new Subject(explicitId, typeof(TAggregate).Name);
     }
 
     public static Subject ForAggregate(IAggregateRoot aggregate, Guid explicitId, Guid? parentId)
@@ -67,7 +61,8 @@ public record Subject : ISubject
 
     private string FormatValue(string type, Guid id, Guid? parentId = null)
     {
-        return $"{type}{(parentId.HasValue && parentId.Value != Guid.Empty ? $"/{parentId.Value.ToString("n", CultureInfo.InvariantCulture)}" : "")}/{id.ToString("n", CultureInfo.InvariantCulture)}";
+        return
+            $"{type}{(parentId.HasValue && parentId.Value != Guid.Empty ? $"/{parentId.Value.ToString("n", CultureInfo.InvariantCulture)}" : "")}/{id.ToString("n", CultureInfo.InvariantCulture)}";
     }
 
     private void Parse(string value, out Guid id, out Guid? parentId, out string type)

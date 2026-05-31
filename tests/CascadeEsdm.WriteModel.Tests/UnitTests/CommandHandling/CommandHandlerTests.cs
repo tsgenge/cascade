@@ -16,10 +16,10 @@ namespace CascadeEsdm.WriteModel.Tests.UnitTests.CommandHandling;
 public class CommandHandlerTests
 {
     private readonly IFixture _fixture;
-    private readonly IAggregateHydrator<TestAggregate> _mockHydrator;
     private readonly ICommandAuthoriser _mockAuthoriser;
-    private readonly ICommandExecutorFactory<TestAggregate> _mockExecutorFactory;
     private readonly ICommandExecutor<TestCommand, TestAggregate> _mockExecutor;
+    private readonly ICommandExecutorFactory<TestAggregate> _mockExecutorFactory;
+    private readonly IAggregateHydrator<TestAggregate> _mockHydrator;
 
     public CommandHandlerTests()
     {
@@ -71,7 +71,7 @@ public class CommandHandlerTests
         var subjectId = Guid.NewGuid();
         var commandEnvelope = TestTools.CreateCommandEnvelope(subjectId);
         var aggregate = new TestAggregate { Id = subjectId };
-        
+
         _mockHydrator.HydrateAsync(subjectId, commandEnvelope.SecurityContext)
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
@@ -92,8 +92,8 @@ public class CommandHandlerTests
     {
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate();
-        
-        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
+
+        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
         _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
@@ -114,8 +114,8 @@ public class CommandHandlerTests
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate();
         var acl = Substitute.For<ISecurityDescriptor>();
-        
-        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
+
+        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
         _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
@@ -135,13 +135,9 @@ public class CommandHandlerTests
     {
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate();
-        var events = new List<EventEnvelope>
-        {
-            TestTools.CreateEventEnvelope(),
-            TestTools.CreateEventEnvelope()
-        };
-        
-        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
+        var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope() };
+
+        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
         _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
@@ -164,8 +160,8 @@ public class CommandHandlerTests
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate();
         var expectedException = new TestExceptionBase();
-        
-        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
+
+        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
         _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
@@ -185,8 +181,8 @@ public class CommandHandlerTests
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate();
         var innerException = new InvalidOperationException("Test error");
-        
-        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
+
+        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
         _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
@@ -196,7 +192,8 @@ public class CommandHandlerTests
 
         var handler = new TestCommandHandler(_mockHydrator, _mockAuthoriser, _mockExecutorFactory);
 
-        var x = await Assert.ThrowsAsync<CommandProcessingException>(async () => await handler.HandleAsync(commandEnvelope));
+        var x = await Assert.ThrowsAsync<CommandProcessingException>(async () =>
+            await handler.HandleAsync(commandEnvelope));
         x.InnerException.Should().Be(innerException);
     }
 
@@ -205,8 +202,8 @@ public class CommandHandlerTests
     {
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate();
-        
-        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
+
+        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
         _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
@@ -227,8 +224,8 @@ public class CommandHandlerTests
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate { Id = Guid.NewGuid() };
         var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope() };
-        
-        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
+
+        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
         _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
@@ -252,8 +249,8 @@ public class CommandHandlerTests
     {
         var commandEnvelope = TestTools.CreateCommandEnvelope(subjectId);
         var aggregate = new TestAggregate { Id = subjectId };
-        
-        _mockHydrator.HydrateAsync(subjectId, Arg.Any<IAuthenticatedContext>())
+
+        _mockHydrator.HydrateAsync(subjectId, Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
         _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
@@ -275,8 +272,8 @@ public class CommandHandlerTests
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate();
         var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope() };
-        
-        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<IAuthenticatedContext>())
+
+        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
         _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
         _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
@@ -297,49 +294,45 @@ public class CommandHandlerTests
     private static async IAsyncEnumerable<T> ThrowAsync<T>(Exception exception)
         where T : IDomainEvent
     {
-        yield return default(T);
+        yield return default;
         throw exception;
     }
 }
 
-internal class TestCommandHandler : CascadeEsdm.WriteModel.CommandHandling.CommandHandler<TestCommand, TestAggregate, CommandResponse>
+internal class TestCommandHandler : CommandHandler<TestCommand, TestAggregate, CommandResponse>
 {
     public TestCommandHandler(
         IAggregateHydrator<TestAggregate> hydrator,
         ICommandAuthoriser authoriser,
         ICommandExecutorFactory<TestAggregate> executorFactory)
-        : base(hydrator, authoriser, executorFactory)
-    {
-    }
+        : base(hydrator, authoriser, executorFactory) { }
 
     protected override CommandResponse CreateResponse(
         ICommandEnvelope<TestCommand> commandEnvelope,
         TestAggregate aggregate,
-        IReadOnlyList<IEventEnvelope> events)
+        IReadOnlyList<EventEnvelope> events)
     {
         return new CommandResponse(commandEnvelope, commandEnvelope.Command.GetSubject(commandEnvelope), events);
     }
 }
 
-internal class TestCommandHandlerWithTracking : CascadeEsdm.WriteModel.CommandHandling.CommandHandler<TestCommand, TestAggregate, CommandResponse>
+internal class TestCommandHandlerWithTracking : CommandHandler<TestCommand, TestAggregate, CommandResponse>
 {
-    public bool CreateResponseCalled { get; private set; }
-    public ICommandEnvelope<TestCommand>? LastCommandEnvelope { get; private set; }
-    public TestAggregate? LastAggregate { get; private set; }
-    public IReadOnlyList<IEventEnvelope>? LastEvents { get; private set; }
-
     public TestCommandHandlerWithTracking(
         IAggregateHydrator<TestAggregate> hydrator,
         ICommandAuthoriser authoriser,
         ICommandExecutorFactory<TestAggregate> executorFactory)
-        : base(hydrator, authoriser, executorFactory)
-    {
-    }
+        : base(hydrator, authoriser, executorFactory) { }
+
+    public bool CreateResponseCalled { get; private set; }
+    public ICommandEnvelope<TestCommand>? LastCommandEnvelope { get; private set; }
+    public TestAggregate? LastAggregate { get; private set; }
+    public IReadOnlyList<EventEnvelope>? LastEvents { get; private set; }
 
     protected override CommandResponse CreateResponse(
         ICommandEnvelope<TestCommand> commandEnvelope,
         TestAggregate aggregate,
-        IReadOnlyList<IEventEnvelope> events)
+        IReadOnlyList<EventEnvelope> events)
     {
         CreateResponseCalled = true;
         LastCommandEnvelope = commandEnvelope;
@@ -349,20 +342,16 @@ internal class TestCommandHandlerWithTracking : CascadeEsdm.WriteModel.CommandHa
     }
 }
 
-internal class TestBaseCommandHandler : CascadeEsdm.WriteModel.CommandHandling.CommandHandler<TestCommand, TestAggregate>
+internal class TestBaseCommandHandler : CommandHandler<TestCommand, TestAggregate>
 {
     public TestBaseCommandHandler(
         IAggregateHydrator<TestAggregate> hydrator,
         ICommandAuthoriser authoriser,
         ICommandExecutorFactory<TestAggregate> executorFactory)
-        : base(hydrator, authoriser, executorFactory)
-    {
-    }
+        : base(hydrator, authoriser, executorFactory) { }
 }
 
 public class TestExceptionBase : ExceptionBase
 {
-    public TestExceptionBase() : base("Test exception")
-    {
-    }
+    public TestExceptionBase() : base("Test exception") { }
 }

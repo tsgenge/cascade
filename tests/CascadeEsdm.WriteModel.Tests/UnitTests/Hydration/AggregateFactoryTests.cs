@@ -8,7 +8,6 @@ using CascadeEsdm.WriteModel.Hydration;
 using FluentAssertions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using System.Reflection;
 
 namespace CascadeEsdm.WriteModel.Tests.UnitTests.Hydration;
 
@@ -42,7 +41,7 @@ public class AggregateFactoryTests
     public void GetAggregator_WithNullSnapshot_CreatesNewAggregate()
     {
         var factory = new AggregateFactory<TestAggregate>(Substitute.For<IEventApplierFactory<TestAggregate>>());
-        var events = Array.Empty<IEventEnvelope>();
+        var events = Array.Empty<EventEnvelope>();
 
         var result = factory.GetAggregator(events, null);
 
@@ -55,7 +54,7 @@ public class AggregateFactoryTests
     {
         var factory = new AggregateFactory<TestAggregate>(Substitute.For<IEventApplierFactory<TestAggregate>>());
         var snapshot = new TestAggregate { Id = Guid.NewGuid(), LastSequence = 10 };
-        var events = Array.Empty<IEventEnvelope>();
+        var events = Array.Empty<EventEnvelope>();
 
         var result = factory.GetAggregator(events, snapshot);
 
@@ -67,7 +66,7 @@ public class AggregateFactoryTests
     public void GetAggregator_WithEmptyEvents_ReturnsAggregate()
     {
         var factory = new AggregateFactory<TestAggregate>(Substitute.For<IEventApplierFactory<TestAggregate>>());
-        var events = Array.Empty<IEventEnvelope>();
+        var events = Array.Empty<EventEnvelope>();
 
         var result = factory.GetAggregator(events, null);
 
@@ -77,7 +76,9 @@ public class AggregateFactoryTests
     [Fact]
     public void GetAggregator_WithEventsAndAggregateApplyMethod_AppliesEventsToAggregate()
     {
-        var factory = new AggregateFactory<TestAggregateWithApply>(Substitute.For<IEventApplierFactory<TestAggregateWithApply>>());
+        var factory =
+            new AggregateFactory<TestAggregateWithApply>(Substitute
+                .For<IEventApplierFactory<TestAggregateWithApply>>());
         var @event = new TestEvent { Value = "Test" };
         var eventEnvelope = TestTools.CreateEventEnvelope(@event, 1);
         var events = new[] { eventEnvelope };
@@ -92,14 +93,15 @@ public class AggregateFactoryTests
     [Fact]
     public void GetAggregator_WithMultipleEvents_AppliesAllEventsInOrder()
     {
-        var factory = new AggregateFactory<TestAggregateWithApply>(Substitute.For<IEventApplierFactory<TestAggregateWithApply>>());
+        var factory =
+            new AggregateFactory<TestAggregateWithApply>(Substitute
+                .For<IEventApplierFactory<TestAggregateWithApply>>());
         var event1 = new TestEvent { Value = "First" };
         var event2 = new TestEvent { Value = "Second" };
         var event3 = new TestEvent { Value = "Third" };
         var events = new[]
         {
-            TestTools.CreateEventEnvelope(event1, 1),
-            TestTools.CreateEventEnvelope(event2, 2),
+            TestTools.CreateEventEnvelope(event1, 1), TestTools.CreateEventEnvelope(event2, 2),
             TestTools.CreateEventEnvelope(event3, 3)
         };
 
@@ -115,7 +117,9 @@ public class AggregateFactoryTests
     [Fact]
     public void GetAggregator_WithApplyMethodTakingEventAndEnvelope_PassesBothParameters()
     {
-        var factory = new AggregateFactory<TestAggregateWithApplyAndEnvelope>(Substitute.For<IEventApplierFactory<TestAggregateWithApplyAndEnvelope>>());
+        var factory =
+            new AggregateFactory<TestAggregateWithApplyAndEnvelope>(Substitute
+                .For<IEventApplierFactory<TestAggregateWithApplyAndEnvelope>>());
         var @event = new TestEvent { Value = "Test" };
         var eventEnvelope = TestTools.CreateEventEnvelope(@event, 5);
         var events = new[] { eventEnvelope };
@@ -134,7 +138,7 @@ public class AggregateFactoryTests
 
         var mockApplierFactory = Substitute.For<IEventApplierFactory<TestAggregate>>();
         mockApplierFactory.GetFor<TestEvent>().Returns(mockApplier);
-        
+
         var factory = new AggregateFactory<TestAggregate>(mockApplierFactory);
         var @event = new TestEvent { Value = "Test" };
         var eventEnvelope = TestTools.CreateEventEnvelope(@event, 1);
@@ -149,7 +153,9 @@ public class AggregateFactoryTests
     [Fact]
     public void GetAggregator_WhenApplyMethodThrowsExceptionBase_RethrowsException()
     {
-        var factory = new AggregateFactory<TestAggregateWithThrowingApply>(Substitute.For<IEventApplierFactory<TestAggregateWithThrowingApply>>());
+        var factory =
+            new AggregateFactory<TestAggregateWithThrowingApply>(Substitute
+                .For<IEventApplierFactory<TestAggregateWithThrowingApply>>());
         var @event = new TestEvent { Value = "Test" };
         var eventEnvelope = TestTools.CreateEventEnvelope(@event, 1);
         var events = new[] { eventEnvelope };
@@ -162,7 +168,9 @@ public class AggregateFactoryTests
     [Fact]
     public void GetAggregator_WhenApplyMethodThrowsGenericException_WrapsInEventHydrationException()
     {
-        var factory = new AggregateFactory<TestAggregateWithFailingApply>(Substitute.For<IEventApplierFactory<TestAggregateWithFailingApply>>());
+        var factory =
+            new AggregateFactory<TestAggregateWithFailingApply>(Substitute
+                .For<IEventApplierFactory<TestAggregateWithFailingApply>>());
         var @event = new TestEvent { Value = "Test" };
         var eventEnvelope = TestTools.CreateEventEnvelope(@event, 1);
         var events = new[] { eventEnvelope };
@@ -171,7 +179,7 @@ public class AggregateFactoryTests
 
         x.Message.Should().Contain(nameof(TestEvent))
             .And.Contain(nameof(TestAggregateWithFailingApply));
-        
+
         x.InnerException.Should().BeOfType<InvalidOperationException>();
     }
 
@@ -180,12 +188,12 @@ public class AggregateFactoryTests
     {
         var mockApplier = Substitute.For<IEventApplier<TestEvent, TestAggregate>>();
         var expectedException = new TestExceptionBase();
-        mockApplier.When(x => x.Apply(Arg.Any<TestAggregate>(), Arg.Any<TestEvent>(), Arg.Any<IEventEnvelope>()))
+        mockApplier.When(x => x.Apply(Arg.Any<TestAggregate>(), Arg.Any<TestEvent>(), Arg.Any<EventEnvelope>()))
             .Do(_ => throw expectedException);
-        
+
         var mockApplierFactory = Substitute.For<IEventApplierFactory<TestAggregate>>();
         mockApplierFactory.GetFor<TestEvent>().Returns(mockApplier);
-        
+
         var factory = new AggregateFactory<TestAggregate>(mockApplierFactory);
         var @event = new TestEvent { Value = "Test" };
         var eventEnvelope = TestTools.CreateEventEnvelope(@event, 1);
@@ -202,12 +210,12 @@ public class AggregateFactoryTests
     {
         var mockApplier = Substitute.For<IEventApplier<TestEvent, TestAggregate>>();
         var innerException = new InvalidOperationException("Applier failed");
-        mockApplier.When(x => x.Apply(Arg.Any<TestAggregate>(), Arg.Any<TestEvent>(), Arg.Any<IEventEnvelope>()))
+        mockApplier.When(x => x.Apply(Arg.Any<TestAggregate>(), Arg.Any<TestEvent>(), Arg.Any<EventEnvelope>()))
             .Do(_ => throw innerException);
-        
+
         var mockApplierFactory = Substitute.For<IEventApplierFactory<TestAggregate>>();
         mockApplierFactory.GetFor<TestEvent>().Returns(mockApplier);
-        
+
         var factory = new AggregateFactory<TestAggregate>(mockApplierFactory);
         var @event = new TestEvent { Value = "Test" };
         var eventEnvelope = TestTools.CreateEventEnvelope(@event, 1);
@@ -223,7 +231,9 @@ public class AggregateFactoryTests
     [Fact]
     public void GetAggregator_UpdatesLastSequenceForEachEvent()
     {
-        var factory = new AggregateFactory<TestAggregateWithApply>(Substitute.For<IEventApplierFactory<TestAggregateWithApply>>());
+        var factory =
+            new AggregateFactory<TestAggregateWithApply>(Substitute
+                .For<IEventApplierFactory<TestAggregateWithApply>>());
         var events = new[]
         {
             TestTools.CreateEventEnvelope(new TestEvent { Value = "1" }, 5),
@@ -239,14 +249,12 @@ public class AggregateFactoryTests
     [Fact]
     public void GetAggregator_WithSnapshotAndEvents_AppliesEventsToSnapshot()
     {
-        var factory = new AggregateFactory<TestAggregateWithApply>(Substitute.For<IEventApplierFactory<TestAggregateWithApply>>());
-        var snapshot = new TestAggregateWithApply 
-        { 
-            Id = Guid.NewGuid(), 
-            LastSequence = 5 
-        };
+        var factory =
+            new AggregateFactory<TestAggregateWithApply>(Substitute
+                .For<IEventApplierFactory<TestAggregateWithApply>>());
+        var snapshot = new TestAggregateWithApply { Id = Guid.NewGuid(), LastSequence = 5 };
         snapshot.AppliedEvents.Add(new TestEvent { Value = "Snapshot" });
-        
+
         var @event = new TestEvent { Value = "New" };
         var events = new[] { TestTools.CreateEventEnvelope(@event, 6) };
 
@@ -265,15 +273,14 @@ public class AggregateFactoryTests
         var mockApplier = Substitute.For<IEventApplier<OtherTestEvent, TestAggregateWithApply>>();
         var mockApplierFactory = Substitute.For<IEventApplierFactory<TestAggregateWithApply>>();
         mockApplierFactory.GetFor<OtherTestEvent>().Returns(mockApplier);
-        
+
         var factory = new AggregateFactory<TestAggregateWithApply>(mockApplierFactory);
         var event1 = new TestEvent { Value = "First" };
         var event2 = new OtherTestEvent { Data = 42 };
         var event3 = new TestEvent { Value = "Third" };
-        var events = new IEventEnvelope[]
+        var events = new[]
         {
-            TestTools.CreateEventEnvelope(event1, 1),
-            TestTools.CreateEventEnvelope(event2, 2),
+            TestTools.CreateEventEnvelope(event1, 1), TestTools.CreateEventEnvelope(event2, 2),
             TestTools.CreateEventEnvelope(event3, 3)
         };
 
@@ -282,7 +289,7 @@ public class AggregateFactoryTests
         result.AppliedEvents.Should().HaveCount(2);
         result.AppliedEvents[0].Should().Be(event1);
         result.AppliedEvents[1].Should().Be(event3);
-        mockApplier.Received(1).Apply(result, event2, Arg.Any<IEventEnvelope>());
+        mockApplier.Received(1).Apply(result, event2, Arg.Any<EventEnvelope>());
         result.LastSequence.Should().Be(3);
     }
 
@@ -291,7 +298,7 @@ public class AggregateFactoryTests
     public void GetAggregator_WithAutoFixtureData_ExecutesSuccessfully(Guid aggregateId)
     {
         var factory = new AggregateFactory<TestAggregate>(Substitute.For<IEventApplierFactory<TestAggregate>>());
-        var events = Array.Empty<IEventEnvelope>();
+        var events = Array.Empty<EventEnvelope>();
 
         var result = factory.GetAggregator(events, null);
 
@@ -305,7 +312,7 @@ public class AggregateFactoryTests
         var mockFactory = Substitute.For<IEventApplierFactory<TestAggregate>>();
         var innerException = new InvalidOperationException("Factory error");
         mockFactory.GetFor<TestEvent>().Throws(innerException);
-        
+
         var factory = new AggregateFactory<TestAggregate>(mockFactory);
         var @event = new TestEvent { Value = "Test" };
         var eventEnvelope = TestTools.CreateEventEnvelope(@event, 1);
@@ -325,9 +332,9 @@ public class TestAggregate : IAggregateRoot
 
 public class TestAggregateWithApply : IAggregateRoot
 {
+    public List<TestEvent> AppliedEvents { get; } = new();
     public Guid Id { get; set; }
     public int LastSequence { get; set; }
-    public List<TestEvent> AppliedEvents { get; } = new();
 
     public void Apply(TestEvent @event)
     {
@@ -337,12 +344,12 @@ public class TestAggregateWithApply : IAggregateRoot
 
 public class TestAggregateWithApplyAndEnvelope : IAggregateRoot
 {
+    public List<TestEvent> AppliedEvents { get; } = new();
+    public List<EventEnvelope> ReceivedEnvelopes { get; } = new();
     public Guid Id { get; set; }
     public int LastSequence { get; set; }
-    public List<TestEvent> AppliedEvents { get; } = new();
-    public List<IEventEnvelope> ReceivedEnvelopes { get; } = new();
 
-    public void Apply(TestEvent @event, IEventEnvelope envelope)
+    public void Apply(TestEvent @event, EventEnvelope envelope)
     {
         AppliedEvents.Add(@event);
         ReceivedEnvelopes.Add(envelope);
@@ -383,7 +390,5 @@ public record OtherTestEvent : IDomainEvent
 
 public class TestExceptionBase : ExceptionBase
 {
-    public TestExceptionBase() : base("Test exception")
-    {
-    }
+    public TestExceptionBase() : base("Test exception") { }
 }

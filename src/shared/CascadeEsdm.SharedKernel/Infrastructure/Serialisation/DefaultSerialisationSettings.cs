@@ -10,7 +10,10 @@ public static class DefaultSerialisationSettings
     public static JsonSerializerOptions UsingTypeQualifiedName()
     {
         var options =
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
+            new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase, IncludeFields = true, WriteIndented = true
+            };
 
         options.Converters.Add(new PolymorphicTypeConverter<IDomainEvent>());
         options.Converters.Add(new ValueObjectConverter());

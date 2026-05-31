@@ -1,5 +1,4 @@
 using CascadeEsdm.SharedKernel.Composition;
-using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -12,7 +11,7 @@ public static class ServiceCollectionExtensions
         configure(builder);
         return services;
     }
-    
+
     public static IServiceCollection AddGeneric(
         this IServiceCollection services,
         Type interfaceType,
@@ -24,7 +23,8 @@ public static class ServiceCollectionExtensions
         }
 
         if (!implementationType.IsGenericTypeDefinition) {
-            throw new ArgumentException("Implementation type must be a generic type definition.", nameof(implementationType));
+            throw new ArgumentException("Implementation type must be a generic type definition.",
+                nameof(implementationType));
         }
 
         var descriptor = new ServiceDescriptor(interfaceType, implementationType, lifetime);
@@ -38,7 +38,7 @@ public static class ServiceCollectionExtensions
         Type interfaceType,
         Type implementationType)
     {
-        return services.AddGeneric(interfaceType, implementationType, ServiceLifetime.Scoped);
+        return services.AddGeneric(interfaceType, implementationType);
     }
 
     public static IServiceCollection AddTransientGeneric(
@@ -63,106 +63,50 @@ public static class ServiceCollectionExtensions
         Type decoratorType,
         ServiceLifetime? lifetime = null)
     {
-        if (!interfaceType.IsGenericTypeDefinition) {
-            throw new ArgumentException("Interface type must be a generic type definition.", nameof(interfaceType));
-        }
+        if (!interfaceType.IsGenericTypeDefinition)
+            throw new ArgumentException("Interface type must be a generic type definition.", interfaceType.Name);
 
-        if (!decoratorType.IsGenericTypeDefinition) {
-            throw new ArgumentException("Decorator type must be a generic type definition.", nameof(decoratorType));
-        }
+        if (!decoratorType.IsGenericTypeDefinition)
+            throw new ArgumentException("Decorator type must be a generic type definition.", decoratorType.Name);
 
         var descriptors = services
-            .Where(d => d.ServiceType.IsGenericType && 
-                       d.ServiceType.GetGenericTypeDefinition() == interfaceType)
+            .Where(d => d.ServiceType.IsGenericType &&
+                        d.ServiceType.GetGenericTypeDefinition() == interfaceType)
             .ToList();
 
         if (descriptors.Count == 0) {
-            var openDescriptors = services
-                .Where(d => d.ServiceType == interfaceType)
-                .ToList();
-
-            foreach (var descriptor in openDescriptors) {
-                var effectiveLifetime = lifetime ?? descriptor.Lifetime;
-                var index = services.IndexOf(descriptor);
-                
-                services[index] = ServiceDescriptor.Describe(
-                    interfaceType,
-                    provider => {
-                        var typeArgs = interfaceType.GetGenericArguments();
-                        var closedInterfaceType = interfaceType.MakeGenericType(typeArgs);
-                        var closedDecoratorType = decoratorType.MakeGenericType(typeArgs);
-                        
-                        object inner;
-                        if (descriptor.ImplementationType != null) {
-                            var closedImplementationType = descriptor.ImplementationType.IsGenericTypeDefinition
-                                ? descriptor.ImplementationType.MakeGenericType(typeArgs)
-                                : descriptor.ImplementationType;
-                            inner = ActivatorUtilities.CreateInstance(provider, closedImplementationType);
-                        }
-                        else if (descriptor.ImplementationFactory != null) {
-                            inner = descriptor.ImplementationFactory(provider);
-                        }
-                        else {
-                            inner = descriptor.ImplementationInstance!;
-                        }
-                        
-                        return ActivatorUtilities.CreateInstance(provider, closedDecoratorType, inner);
-                    },
-                    effectiveLifetime);
-            }
+            throw new ArgumentException(
+                "The interface does not have an existing closed-type implementation registered. Register concrete implementations before adding a decorator.",
+                interfaceType.Name);
         }
-        else {
-            foreach (var descriptor in descriptors) {
-                var effectiveLifetime = lifetime ?? descriptor.Lifetime;
-                var index = services.IndexOf(descriptor);
-                
-                services[index] = ServiceDescriptor.Describe(
-                    descriptor.ServiceType,
-                    provider => {
-                        var typeArgs = descriptor.ServiceType.GetGenericArguments();
-                        var closedDecoratorType = decoratorType.MakeGenericType(typeArgs);
-                        
-                        object inner;
-                        if (descriptor.ImplementationType != null) {
-                            inner = ActivatorUtilities.CreateInstance(provider, descriptor.ImplementationType);
-                        }
-                        else if (descriptor.ImplementationFactory != null) {
-                            inner = descriptor.ImplementationFactory(provider);
-                        }
-                        else {
-                            inner = descriptor.ImplementationInstance!;
-                        }
-                        
-                        return ActivatorUtilities.CreateInstance(provider, closedDecoratorType, inner);
-                    },
-                    effectiveLifetime);
-            }
+
+        foreach (var descriptor in descriptors) {
+            var effectiveLifetime = lifetime ?? descriptor.Lifetime;
+            var index = services.IndexOf(descriptor);
+
+            services[index] = ServiceDescriptor.Describe(
+                descriptor.ServiceType,
+                sp =>
+                {
+                    var typeArgs = descriptor.ServiceType.GetGenericArguments();
+                    var closedDecoratorType = decoratorType.MakeGenericType(typeArgs);
+
+                    object inner;
+                    if (descriptor.ImplementationType != null) {
+                        inner = ActivatorUtilities.CreateInstance(sp, descriptor.ImplementationType);
+                    }
+                    else if (descriptor.ImplementationFactory != null) {
+                        inner = descriptor.ImplementationFactory(sp);
+                    }
+                    else {
+                        inner = descriptor.ImplementationInstance!;
+                    }
+
+                    return ActivatorUtilities.CreateInstance(sp, closedDecoratorType, inner);
+                },
+                effectiveLifetime);
         }
 
         return services;
-    }
-
-    public static IServiceCollection AddScopedGenericDecorator(
-        this IServiceCollection services,
-        Type interfaceType,
-        Type decoratorType)
-    {
-        return services.AddGenericDecorator(interfaceType, decoratorType, ServiceLifetime.Scoped);
-    }
-
-    public static IServiceCollection AddTransientGenericDecorator(
-        this IServiceCollection services,
-        Type interfaceType,
-        Type decoratorType)
-    {
-        return services.AddGenericDecorator(interfaceType, decoratorType, ServiceLifetime.Transient);
-    }
-
-    public static IServiceCollection AddSingletonGenericDecorator(
-        this IServiceCollection services,
-        Type interfaceType,
-        Type decoratorType)
-    {
-        return services.AddGenericDecorator(interfaceType, decoratorType, ServiceLifetime.Singleton);
     }
 }

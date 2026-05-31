@@ -13,8 +13,8 @@ namespace CascadeEsdm.WriteModel.Tests.UnitTests.CommandHandling;
 public class SerialisedCommandHandlerDecoratorTests
 {
     private readonly IFixture _fixture;
-    private readonly IDistributedLockProvider _mockLockProvider;
     private readonly IDistributedLock _mockLock;
+    private readonly IDistributedLockProvider _mockLockProvider;
 
     public SerialisedCommandHandlerDecoratorTests()
     {
@@ -24,6 +24,23 @@ public class SerialisedCommandHandlerDecoratorTests
 
         _mockLockProvider.AcquireLockAsync(Arg.Any<string>())
             .Returns(_mockLock);
+    }
+
+    private static ICommandEnvelope<LockedTestCommand> CreateLockedCommandEnvelope(Guid? subjectId = null)
+    {
+        return new CommandEnvelope<LockedTestCommand>(
+            new LockedTestCommand(subjectId ?? Guid.NewGuid()),
+            new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid())),
+            ClientChannel.Empty);
+    }
+
+    private static ICommandEnvelope<AggregateLockedTestCommand> CreateAggregateLockedCommandEnvelope(
+        Guid? subjectId = null)
+    {
+        return new CommandEnvelope<AggregateLockedTestCommand>(
+            new AggregateLockedTestCommand(subjectId ?? Guid.NewGuid()),
+            new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid())),
+            ClientChannel.Empty);
     }
 
     public class ExplicitCommandResponseTests : SerialisedCommandHandlerDecoratorTests
@@ -445,28 +462,12 @@ public class SerialisedCommandHandlerDecoratorTests
             subjectId.Should().NotBeEmpty();
         }
     }
-
-    private static ICommandEnvelope<LockedTestCommand> CreateLockedCommandEnvelope(Guid? subjectId = null)
-    {
-        return new CommandEnvelope<LockedTestCommand>(
-            new LockedTestCommand(subjectId ?? Guid.NewGuid()),
-            new AuthenticatedContext(new(Guid.NewGuid()), new(Guid.NewGuid())),
-            ClientChannel.Empty);
-    }
-
-    private static ICommandEnvelope<AggregateLockedTestCommand> CreateAggregateLockedCommandEnvelope(Guid? subjectId = null)
-    {
-        return new CommandEnvelope<AggregateLockedTestCommand>(
-            new AggregateLockedTestCommand(subjectId ?? Guid.NewGuid()),
-            new AuthenticatedContext(new(Guid.NewGuid()), new(Guid.NewGuid())),
-            ClientChannel.Empty);
-    }
 }
 
 [CommandLock(CommandLockLevel.Command)]
 public record LockedTestCommand(Guid Id) : ICommand
 {
-    public ISubject GetSubject(ICommandEnvelope envelope)
+    public Subject GetSubject(ICommandEnvelope envelope)
     {
         return Subject.ForAggregate<TestAggregate>(Id);
     }
@@ -475,7 +476,7 @@ public record LockedTestCommand(Guid Id) : ICommand
 [CommandLock(CommandLockLevel.Aggregate)]
 public record AggregateLockedTestCommand(Guid Id) : ICommand
 {
-    public ISubject GetSubject(ICommandEnvelope envelope)
+    public Subject GetSubject(ICommandEnvelope envelope)
     {
         return Subject.ForAggregate<TestAggregate>(Id);
     }

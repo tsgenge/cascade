@@ -8,7 +8,7 @@ public record SecurityDescriptorSet(RoleBasedSecurityDescriptor Descriptor) : ID
 
 internal class SecurityDescriptorApplier : IEventApplier<SecurityDescriptorSet, PersonAggregate>
 {
-    public void Apply(PersonAggregate aggregate, SecurityDescriptorSet @event, IEventEnvelope envelope)
+    public void Apply(PersonAggregate aggregate, SecurityDescriptorSet @event, EventEnvelope envelope)
     {
         aggregate.SecurityDescriptor = @event.Descriptor;
     }

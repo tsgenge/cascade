@@ -10,7 +10,7 @@ namespace CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Commands;
 
 public record AddPerson(FirstName FirstName, LastName LastName, MobileNumber MobileNumber) : ICommand
 {
-    public ISubject GetSubject(ICommandEnvelope envelope)
+    public Subject GetSubject(ICommandEnvelope envelope)
     {
         return Subject.ForAggregate<PersonAggregate>(MobileNumber.ToGuid());
     }
@@ -18,7 +18,7 @@ public record AddPerson(FirstName FirstName, LastName LastName, MobileNumber Mob
 
 internal class AddPersonExecutor : ICommandExecutor<AddPerson, PersonAggregate>
 {
-    public async IAsyncEnumerable<IEventEnvelope> ExecuteAsync(ICommandEnvelope<AddPerson> envelope,
+    public async IAsyncEnumerable<EventEnvelope> ExecuteAsync(ICommandEnvelope<AddPerson> envelope,
         PersonAggregate aggregate)
     {
         if (aggregate.Exists)

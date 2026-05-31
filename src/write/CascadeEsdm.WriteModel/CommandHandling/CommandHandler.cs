@@ -12,9 +12,9 @@ internal abstract class CommandHandler<TCommand, TAggregate, TResponse> : IComma
     where TAggregate : IAggregateRoot
     where TResponse : ICommandResponse
 {
-    private readonly IAggregateHydrator<TAggregate> _hydrator;
     private readonly ICommandAuthoriser _authoriser;
     private readonly ICommandExecutorFactory<TAggregate> _executorFactory;
+    private readonly IAggregateHydrator<TAggregate> _hydrator;
 
     protected CommandHandler(IAggregateHydrator<TAggregate> hydrator, ICommandAuthoriser authoriser,
         ICommandExecutorFactory<TAggregate> executorFactory)
@@ -28,58 +28,57 @@ internal abstract class CommandHandler<TCommand, TAggregate, TResponse> : IComma
     {
         var aggregate = await _hydrator.HydrateAsync(GetSubjectId(commandEnvelope), commandEnvelope.SecurityContext);
 
-        var @events = await ExecuteCommandAsync(commandEnvelope, aggregate);
+        var events = await ExecuteCommandAsync(commandEnvelope, aggregate);
 
         return CreateResponse(commandEnvelope, aggregate, events);
     }
 
-    protected virtual async Task<IReadOnlyList<IEventEnvelope>> ExecuteCommandAsync(ICommandEnvelope<TCommand> envelope, TAggregate aggregate)
+    protected virtual async Task<IReadOnlyList<EventEnvelope>> ExecuteCommandAsync(ICommandEnvelope<TCommand> envelope,
+        TAggregate aggregate)
     {
         var executor = _executorFactory.GetFor<TCommand>();
 
         await _authoriser.CanAsync(envelope,
             await executor.GetSecurityDescriptorAsync(envelope, aggregate));
 
-        var events = new List<IEventEnvelope>();
-        try
-        {
+        var events = new List<EventEnvelope>();
+        try {
             var eventFeed = executor.ExecuteAsync(envelope, aggregate);
 
-            await foreach (var evt in eventFeed)
-            {
+            await foreach (var evt in eventFeed) {
                 events.Add(evt);
             }
         }
-        catch (ExceptionBase)
-        {
+        catch (ExceptionBase) {
             throw;
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             throw new CommandProcessingException(ex);
         }
 
         return events;
     }
-    
+
     protected virtual Guid GetSubjectId(ICommandEnvelope<TCommand> commandEnvelope)
     {
         return commandEnvelope.Command.GetSubject(commandEnvelope).Id;
     }
-    
-    protected abstract TResponse CreateResponse(ICommandEnvelope<TCommand> commandEnvelope, TAggregate aggregate, IReadOnlyList<IEventEnvelope> @events);
+
+    protected abstract TResponse CreateResponse(ICommandEnvelope<TCommand> commandEnvelope, TAggregate aggregate,
+        IReadOnlyList<EventEnvelope> events);
 }
 
-internal class CommandHandler<TCommand, TAggregate> : CommandHandler<TCommand, TAggregate, ICommandResponse>, ICommandHandler<TCommand>
+internal class CommandHandler<TCommand, TAggregate> : CommandHandler<TCommand, TAggregate, ICommandResponse>,
+    ICommandHandler<TCommand>
     where TCommand : ICommand
     where TAggregate : IAggregateRoot
 {
-    public CommandHandler(IAggregateHydrator<TAggregate> hydrator, ICommandAuthoriser authoriser, ICommandExecutorFactory<TAggregate> executorFactory) : base(hydrator, authoriser, executorFactory)
-    {
-    }
+    public CommandHandler(IAggregateHydrator<TAggregate> hydrator, ICommandAuthoriser authoriser,
+        ICommandExecutorFactory<TAggregate> executorFactory) : base(hydrator, authoriser, executorFactory) { }
 
-    protected override ICommandResponse CreateResponse(ICommandEnvelope<TCommand> commandEnvelope, TAggregate aggregate, IReadOnlyList<IEventEnvelope> events)
+    protected override ICommandResponse CreateResponse(ICommandEnvelope<TCommand> commandEnvelope, TAggregate aggregate,
+        IReadOnlyList<EventEnvelope> events)
     {
-        return new CommandResponse(commandEnvelope, commandEnvelope.Command.GetSubject(commandEnvelope), @events);
+        return new CommandResponse(commandEnvelope, commandEnvelope.Command.GetSubject(commandEnvelope), events);
     }
 }

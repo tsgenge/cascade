@@ -1,13 +1,13 @@
-using CascadeEsdm.WriteModel.Exceptions;
-using CascadeEsdm.WriteModel.Hydration;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Infrastructure.Storage;
+using CascadeEsdm.WriteModel.Exceptions;
+using CascadeEsdm.WriteModel.Hydration;
 
 namespace CascadeEsdm.WriteModel.EventStream;
 
 internal interface IEventStreamWriter
 {
-    void Add(IEventEnvelope @event);
+    void Add(EventEnvelope @event);
     Task SaveAsync();
 }
 
@@ -15,8 +15,8 @@ internal class EventStreamWriter<TContainer> : IEventStreamWriter
     where TContainer : IDocumentContainerDefinition
 {
     private readonly IPartitionedContainer<TContainer> _container;
+    private readonly HashSet<EventEnvelope> _events = new();
     private readonly IAggregatePartitionLocator _partitionLocator;
-    private readonly HashSet<IEventEnvelope> _events = new();
 
     public EventStreamWriter(IPartitionedContainer<TContainer> container, IAggregatePartitionLocator partitionLocator)
     {
@@ -24,7 +24,7 @@ internal class EventStreamWriter<TContainer> : IEventStreamWriter
         _partitionLocator = partitionLocator;
     }
 
-    public void Add(IEventEnvelope @event)
+    public void Add(EventEnvelope @event)
     {
         _events.Add(@event);
     }
@@ -38,12 +38,10 @@ internal class EventStreamWriter<TContainer> : IEventStreamWriter
 
         var docs = _events.Select(e => new EventDocument(e.Id, partition, e)).ToList();
 
-        try
-        {
+        try {
             await _container.AddBatchAsync(docs);
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             throw new EventWritingException(ex);
         }
     }

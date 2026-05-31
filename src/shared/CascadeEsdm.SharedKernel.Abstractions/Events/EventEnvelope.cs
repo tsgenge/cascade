@@ -4,9 +4,10 @@ using System.Text.Json.Serialization;
 
 namespace CascadeEsdm.SharedKernel.Events;
 
-public record EventEnvelope : IEventEnvelope
+public record EventEnvelope
 {
-    public EventEnvelope(IEventSource source, ISubject subject, IAuthenticatedContext securityContext, IClientChannel channel, IDomainEvent @event, int sequence)
+    public EventEnvelope(EventSource source, Subject subject, AuthenticatedContext securityContext,
+        ClientChannel channel, IDomainEvent @event, int sequence)
     {
         Event = @event;
         Sequence = sequence;
@@ -20,7 +21,8 @@ public record EventEnvelope : IEventEnvelope
     }
 
     [JsonConstructor]
-    public EventEnvelope(Guid id, EventSource source, Subject subject, AuthenticatedContext securityContext, ClientChannel channel, IDomainEvent @event, int sequence, string type, DateTimeOffset time)
+    public EventEnvelope(Guid id, EventSource source, Subject subject, AuthenticatedContext securityContext,
+        ClientChannel channel, IDomainEvent @event, int sequence, string type, DateTimeOffset time)
     {
         Id = id;
         Subject = subject;
@@ -34,11 +36,11 @@ public record EventEnvelope : IEventEnvelope
     }
 
     public Guid Id { get; }
-    public IEventSource Source { get; }
-    public ISubject Subject { get; }
+    public EventSource Source { get; }
+    public Subject Subject { get; }
     public string Type { get; }
-    public IAuthenticatedContext SecurityContext { get; }
-    public IClientChannel Channel { get; }
+    public AuthenticatedContext SecurityContext { get; }
+    public ClientChannel Channel { get; }
     public IDomainEvent Event { get; }
     public int Sequence { get; }
     public DateTimeOffset Time { get; }

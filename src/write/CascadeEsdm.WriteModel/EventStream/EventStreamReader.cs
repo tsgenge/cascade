@@ -1,16 +1,16 @@
-using CascadeEsdm.WriteModel.Hydration;
 using CascadeEsdm.SharedKernel.Aggregates;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Infrastructure.Storage;
 using CascadeEsdm.SharedKernel.Querying;
 using CascadeEsdm.SharedKernel.ValueObjects;
+using CascadeEsdm.WriteModel.Hydration;
 
 namespace CascadeEsdm.WriteModel.EventStream;
 
 internal interface IEventStreamReader
 {
-    Task<IEnumerable<IEventEnvelope>> ReadAllAsync<TAggregate>(Guid id) where TAggregate : IAggregateRoot;
-    Task<IEventEnvelope?> ReadSingleAsync<TAggregate>(Guid id);
+    Task<IEnumerable<EventEnvelope>> ReadAllAsync<TAggregate>(Guid id) where TAggregate : IAggregateRoot;
+    Task<EventEnvelope?> ReadSingleAsync<TAggregate>(Guid id);
 }
 
 internal class EventStreamReader<TContainer> : IEventStreamReader
@@ -25,14 +25,15 @@ internal class EventStreamReader<TContainer> : IEventStreamReader
         _partitionLocator = partitionLocator;
     }
 
-    public async Task<IEnumerable<IEventEnvelope>> ReadAllAsync<TAggregate>(Guid id)
+    public async Task<IEnumerable<EventEnvelope>> ReadAllAsync<TAggregate>(Guid id)
         where TAggregate : IAggregateRoot
     {
         var partitionKey = _partitionLocator.GetPartition(new Subject(id, typeof(TAggregate).Name));
 
-        var allEvents = new List<IEventEnvelope>();
+        var allEvents = new List<EventEnvelope>();
         string? continuationToken = null;
-        var events = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(new PageFilter(string.Empty, 100, continuationToken), partitionKey, new Dictionary<string, string>()));
+        var events = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(
+            new PageFilter(string.Empty, 100, continuationToken), partitionKey, new Dictionary<string, string>()));
         do {
             foreach (var doc in events.Page) {
                 var evt = ConvertToEvent(doc);
@@ -46,15 +47,16 @@ internal class EventStreamReader<TContainer> : IEventStreamReader
         return allEvents;
     }
 
-    public async Task<IEventEnvelope?> ReadSingleAsync<TAggregate>(Guid id)
+    public async Task<EventEnvelope?> ReadSingleAsync<TAggregate>(Guid id)
     {
         var partitionKey = _partitionLocator.GetPartition(new Subject(id, typeof(TAggregate).Name));
-        var any = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(new PageFilter(string.Empty, 1), partitionKey, new Dictionary<string, string>()));
+        var any = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(new PageFilter(string.Empty, 1),
+            partitionKey, new Dictionary<string, string>()));
         var rawEvent = any.Page.FirstOrDefault();
         return ConvertToEvent(rawEvent);
     }
 
-    private static IEventEnvelope? ConvertToEvent(EventDocument? doc)
+    private static EventEnvelope? ConvertToEvent(EventDocument? doc)
     {
         return doc?.Envelope;
     }

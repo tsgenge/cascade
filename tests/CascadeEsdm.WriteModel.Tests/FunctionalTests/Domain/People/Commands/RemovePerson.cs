@@ -8,8 +8,9 @@ using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.ValueObjects;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Commands;
 
-public record RemovePerson(PersonId PersonId) : ICommand {
-    public ISubject GetSubject(ICommandEnvelope envelope)
+public record RemovePerson(PersonId PersonId) : ICommand
+{
+    public Subject GetSubject(ICommandEnvelope envelope)
     {
         return Subject.ForAggregate<PersonAggregate>(PersonId.Value);
     }
@@ -17,18 +18,20 @@ public record RemovePerson(PersonId PersonId) : ICommand {
 
 internal class RemovePersonExecutor : ICommandExecutor<RemovePerson, PersonAggregate>
 {
-    public async IAsyncEnumerable<IEventEnvelope> ExecuteAsync(ICommandEnvelope<RemovePerson> envelope, PersonAggregate aggregate)
+    public async IAsyncEnumerable<EventEnvelope> ExecuteAsync(ICommandEnvelope<RemovePerson> envelope,
+        PersonAggregate aggregate)
     {
-        if(!aggregate.Exists)
+        if (!aggregate.Exists)
             throw new NotFoundException("The person does not exist");
 
         yield return envelope.CreateEvent<PersonAggregate>(new PersonRemoved(
             envelope.Command.PersonId.Value), aggregate);
-        
+
         await Task.CompletedTask;
     }
 
-    public Task<ISecurityDescriptor?> GetSecurityDescriptorAsync(ICommandEnvelope<RemovePerson> envelope, PersonAggregate aggregate)
+    public Task<ISecurityDescriptor?> GetSecurityDescriptorAsync(ICommandEnvelope<RemovePerson> envelope,
+        PersonAggregate aggregate)
     {
         return Task.FromResult<ISecurityDescriptor?>(aggregate.SecurityDescriptor);
     }

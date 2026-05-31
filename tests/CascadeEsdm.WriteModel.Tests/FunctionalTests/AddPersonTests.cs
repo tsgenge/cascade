@@ -51,7 +51,7 @@ public class AddPersonTests : TestBase
         var response2 = await sut2.HandleAsync(envelope2);
         
         response2.Events.Should().HaveCount(1);
-        response2.Events[0].Event.Should().BeEquivalentTo(new PersonFirstNameChanged(changeFirstName.PersonId.Value, command.FirstName.Value));
+        response2.Events[0].Event.Should().BeEquivalentTo(new PersonFirstNameChanged(changeFirstName.PersonId.Value, changeFirstName.FirstName.Value));
     }
 
     private AuthenticatedContext GetContext()

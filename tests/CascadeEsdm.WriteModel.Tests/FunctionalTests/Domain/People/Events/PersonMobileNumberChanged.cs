@@ -8,11 +8,10 @@ public record PersonMobileNumberChanged(Guid Id, string MobileNumber) : IDomainE
 
 internal class PersonMobileNumberChangedApplier : IEventApplier<PersonMobileNumberChanged, PersonAggregate>
 {
-    public void Apply(PersonAggregate aggregate, PersonMobileNumberChanged @event, IEventEnvelope envelope)
+    public void Apply(PersonAggregate aggregate, PersonMobileNumberChanged @event, EventEnvelope envelope)
     {
-        if (aggregate.Person != null)
-        {
-            aggregate.Person.MobileNumber = new (@event.MobileNumber);
+        if (aggregate.Person != null) {
+            aggregate.Person.MobileNumber = new MobileNumber(@event.MobileNumber);
         }
     }
 }

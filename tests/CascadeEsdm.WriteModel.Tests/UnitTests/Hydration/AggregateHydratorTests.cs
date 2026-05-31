@@ -1,6 +1,5 @@
 using AutoFixture;
 using AutoFixture.Xunit2;
-using CascadeEsdm.SharedKernel.Aggregates;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Security;
 using CascadeEsdm.WriteModel.EventStream;
@@ -14,10 +13,10 @@ namespace CascadeEsdm.WriteModel.Tests.UnitTests.Hydration;
 public class AggregateHydratorTests
 {
     private readonly IFixture _fixture;
-    private readonly IEventStreamReader _mockStreamReader;
     private readonly IAggregateFactory<TestAggregate> _mockAggregateFactory;
+    private readonly AuthenticatedContext _mockContext;
     private readonly ISnapshotReader<TestAggregate> _mockSnapshotReader;
-    private readonly IAuthenticatedContext _mockContext;
+    private readonly IEventStreamReader _mockStreamReader;
 
     public AggregateHydratorTests()
     {
@@ -25,7 +24,7 @@ public class AggregateHydratorTests
         _mockStreamReader = Substitute.For<IEventStreamReader>();
         _mockAggregateFactory = Substitute.For<IAggregateFactory<TestAggregate>>();
         _mockSnapshotReader = Substitute.For<ISnapshotReader<TestAggregate>>();
-        _mockContext = Substitute.For<IAuthenticatedContext>();
+        _mockContext = Substitute.For<AuthenticatedContext>();
     }
 
     [Fact]
@@ -79,7 +78,7 @@ public class AggregateHydratorTests
     public async Task HydrateAsync_ReadsLatestSnapshot()
     {
         var subjectId = Guid.NewGuid();
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var aggregate = new TestAggregate { Id = subjectId };
 
         _mockSnapshotReader.GetLatestAsync(subjectId).Returns(Task.FromResult<TestAggregate?>(null));
@@ -100,7 +99,7 @@ public class AggregateHydratorTests
     public async Task HydrateAsync_ReadsAllEventsForAggregate()
     {
         var subjectId = Guid.NewGuid();
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var aggregate = new TestAggregate { Id = subjectId };
 
         _mockSnapshotReader.GetLatestAsync(subjectId).Returns(Task.FromResult<TestAggregate?>(null));
@@ -121,7 +120,7 @@ public class AggregateHydratorTests
     public async Task HydrateAsync_CallsAggregateFactoryWithEventsAndSnapshot()
     {
         var subjectId = Guid.NewGuid();
-        var events = new List<IEventEnvelope> { TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope() };
+        var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope() };
         var snapshot = new TestAggregate { Id = subjectId, LastSequence = 5 };
         var aggregate = new TestAggregate { Id = subjectId };
 
@@ -143,7 +142,7 @@ public class AggregateHydratorTests
     public async Task HydrateAsync_ReturnsAggregateFromFactory()
     {
         var subjectId = Guid.NewGuid();
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var expectedAggregate = new TestAggregate { Id = subjectId };
 
         _mockSnapshotReader.GetLatestAsync(subjectId).Returns(Task.FromResult<TestAggregate?>(null));
@@ -164,7 +163,7 @@ public class AggregateHydratorTests
     public async Task HydrateAsync_WithNoSnapshot_PassesNullToFactory()
     {
         var subjectId = Guid.NewGuid();
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var aggregate = new TestAggregate { Id = subjectId };
 
         _mockSnapshotReader.GetLatestAsync(subjectId).Returns(Task.FromResult<TestAggregate?>(null));
@@ -185,7 +184,7 @@ public class AggregateHydratorTests
     public async Task HydrateAsync_WhenFactoryThrowsException_WrapsInException()
     {
         var subjectId = Guid.NewGuid();
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var innerException = new InvalidOperationException("Factory error");
 
         _mockSnapshotReader.GetLatestAsync(subjectId).Returns(Task.FromResult<TestAggregate?>(null));
@@ -209,7 +208,7 @@ public class AggregateHydratorTests
     {
         var subjectId = Guid.NewGuid();
         var fromSequenceId = 10;
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var aggregate = new TestAggregate { Id = subjectId };
 
         _mockSnapshotReader.GetLatestAsync(subjectId, fromSequenceId).Returns(Task.FromResult<TestAggregate?>(null));
@@ -231,7 +230,7 @@ public class AggregateHydratorTests
     {
         var subjectId = Guid.NewGuid();
         var fromSequenceId = 10;
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var aggregate = new TestAggregate { Id = subjectId };
 
         _mockSnapshotReader.GetLatestAsync(subjectId, fromSequenceId).Returns(Task.FromResult<TestAggregate?>(null));
@@ -253,7 +252,7 @@ public class AggregateHydratorTests
     {
         var subjectId = Guid.NewGuid();
         var fromSequenceId = 10;
-        var events = new List<IEventEnvelope> { TestTools.CreateEventEnvelope() };
+        var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope() };
         var snapshot = new TestAggregate { Id = subjectId, LastSequence = 8 };
         var aggregate = new TestAggregate { Id = subjectId };
 
@@ -276,7 +275,7 @@ public class AggregateHydratorTests
     {
         var subjectId = Guid.NewGuid();
         var fromSequenceId = 10;
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var expectedAggregate = new TestAggregate { Id = subjectId };
 
         _mockSnapshotReader.GetLatestAsync(subjectId, fromSequenceId).Returns(Task.FromResult<TestAggregate?>(null));
@@ -298,7 +297,7 @@ public class AggregateHydratorTests
     {
         var subjectId = Guid.NewGuid();
         var fromSequenceId = 10;
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var innerException = new InvalidOperationException("Factory error");
 
         _mockSnapshotReader.GetLatestAsync(subjectId, fromSequenceId).Returns(Task.FromResult<TestAggregate?>(null));
@@ -321,11 +320,9 @@ public class AggregateHydratorTests
     public async Task HydrateAsync_WithMultipleEvents_PassesAllEventsToFactory()
     {
         var subjectId = Guid.NewGuid();
-        var events = new List<IEventEnvelope>
+        var events = new List<EventEnvelope>
         {
-            TestTools.CreateEventEnvelope(),
-            TestTools.CreateEventEnvelope(),
-            TestTools.CreateEventEnvelope()
+            TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope()
         };
         var aggregate = new TestAggregate { Id = subjectId };
 
@@ -341,7 +338,7 @@ public class AggregateHydratorTests
         await hydrator.HydrateAsync(subjectId, _mockContext);
 
         _mockAggregateFactory.Received(1).GetAggregator(
-            Arg.Is<IEnumerable<IEventEnvelope>>(e => e.Count() == 3),
+            Arg.Is<IEnumerable<EventEnvelope>>(e => e.Count() == 3),
             Arg.Any<TestAggregate?>());
     }
 
@@ -349,7 +346,7 @@ public class AggregateHydratorTests
     [AutoData]
     public async Task HydrateAsync_WithAutoFixtureData_ExecutesSuccessfully(Guid subjectId)
     {
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var aggregate = new TestAggregate { Id = subjectId };
 
         _mockSnapshotReader.GetLatestAsync(subjectId).Returns(Task.FromResult<TestAggregate?>(null));
@@ -369,9 +366,10 @@ public class AggregateHydratorTests
 
     [Theory]
     [AutoData]
-    public async Task HydrateAsync_WithFromSequenceId_WithAutoFixtureData_ExecutesSuccessfully(Guid subjectId, int fromSequenceId)
+    public async Task HydrateAsync_WithFromSequenceId_WithAutoFixtureData_ExecutesSuccessfully(Guid subjectId,
+        int fromSequenceId)
     {
-        var events = new List<IEventEnvelope>();
+        var events = new List<EventEnvelope>();
         var aggregate = new TestAggregate { Id = subjectId };
 
         _mockSnapshotReader.GetLatestAsync(subjectId, fromSequenceId).Returns(Task.FromResult<TestAggregate?>(null));

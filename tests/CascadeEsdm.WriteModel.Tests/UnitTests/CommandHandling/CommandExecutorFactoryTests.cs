@@ -153,7 +153,7 @@ public class TestAggregate : IAggregateRoot
 
 public record TestCommand(Guid Id) : ICommand
 {
-    public CascadeEsdm.SharedKernel.ValueObjects.ISubject GetSubject(ICommandEnvelope envelope)
+    public Subject GetSubject(ICommandEnvelope envelope)
     {
         return Subject.ForAggregate<TestAggregate>(Id);
     }
@@ -161,7 +161,7 @@ public record TestCommand(Guid Id) : ICommand
 
 public record OtherTestCommand : ICommand
 {
-    public CascadeEsdm.SharedKernel.ValueObjects.ISubject GetSubject(ICommandEnvelope envelope)
+    public Subject GetSubject(ICommandEnvelope envelope)
     {
         return Subject.ForAggregate<TestAggregate>(Guid.NewGuid());
     }
@@ -169,7 +169,7 @@ public record OtherTestCommand : ICommand
 
 public record AnotherTestCommand : ICommand
 {
-    public CascadeEsdm.SharedKernel.ValueObjects.ISubject GetSubject(ICommandEnvelope envelope)
+    public Subject GetSubject(ICommandEnvelope envelope)
     {
         return Subject.ForAggregate<TestAggregate>(Guid.NewGuid());
     }

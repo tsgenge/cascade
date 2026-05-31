@@ -5,14 +5,14 @@ namespace CascadeEsdm.WriteModel.EventStream;
 
 public record EventDocument : IDocument
 {
-    public Guid Id { get; }
-    public string PartitionKey { get; }
-    public IEventEnvelope Envelope { get; }
-
-    public EventDocument(Guid id, string partitionKey, IEventEnvelope envelope)
+    public EventDocument(Guid id, string partitionKey, EventEnvelope envelope)
     {
         Id = id;
         PartitionKey = partitionKey;
         Envelope = envelope;
     }
+
+    public EventEnvelope Envelope { get; }
+    public Guid Id { get; }
+    public string PartitionKey { get; }
 }

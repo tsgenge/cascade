@@ -46,8 +46,7 @@ public class WriteContext : IAsyncLifetime
         await _cosmosContainer.StartAsync();
 
         var azuriteConnectionString = _azuriteContainer.GetConnectionString();
-        var cosmosConnectionString =
-            "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="; //_cosmosContainer.GetConnectionString().Replace("http:", "https:");
+        var cosmosConnectionString = _cosmosContainer.GetConnectionString().Replace("http:", "https:");
         Console.WriteLine($"CosmosDb connection string: {cosmosConnectionString}");
 
         await SetupAzurite(azuriteConnectionString);

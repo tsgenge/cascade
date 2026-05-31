@@ -1,9 +1,9 @@
 using CascadeEsdm.SharedKernel.Aggregates;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Security;
+using System.ComponentModel;
 
 namespace CascadeEsdm.WriteModel.CommandHandling;
-
 
 #pragma warning disable CS0618 // Type or member is obsolete
 public interface ICommandExecutor<in TCommand, TAggregate> : ICommandExecutor<TAggregate>
@@ -11,12 +11,11 @@ public interface ICommandExecutor<in TCommand, TAggregate> : ICommandExecutor<TA
     where TCommand : ICommand
     where TAggregate : IAggregateRoot
 {
-    IAsyncEnumerable<IEventEnvelope> ExecuteAsync(ICommandEnvelope<TCommand> envelope, TAggregate aggregate);
+    IAsyncEnumerable<EventEnvelope> ExecuteAsync(ICommandEnvelope<TCommand> envelope, TAggregate aggregate);
     Task<ISecurityDescriptor?> GetSecurityDescriptorAsync(ICommandEnvelope<TCommand> envelope, TAggregate aggregate);
 }
 
-[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+[EditorBrowsable(EditorBrowsableState.Never)]
 [Obsolete("Do not implement this interface directly. Implement ICommandExecutor<TCommand, TAggregate> instead.")]
 public interface ICommandExecutor<TAggregate>
-    where TAggregate : IAggregateRoot
-{ }
+    where TAggregate : IAggregateRoot { }

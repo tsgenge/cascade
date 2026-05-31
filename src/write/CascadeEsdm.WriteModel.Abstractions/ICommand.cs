@@ -4,5 +4,5 @@ namespace CascadeEsdm.WriteModel;
 
 public interface ICommand
 {
-    ISubject GetSubject(ICommandEnvelope envelope);
+    Subject GetSubject(ICommandEnvelope envelope);
 }

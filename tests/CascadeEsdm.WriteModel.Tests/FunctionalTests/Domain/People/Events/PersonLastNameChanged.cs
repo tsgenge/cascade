@@ -8,11 +8,10 @@ public record PersonLastNameChanged(Guid Id, string LastName) : IDomainEvent;
 
 internal class PersonLastNameChangedApplier : IEventApplier<PersonLastNameChanged, PersonAggregate>
 {
-    public void Apply(PersonAggregate aggregate, PersonLastNameChanged @event, IEventEnvelope envelope)
+    public void Apply(PersonAggregate aggregate, PersonLastNameChanged @event, EventEnvelope envelope)
     {
-        if (aggregate.Person != null)
-        {
-            aggregate.Person.LastName = new (@event.LastName);
+        if (aggregate.Person != null) {
+            aggregate.Person.LastName = new LastName(@event.LastName);
         }
     }
 }

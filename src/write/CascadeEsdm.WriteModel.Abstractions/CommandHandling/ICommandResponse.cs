@@ -8,7 +8,7 @@ public interface ICommandResponse
 {
     Guid CommandId { get; }
     string CommandType { get; }
-    ISubject Subject { get; }
-    IReadOnlyList<IEventEnvelope> Events { get; }
+    Subject Subject { get; }
+    IReadOnlyList<EventEnvelope> Events { get; }
     IReadOnlyCollection<AvailableAction> Actions { get; }
 }

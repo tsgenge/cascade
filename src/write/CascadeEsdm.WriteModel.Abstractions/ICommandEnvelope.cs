@@ -6,8 +6,8 @@ namespace CascadeEsdm.WriteModel;
 public interface ICommandEnvelope
 {
     Guid Id { get; }
-    IAuthenticatedContext SecurityContext { get; }
-    IClientChannel Channel { get; }
+    AuthenticatedContext SecurityContext { get; }
+    ClientChannel Channel { get; }
     DateTimeOffset Time { get; }
     string Type { get; }
     ICommand Command { get; }

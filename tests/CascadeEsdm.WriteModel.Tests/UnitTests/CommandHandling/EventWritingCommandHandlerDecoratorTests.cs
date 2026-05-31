@@ -82,11 +82,9 @@ public class EventWritingCommandHandlerDecoratorTests
         {
             var mockInner = Substitute.For<ICommandHandler<TestCommand, CommandResponse>>();
             var commandEnvelope = TestTools.CreateCommandEnvelope();
-            var events = new List<IEventEnvelope>
+            var events = new List<EventEnvelope>
             {
-                TestTools.CreateEventEnvelope(),
-                TestTools.CreateEventEnvelope(),
-                TestTools.CreateEventEnvelope()
+                TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope()
             };
             var response = TestTools.CreateCommandResponse(commandEnvelope, events);
 
@@ -98,7 +96,7 @@ public class EventWritingCommandHandlerDecoratorTests
 
             await decorator.HandleAsync(commandEnvelope);
 
-            _mockEventWriter.Received(3).Add(Arg.Any<IEventEnvelope>());
+            _mockEventWriter.Received(3).Add(Arg.Any<EventEnvelope>());
             _mockEventWriter.Received(1).Add(events[0]);
             _mockEventWriter.Received(1).Add(events[1]);
             _mockEventWriter.Received(1).Add(events[2]);
@@ -155,7 +153,7 @@ public class EventWritingCommandHandlerDecoratorTests
 
             await decorator.HandleAsync(commandEnvelope);
 
-            _mockEventWriter.DidNotReceive().Add(Arg.Any<IEventEnvelope>());
+            _mockEventWriter.DidNotReceive().Add(Arg.Any<EventEnvelope>());
             await _mockEventWriter.Received(1).SaveAsync();
         }
 
@@ -198,7 +196,7 @@ public class EventWritingCommandHandlerDecoratorTests
 
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage("Inner handler error");
-            _mockEventWriter.DidNotReceive().Add(Arg.Any<IEventEnvelope>());
+            _mockEventWriter.DidNotReceive().Add(Arg.Any<EventEnvelope>());
             await _mockEventWriter.DidNotReceive().SaveAsync();
         }
 
@@ -207,16 +205,12 @@ public class EventWritingCommandHandlerDecoratorTests
         {
             var mockInner = Substitute.For<ICommandHandler<TestCommand, CommandResponse>>();
             var commandEnvelope = TestTools.CreateCommandEnvelope();
-            var events = new List<IEventEnvelope>
-            {
-                TestTools.CreateEventEnvelope(),
-                TestTools.CreateEventEnvelope()
-            };
+            var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope() };
             var response = TestTools.CreateCommandResponse(commandEnvelope, events);
             var callOrder = new List<string>();
 
             mockInner.HandleAsync(commandEnvelope).Returns(response);
-            _mockEventWriter.When(x => x.Add(Arg.Any<IEventEnvelope>()))
+            _mockEventWriter.When(x => x.Add(Arg.Any<EventEnvelope>()))
                 .Do(_ => callOrder.Add("Add"));
             _mockEventWriter.When(x => x.SaveAsync())
                 .Do(_ => callOrder.Add("Save"));
@@ -312,11 +306,9 @@ public class EventWritingCommandHandlerDecoratorTests
         {
             var mockInner = Substitute.For<ICommandHandler<TestCommand>>();
             var commandEnvelope = TestTools.CreateCommandEnvelope();
-            var events = new List<IEventEnvelope>
+            var events = new List<EventEnvelope>
             {
-                TestTools.CreateEventEnvelope(),
-                TestTools.CreateEventEnvelope(),
-                TestTools.CreateEventEnvelope()
+                TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope()
             };
             var response = TestTools.CreateCommandResponse(commandEnvelope, events);
 
@@ -328,7 +320,7 @@ public class EventWritingCommandHandlerDecoratorTests
 
             await decorator.HandleAsync(commandEnvelope);
 
-            _mockEventWriter.Received(3).Add(Arg.Any<IEventEnvelope>());
+            _mockEventWriter.Received(3).Add(Arg.Any<EventEnvelope>());
             _mockEventWriter.Received(1).Add(events[0]);
             _mockEventWriter.Received(1).Add(events[1]);
             _mockEventWriter.Received(1).Add(events[2]);
@@ -385,7 +377,7 @@ public class EventWritingCommandHandlerDecoratorTests
 
             await decorator.HandleAsync(commandEnvelope);
 
-            _mockEventWriter.DidNotReceive().Add(Arg.Any<IEventEnvelope>());
+            _mockEventWriter.DidNotReceive().Add(Arg.Any<EventEnvelope>());
             await _mockEventWriter.Received(1).SaveAsync();
         }
 
@@ -428,7 +420,7 @@ public class EventWritingCommandHandlerDecoratorTests
 
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage("Inner handler error");
-            _mockEventWriter.DidNotReceive().Add(Arg.Any<IEventEnvelope>());
+            _mockEventWriter.DidNotReceive().Add(Arg.Any<EventEnvelope>());
             await _mockEventWriter.DidNotReceive().SaveAsync();
         }
 
@@ -437,16 +429,12 @@ public class EventWritingCommandHandlerDecoratorTests
         {
             var mockInner = Substitute.For<ICommandHandler<TestCommand>>();
             var commandEnvelope = TestTools.CreateCommandEnvelope();
-            var events = new List<IEventEnvelope>
-            {
-                TestTools.CreateEventEnvelope(),
-                TestTools.CreateEventEnvelope()
-            };
+            var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope() };
             var response = TestTools.CreateCommandResponse(commandEnvelope, events);
             var callOrder = new List<string>();
 
             mockInner.HandleAsync(commandEnvelope).Returns(response);
-            _mockEventWriter.When(x => x.Add(Arg.Any<IEventEnvelope>()))
+            _mockEventWriter.When(x => x.Add(Arg.Any<EventEnvelope>()))
                 .Do(_ => callOrder.Add("Add"));
             _mockEventWriter.When(x => x.SaveAsync())
                 .Do(_ => callOrder.Add("Save"));

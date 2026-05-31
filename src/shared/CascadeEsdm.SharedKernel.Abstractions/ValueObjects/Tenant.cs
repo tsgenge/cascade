@@ -1,5 +1,3 @@
 namespace CascadeEsdm.SharedKernel.ValueObjects;
 
-public interface ITenant : IValueObject<Guid>;
-
-public record Tenant(Guid Value) : ITenant;
+public record Tenant(Guid Value) : IValueObject<Guid>;

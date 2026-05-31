@@ -17,6 +17,7 @@
     <Project Path="src/infrastructure/CascadeEsdm.Storage.CosmosDb/CascadeEsdm.Storage.CosmosDb.csproj" />
   </Folder>
   <Folder Name="/Tests/">
+    <Project Path="tests/CascadeEsdm.SharedKernel.UnitTests/CascadeEsdm.SharedKernel.UnitTests.csproj" />
     <Project Path="tests/CascadeEsdm.WriteModel.Tests/CascadeEsdm.WriteModel.Tests.csproj" />
   </Folder>
 </Solution>
