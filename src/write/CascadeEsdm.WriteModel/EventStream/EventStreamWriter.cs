@@ -20,8 +20,8 @@ internal class EventStreamWriter<TContainer> : IEventStreamWriter
 
     public EventStreamWriter(IPartitionedContainer<TContainer> container, IAggregatePartitionLocator partitionLocator)
     {
-        _container = container;
-        _partitionLocator = partitionLocator;
+        _container = container ?? throw new ArgumentNullException(nameof(container));
+        _partitionLocator = partitionLocator ?? throw new ArgumentNullException(nameof(partitionLocator));
     }
 
     public void Add(EventEnvelope @event)
@@ -43,6 +43,9 @@ internal class EventStreamWriter<TContainer> : IEventStreamWriter
         }
         catch (Exception ex) {
             throw new EventWritingException(ex);
+        }
+        finally {
+            _events.Clear();
         }
     }
 }

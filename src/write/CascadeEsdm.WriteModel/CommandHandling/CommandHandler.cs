@@ -1,6 +1,7 @@
 using CascadeEsdm.SharedKernel.Aggregates;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Exceptions;
+using CascadeEsdm.SharedKernel.ValueObjects;
 using CascadeEsdm.WriteModel.Exceptions;
 using CascadeEsdm.WriteModel.Hydration;
 using CascadeEsdm.WriteModel.Security;
@@ -45,8 +46,15 @@ internal abstract class CommandHandler<TCommand, TAggregate, TResponse> : IComma
         try {
             var eventFeed = executor.ExecuteAsync(envelope, aggregate);
 
+            var invalidEvents = new List<EventEnvelope>();
             await foreach (var evt in eventFeed) {
                 events.Add(evt);
+                if (!VerifyEventMetaData(envelope, evt))
+                    invalidEvents.Add(evt);
+            }
+
+            if (invalidEvents.Any()) {
+                throw new InvalidCommandExecutorImplementation(typeof(TCommand).Name);
             }
         }
         catch (ExceptionBase) {
@@ -57,6 +65,14 @@ internal abstract class CommandHandler<TCommand, TAggregate, TResponse> : IComma
         }
 
         return events;
+    }
+
+    private static bool VerifyEventMetaData(ICommandEnvelope<TCommand> envelope, EventEnvelope evt)
+    {
+        return evt.Subject == envelope.Command.GetSubject(envelope)
+               && evt.Source == EventSource.ForAggregate<TAggregate>(envelope.Id, envelope.Type)
+               && evt.SecurityContext == envelope.SecurityContext
+               && evt.Channel == envelope.Channel;
     }
 
     protected virtual Guid GetSubjectId(ICommandEnvelope<TCommand> commandEnvelope)

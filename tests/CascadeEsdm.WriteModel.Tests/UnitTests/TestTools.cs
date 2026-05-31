@@ -14,18 +14,22 @@ public static class TestTools
         return new CommandEnvelope<TestCommand>(
             new TestCommand(subjectId ?? Guid.NewGuid()),
             new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid())),
-            ClientChannel.Empty);
+            new ClientChannel(Guid.NewGuid().ToString("n")));
     }
 
-    public static EventEnvelope CreateEventEnvelope(IDomainEvent? @event = null, int? lastSequenceNumber = null)
+    public static EventEnvelope CreateEventEnvelope(IDomainEvent? @event = null, int? lastSequenceNumber = null,
+        ICommandEnvelope? commandEnvelope = null)
     {
-        return new EventEnvelope(
-            EventSource.ForAggregate<TestAggregate, TestCommand>(Guid.NewGuid()),
-            Subject.ForAggregate<TestAggregate>(Guid.NewGuid()),
-            new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid())),
-            ClientChannel.Empty,
-            @event ?? Substitute.For<IDomainEvent>(),
-            lastSequenceNumber ?? 1);
+        return commandEnvelope?.CreateEvent(@event ?? Substitute.For<IDomainEvent>(),
+                   new TestAggregate { LastSequence = lastSequenceNumber ?? 1 })
+               ??
+               new EventEnvelope(
+                   EventSource.ForAggregate<TestAggregate>(Guid.NewGuid(), nameof(TestCommand)),
+                   Subject.ForAggregate<TestAggregate>(Guid.NewGuid()),
+                   new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid())),
+                   ClientChannel.Empty,
+                   @event ?? Substitute.For<IDomainEvent>(),
+                   lastSequenceNumber ?? 1);
     }
 
     public static CommandResponse CreateCommandResponse<TCommand>(ICommandEnvelope<TCommand> envelope,

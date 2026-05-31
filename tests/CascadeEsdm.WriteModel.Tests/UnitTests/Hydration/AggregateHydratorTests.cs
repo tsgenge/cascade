@@ -24,7 +24,7 @@ public class AggregateHydratorTests
         _mockStreamReader = Substitute.For<IEventStreamReader>();
         _mockAggregateFactory = Substitute.For<IAggregateFactory<TestAggregate>>();
         _mockSnapshotReader = Substitute.For<ISnapshotReader<TestAggregate>>();
-        _mockContext = Substitute.For<AuthenticatedContext>();
+        _mockContext =new AuthenticatedContext(new(Guid.NewGuid()), new(Guid.NewGuid()));
     }
 
     [Fact]

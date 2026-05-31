@@ -2,14 +2,13 @@ using CascadeEsdm.SharedKernel.Aggregates;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.WriteModel.Hydration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CascadeEsdm.WriteModel.Composition;
 
 public class EventApplierBuilder
 {
     private readonly IServiceCollection _services;
-    
+
     public EventApplierBuilder(IServiceCollection services)
     {
         _services = services;
@@ -21,17 +20,16 @@ public class EventApplierBuilder
         var assemblyTypes = targetAssembly.GetTypes();
         var eventApplierTypes = assemblyTypes
             .Where(t => t.IsClass && !t.IsAbstract)
-            .Where(t => t.GetInterfaces().Any(i => 
+            .Where(t => t.GetInterfaces().Any(i =>
                 i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventApplier<,>)));
 
-        foreach (var eventApplierType in eventApplierTypes)
-        {
+        foreach (var eventApplierType in eventApplierTypes) {
             var eventApplierInterface = eventApplierType.GetInterfaces()
                 .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventApplier<,>));
-            
+
             var aggregateType = eventApplierInterface.GetGenericArguments()[1];
             var aggregateApplierInterface = typeof(IEventApplier<>).MakeGenericType(aggregateType);
-            
+
             _services.AddScoped(eventApplierInterface, eventApplierType);
             _services.AddScoped(aggregateApplierInterface, sp => sp.GetRequiredService(eventApplierType));
         }
@@ -39,7 +37,7 @@ public class EventApplierBuilder
         return this;
     }
 
-    public EventApplierBuilder RegisterEventApplier<TEvent, TAggregate, TApplier>() 
+    public EventApplierBuilder RegisterEventApplier<TEvent, TApplier, TAggregate>()
         where TApplier : class, IEventApplier<TEvent, TAggregate>
         where TEvent : IDomainEvent
         where TAggregate : IAggregateRoot

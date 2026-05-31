@@ -10,7 +10,7 @@ public static class CommandExtensions
         TForAggregate aggregate)
         where TForAggregate : IAggregateRoot
     {
-        aggregate.LastSequence = aggregate.LastSequence + 1;
+        aggregate.LastSequence += 1;
 
         return new EventEnvelope(
             EventSource.ForAggregate<TForAggregate>(commandEnvelope.Id, commandEnvelope.Type),

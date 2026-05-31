@@ -21,8 +21,8 @@ internal class EventStreamReader<TContainer> : IEventStreamReader
 
     public EventStreamReader(IPagedContainer<TContainer> container, IAggregatePartitionLocator partitionLocator)
     {
-        _container = container;
-        _partitionLocator = partitionLocator;
+        _container = container ?? throw new ArgumentNullException(nameof(container));
+        _partitionLocator = partitionLocator ?? throw new ArgumentNullException(nameof(partitionLocator));
     }
 
     public async Task<IEnumerable<EventEnvelope>> ReadAllAsync<TAggregate>(Guid id)
@@ -32,9 +32,11 @@ internal class EventStreamReader<TContainer> : IEventStreamReader
 
         var allEvents = new List<EventEnvelope>();
         string? continuationToken = null;
-        var events = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(
-            new PageFilter(string.Empty, 100, continuationToken), partitionKey, new Dictionary<string, string>()));
+
         do {
+            var events = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(
+                new PageFilter(string.Empty, 100, continuationToken), partitionKey, new Dictionary<string, string>()));
+
             foreach (var doc in events.Page) {
                 var evt = ConvertToEvent(doc);
                 if (evt != null)

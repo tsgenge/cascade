@@ -135,7 +135,11 @@ public class CommandHandlerTests
     {
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate();
-        var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope() };
+        var events = new List<EventEnvelope>
+        {
+            TestTools.CreateEventEnvelope(commandEnvelope: commandEnvelope),
+            TestTools.CreateEventEnvelope(commandEnvelope: commandEnvelope)
+        };
 
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
@@ -223,7 +227,7 @@ public class CommandHandlerTests
     {
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate { Id = Guid.NewGuid() };
-        var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope() };
+        var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope(commandEnvelope: commandEnvelope) };
 
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);
@@ -241,6 +245,28 @@ public class CommandHandlerTests
         handler.LastCommandEnvelope.Should().Be(commandEnvelope);
         handler.LastAggregate.Should().Be(aggregate);
         handler.LastEvents.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Throws_When_Executor_DoesNotSet_SubjectOrSource()
+    {
+        var commandEnvelope = TestTools.CreateCommandEnvelope();
+        var aggregate = new TestAggregate { Id = Guid.NewGuid() };
+        var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope() };
+
+        _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
+            .Returns(aggregate);
+        _mockExecutorFactory.GetFor<TestCommand>().Returns(_mockExecutor);
+        _mockExecutor.GetSecurityDescriptorAsync(commandEnvelope, aggregate)
+            .Returns(Task.FromResult<ISecurityDescriptor?>(null));
+        _mockExecutor.ExecuteAsync(commandEnvelope, aggregate)
+            .Returns(events.ToAsyncEnumerable());
+
+        var handler = new TestCommandHandlerWithTracking(_mockHydrator, _mockAuthoriser, _mockExecutorFactory);
+
+        var act = () => handler.HandleAsync(commandEnvelope);
+
+        await act.Should().ThrowAsync<InvalidCommandExecutorImplementation>();
     }
 
     [Theory]
@@ -271,7 +297,7 @@ public class CommandHandlerTests
     {
         var commandEnvelope = TestTools.CreateCommandEnvelope();
         var aggregate = new TestAggregate();
-        var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope() };
+        var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope(commandEnvelope: commandEnvelope) };
 
         _mockHydrator.HydrateAsync(Arg.Any<Guid>(), Arg.Any<AuthenticatedContext>())
             .Returns(aggregate);

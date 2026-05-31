@@ -6,7 +6,6 @@ using CascadeEsdm.SharedKernel.Infrastructure.Storage;
 using CascadeEsdm.SharedKernel.Querying;
 using CascadeEsdm.WriteModel.Composition;
 using CascadeEsdm.WriteModel.EventStream;
-using CascadeEsdm.WriteModel.Hydration;
 using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People;
 using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Commands;
 using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Events;
@@ -77,25 +76,24 @@ public class WriteContext : IAsyncLifetime
                         .WithWriteModel(b1 =>
                             b1
                                 .WithExecutors(h => h
-                                    .AddCommandExecutor<AddPerson, PersonAggregate, AddPersonExecutor>()
-                                    .AddCommandExecutor<ChangePersonFirstName, PersonAggregate,
-                                        ChangePersonFirstNameExecutor>())
+                                    .AddCommandExecutor<AddPerson, AddPersonExecutor, PersonAggregate>()
+                                    .AddCommandExecutor<ChangePersonFirstName, ChangePersonFirstNameExecutor,
+                                        PersonAggregate>())
                                 .WithAppliers(h =>
                                 {
-                                    h.RegisterEventApplier<PersonAdded, PersonAggregate, PersonAddedApplier>();
-                                    h.RegisterEventApplier<PersonFirstNameChanged, PersonAggregate,
-                                        PersonFirstNameChangedApplier>();
-                                    h.RegisterEventApplier<PersonLastNameChanged, PersonAggregate,
-                                        PersonLastNameChangedApplier>();
-                                    h.RegisterEventApplier<PersonMobileNumberChanged, PersonAggregate,
-                                        PersonMobileNumberChangedApplier>();
-                                    h.RegisterEventApplier<PersonRemoved, PersonAggregate, PersonRemovedApplier>();
-                                    h.RegisterEventApplier<SecurityDescriptorSet, PersonAggregate,
-                                        SecurityDescriptorApplier>();
+                                    h.RegisterEventApplier<PersonAdded, PersonAddedApplier, PersonAggregate>();
+                                    h.RegisterEventApplier<PersonFirstNameChanged, PersonFirstNameChangedApplier,
+                                        PersonAggregate>();
+                                    h.RegisterEventApplier<PersonLastNameChanged, PersonLastNameChangedApplier,
+                                        PersonAggregate>();
+                                    h.RegisterEventApplier<PersonMobileNumberChanged, PersonMobileNumberChangedApplier,
+                                        PersonAggregate>();
+                                    h.RegisterEventApplier<PersonRemoved, PersonRemovedApplier, PersonAggregate>();
+                                    h.RegisterEventApplier<SecurityDescriptorSet, SecurityDescriptorApplier,
+                                        PersonAggregate>();
                                 })
                         );
                 });
-                services.AddScoped<IEventApplier<PersonAdded, PersonAggregate>, PersonAddedApplier2>();
             });
 
         var app = builder.Build();

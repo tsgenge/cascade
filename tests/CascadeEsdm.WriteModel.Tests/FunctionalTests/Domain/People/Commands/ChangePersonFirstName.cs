@@ -8,7 +8,8 @@ using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.ValueObjects;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Commands;
 
-public record ChangePersonFirstName(PersonId PersonId, FirstName FirstName) : ICommand
+[CommandLock(CommandLockLevel.Aggregate)]
+public record ChangePersonFirstName(PersonId PersonId, FirstName FirstName, int? Timeout = null) : ICommand
 {
     public Subject GetSubject(ICommandEnvelope envelope)
     {
@@ -24,11 +25,12 @@ internal class ChangePersonFirstNameExecutor : ICommandExecutor<ChangePersonFirs
         if (!aggregate.Exists)
             throw new NotFoundException("The person does not exist");
 
+        if (envelope.Command.Timeout.HasValue)
+            await Task.Delay(envelope.Command.Timeout.Value);
+
         yield return envelope.CreateEvent<PersonAggregate>(new PersonFirstNameChanged(
             envelope.Command.PersonId.Value,
             envelope.Command.FirstName), aggregate);
-
-        await Task.CompletedTask;
     }
 
     public Task<ISecurityDescriptor?> GetSecurityDescriptorAsync(ICommandEnvelope<ChangePersonFirstName> envelope,
