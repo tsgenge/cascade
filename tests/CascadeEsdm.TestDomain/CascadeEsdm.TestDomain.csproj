@@ -12,6 +12,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="CascadeEsdm.WriteModel.Tests"/>
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Bogus" Version="35.6.1"/>
     </ItemGroup>
 

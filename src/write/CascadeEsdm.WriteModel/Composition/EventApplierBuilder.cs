@@ -14,7 +14,7 @@ public class EventApplierBuilder
         _services = services;
     }
 
-    public EventApplierBuilder RegisterEventAppliersFromAssembly<TExampleType>()
+    public EventApplierBuilder AddEventAppliersFromAssembly<TExampleType>()
     {
         var targetAssembly = typeof(TExampleType).Assembly;
         var assemblyTypes = targetAssembly.GetTypes();
@@ -37,7 +37,7 @@ public class EventApplierBuilder
         return this;
     }
 
-    public EventApplierBuilder RegisterEventApplier<TEvent, TApplier, TAggregate>()
+    public EventApplierBuilder AddEventApplier<TEvent, TApplier, TAggregate>()
         where TApplier : class, IEventApplier<TEvent, TAggregate>
         where TEvent : IDomainEvent
         where TAggregate : IAggregateRoot
