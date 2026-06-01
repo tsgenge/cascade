@@ -13,7 +13,8 @@ internal class SerialisedCommandHandlerDecorator<TCommand, TResponse> : ICommand
     private readonly ICommandHandler<TCommand, TResponse> _inner;
     private readonly IDistributedLockProvider _lockProvider;
 
-    public SerialisedCommandHandlerDecorator(ICommandHandler<TCommand, TResponse> inner, IDistributedLockProvider lockProvider)
+    public SerialisedCommandHandlerDecorator(ICommandHandler<TCommand, TResponse> inner,
+        IDistributedLockProvider lockProvider)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         _lockProvider = lockProvider ?? throw new ArgumentNullException(nameof(lockProvider));
@@ -59,32 +60,11 @@ internal class SerialisedCommandHandlerDecorator<TCommand, TResponse> : ICommand
     }
 }
 
-internal class SerialisedCommandHandlerDecorator<TCommand> : SerialisedCommandHandlerDecorator<TCommand, ICommandResponse>, ICommandHandler<TCommand>
+internal class
+    SerialisedCommandHandlerDecorator<TCommand> : SerialisedCommandHandlerDecorator<TCommand, ICommandResponse>,
+    ICommandHandler<TCommand>
     where TCommand : ICommand
 {
-    public SerialisedCommandHandlerDecorator(ICommandHandler<TCommand> inner, IDistributedLockProvider lockProvider) : base(inner, lockProvider) { }
-}
-
-public enum CommandLockLevel
-{
-    /// <summary>
-    ///     Locks are per command; two commands of different types can execute at once.
-    /// </summary>
-    Command,
-
-    /// <summary>
-    ///     All commands for the aggregate share the same lock.
-    /// </summary>
-    Aggregate
-}
-
-[AttributeUsage(AttributeTargets.Class)]
-public class CommandLockAttribute : Attribute
-{
-    public CommandLockLevel Level { get; }
-
-    public CommandLockAttribute(CommandLockLevel level)
-    {
-        Level = level;
-    }
+    public SerialisedCommandHandlerDecorator(ICommandHandler<TCommand> inner, IDistributedLockProvider lockProvider) :
+        base(inner, lockProvider) { }
 }

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>false</IsTestProject>
+        <RootNamespace>CascadeEsdm.TestDomain</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\write\CascadeEsdm.WriteModel.Abstractions\CascadeEsdm.WriteModel.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\src\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Bogus" Version="35.6.1"/>
+    </ItemGroup>
+
+</Project>

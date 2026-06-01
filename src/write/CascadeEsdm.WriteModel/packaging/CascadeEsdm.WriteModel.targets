@@ -1,0 +1,72 @@
+<Project>
+
+    <!--
+      CascadeEsdm.WriteModel MSBuild integration.
+      Injects a pre-build step that extracts IDomainEvent records from the author's project
+      into a standalone, publishable events assembly.
+
+      To install the extraction tool:
+        dotnet tool install -g CascadeEsdm.EventExtractor
+
+      Configurable properties (set in your .csproj PropertyGroup):
+
+        CascadeEventsEnabled          Set to 'false' to disable extraction entirely. Default: true.
+        CascadeEventsOutputDir        Output folder for the generated events project.
+                                      Default: $(MSBuildProjectDirectory)\..\AssemblyName.Events
+        CascadeEventsAssemblyName     Override the generated assembly name.
+                                      Default: RootNamespace with trailing write-model segment stripped, + '.Events'
+        CascadeEventsNamespace        Override the root namespace in generated files.
+                                      Default: same as CascadeEventsAssemblyName
+        CascadeEventsOverwrite        Set to 'true' to overwrite all generated files on every build.
+                                      Default: false (only writes new/changed files; never overwrites the .csproj)
+        CascadeEventsRequireExtractor Set to 'true' to make a missing tool a build error instead of a warning.
+                                      Default: false
+    -->
+
+    <PropertyGroup>
+        <CascadeEventsEnabled Condition="'$(CascadeEventsEnabled)'          == ''">true</CascadeEventsEnabled>
+        <CascadeEventsAssemblyName Condition="'$(CascadeEventsAssemblyName)'     == ''"></CascadeEventsAssemblyName>
+        <CascadeEventsOutputDir Condition="'$(CascadeEventsOutputDir)'        == ''">$(MSBuildProjectDirectory)\..\$(RootNamespace).Events</CascadeEventsOutputDir>
+        <CascadeEventsNamespace Condition="'$(CascadeEventsNamespace)'        == ''"></CascadeEventsNamespace>
+        <CascadeEventsOverwrite Condition="'$(CascadeEventsOverwrite)'        == ''">false</CascadeEventsOverwrite>
+        <CascadeEventsRequireExtractor Condition="'$(CascadeEventsRequireExtractor)' == ''">false</CascadeEventsRequireExtractor>
+    </PropertyGroup>
+
+    <Target Name="CascadeCheckExtractorInstalled"
+            BeforeTargets="CascadeExtractEvents"
+            Condition="'$(CascadeEventsEnabled)' == 'true'">
+        <Exec Command="dotnet tool list --global"
+              ConsoleToMsBuild="true"
+              StandardOutputImportance="Low"
+              IgnoreExitCode="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="_CascadeToolListOutput"/>
+        </Exec>
+
+        <PropertyGroup>
+            <_CascadeExtractorPresent Condition="$(_CascadeToolListOutput.Contains('cascade-extract-events'))">true</_CascadeExtractorPresent>
+            <_CascadeExtractorPresent Condition="'$(_CascadeExtractorPresent)' == ''">false</_CascadeExtractorPresent>
+        </PropertyGroup>
+
+        <Warning
+                Condition="'$(_CascadeExtractorPresent)' == 'false' and '$(CascadeEventsRequireExtractor)' != 'true'"
+                Text="CascadeEsdm: 'cascade-extract-events' tool is not installed. Event extraction was skipped. Run: dotnet tool install -g CascadeEsdm.EventExtractor"/>
+
+        <Error
+                Condition="'$(_CascadeExtractorPresent)' == 'false' and '$(CascadeEventsRequireExtractor)' == 'true'"
+                Text="CascadeEsdm: 'cascade-extract-events' tool is not installed and CascadeEventsRequireExtractor=true. Run: dotnet tool install -g CascadeEsdm.EventExtractor"/>
+    </Target>
+
+    <Target Name="CascadeExtractEvents"
+            BeforeTargets="Build"
+            Condition="'$(CascadeEventsEnabled)' == 'true' and '$(_CascadeExtractorPresent)' == 'true'">
+
+        <PropertyGroup>
+            <_CascadeAssemblyNameArg Condition="'$(CascadeEventsAssemblyName)' != ''">--assembly-name &quot;$(CascadeEventsAssemblyName)&quot;</_CascadeAssemblyNameArg>
+            <_CascadeNamespaceArg Condition="'$(CascadeEventsNamespace)'    != ''">--events-namespace &quot;$(CascadeEventsNamespace)&quot;</_CascadeNamespaceArg>
+        </PropertyGroup>
+
+        <Exec Command="dotnet cascade-extract-events --source-root &quot;$(MSBuildProjectDirectory)&quot; --output-dir &quot;$(CascadeEventsOutputDir)&quot; --root-namespace &quot;$(RootNamespace)&quot;$(_CascadeAssemblyNameArg)$(_CascadeNamespaceArg) --overwrite $(CascadeEventsOverwrite)"
+              ConsoleToMsBuild="true"/>
+    </Target>
+
+</Project>

@@ -6,9 +6,7 @@ using CascadeEsdm.SharedKernel.Infrastructure.Storage;
 using CascadeEsdm.SharedKernel.Querying;
 using CascadeEsdm.WriteModel.Composition;
 using CascadeEsdm.WriteModel.EventStream;
-using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People;
-using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Commands;
-using CascadeEsdm.WriteModel.Tests.FunctionalTests.Domain.People.Events;
+using CascadeEsdm.TestDomain.People;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -76,22 +74,9 @@ public class WriteContext : IAsyncLifetime
                         .WithWriteModel(b1 =>
                             b1
                                 .WithExecutors(h => h
-                                    .AddCommandExecutor<AddPerson, AddPersonExecutor, PersonAggregate>()
-                                    .AddCommandExecutor<ChangePersonFirstName, ChangePersonFirstNameExecutor,
-                                        PersonAggregate>())
+                                    .AddCommandsFromAssembly<PersonAggregate>())
                                 .WithAppliers(h =>
-                                {
-                                    h.RegisterEventApplier<PersonAdded, PersonAddedApplier, PersonAggregate>();
-                                    h.RegisterEventApplier<PersonFirstNameChanged, PersonFirstNameChangedApplier,
-                                        PersonAggregate>();
-                                    h.RegisterEventApplier<PersonLastNameChanged, PersonLastNameChangedApplier,
-                                        PersonAggregate>();
-                                    h.RegisterEventApplier<PersonMobileNumberChanged, PersonMobileNumberChangedApplier,
-                                        PersonAggregate>();
-                                    h.RegisterEventApplier<PersonRemoved, PersonRemovedApplier, PersonAggregate>();
-                                    h.RegisterEventApplier<SecurityDescriptorSet, SecurityDescriptorApplier,
-                                        PersonAggregate>();
-                                })
+                                    h.RegisterEventAppliersFromAssembly<PersonAggregate>())
                         );
                 });
             });
