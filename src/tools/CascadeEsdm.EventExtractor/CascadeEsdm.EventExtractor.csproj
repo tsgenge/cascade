@@ -15,10 +15,15 @@
     <PackageId>CascadeEsdm.EventExtractor</PackageId>
     <Description>Pre-build tool that extracts IDomainEvent records from a CascadeEsdm WriteModel project into a standalone, publishable Events assembly.</Description>
     <PackageTags>eventsourcing;ddd;cqrs;cascade;codegen</PackageTags>
+    <PackageIcon>icon.jpg</PackageIcon>
 
     <!-- Inherit shared NuGet metadata from Directory.Build.props -->
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />

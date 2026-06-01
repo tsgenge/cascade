@@ -2,6 +2,10 @@
 .suo
 obj
 bin
+
+# MSBuild diagnostics
+preprocessed.xml
+
 # Logs
 logs
 *.log
