@@ -34,7 +34,7 @@ public class SerialExecutionTests : TestBase
         var personAdded = await ExecuteAddPersonAsync();
         var personId = new PersonId(personAdded.Id);
 
-        var firstNames = Enumerable.Range(0, 5)
+        var firstNames = Enumerable.Range(0, 50)
             .Select(_ => new FirstName($"name-{Guid.NewGuid()}"))
             .ToList();
 
@@ -57,12 +57,16 @@ public class SerialExecutionTests : TestBase
             .OrderBy(e => e.Sequence)
             .ToList();
 
-        changeEvents.Should().HaveCount(5);
+        changeEvents.Should().HaveCount(50);
+
+        var sequences = changeEvents.Select(e => e.Sequence).ToList();
+        sequences.Should().OnlyHaveUniqueItems();
+        sequences.Should().BeInAscendingOrder();
+        sequences.Should().ContainInConsecutiveOrder(Enumerable.Range(sequences.Min(), 50));
 
         var expectedCommandIds = envelopes.Select(e => e.Id).ToList();
         var actualCommandIds = changeEvents.Select(e => e.Source.CommandId).ToList();
-
-        actualCommandIds.Should().Equal(expectedCommandIds);
+        actualCommandIds.Should().BeEquivalentTo(expectedCommandIds);
     }
 
     private async Task<PersonAdded> ExecuteAddPersonAsync()

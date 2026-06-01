@@ -26,7 +26,7 @@ internal class SerialisedCommandHandlerDecorator<TCommand, TResponse> : ICommand
         return await _inner.HandleAsync(command);
     }
 
-    private bool RequiresLock(ICommandEnvelope<TCommand> command, out CommandLockLevel lockType)
+    private bool RequiresLock(out CommandLockLevel lockType)
     {
         if (!LockCache.TryGetValue(typeof(TCommand), out var commandLockLevel)) {
             var attribute = typeof(TCommand).GetCustomAttribute<CommandLockAttribute>();
@@ -41,7 +41,7 @@ internal class SerialisedCommandHandlerDecorator<TCommand, TResponse> : ICommand
 
     private async Task<IDistributedLock?> GetLockIfRequiredAsync(ICommandEnvelope<TCommand> envelope)
     {
-        if (RequiresLock(envelope, out var lockType)) {
+        if (RequiresLock(out var lockType)) {
             var lockName = GetLockName(envelope, lockType);
             return await _lockProvider.AcquireLockAsync(lockName);
         }
