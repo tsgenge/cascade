@@ -51,8 +51,10 @@ public sealed class NamespaceMapper
             var remainder = sourceNamespace[_sourceRootNamespace.Length..].TrimStart('.');
             if (!string.IsNullOrEmpty(remainder))
                 return remainder.Replace('.', Path.DirectorySeparatorChar);
+            return string.Empty;
         }
 
-        return string.Empty;
+        // Source namespace doesn't match the root — still create folder structure from it
+        return sourceNamespace.Replace('.', Path.DirectorySeparatorChar);
     }
 }

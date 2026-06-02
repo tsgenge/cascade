@@ -76,6 +76,9 @@ static void Run(ExtractorOptions options)
         return;
     }
 
+    // Build event → aggregate map by scanning all appliers across files
+    var eventToAggregateMap = AggregateResolver.BuildEventToAggregateMap(eventFiles);
+
     var externalEnums = EnumDependencyScanner.FindExternalEnums(options.SourceRoot, eventFiles);
 
     EventsProjectGenerator.Generate(
@@ -91,7 +94,8 @@ static void Run(ExtractorOptions options)
     var writer = new EventsSourceWriter(
         outputDir: options.OutputDir,
         namespaceMapper: namespaceMapper,
-        overwrite: options.Overwrite);
+        overwrite: options.Overwrite,
+        eventToAggregateMap: eventToAggregateMap);
 
     var writtenEventFiles = writer.WriteEventFiles(eventFiles, options.RootNamespace);
     var writtenEnumFiles = writer.WriteExternalEnumFiles(externalEnums, options.ResolvedEventsNamespace);

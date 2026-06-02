@@ -52,11 +52,11 @@ public class NamespaceMapperTests
     }
 
     [Fact]
-    public void GetRelativeOutputFolder_WhenNoMatch_ReturnsEmpty()
+    public void GetRelativeOutputFolder_WhenNoMatch_ReturnsFullNamespaceAsPath()
     {
         var mapper = new NamespaceMapper("Acme.Orders.WriteModel", "Acme.Orders.Events");
 
         mapper.GetRelativeOutputFolder("SomeOther.Namespace")
-              .Should().BeEmpty();
+              .Should().Be($"SomeOther{Path.DirectorySeparatorChar}Namespace");
     }
 }

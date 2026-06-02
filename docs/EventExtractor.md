@@ -104,6 +104,23 @@ Becomes in the events assembly:
 public record OrderPlaced(Guid OrderId, string Reference, OrderStatus Status) : IDomainEvent;
 ```
 
+### Inheritance
+
+The scanner is syntactic — it does not resolve types. A record is included **only if `IDomainEvent` appears literally in its own base list**. If you use a base record hierarchy, every level that should be extracted must declare `IDomainEvent` directly:
+
+```csharp
+// ✅ extracted — IDomainEvent is in the base list
+public abstract record OrderEventBase(Guid OrderId) : IDomainEvent;
+
+// ✅ extracted — IDomainEvent is in the base list
+public record OrderPlaced(Guid OrderId, string Reference) : IDomainEvent;
+
+// ❌ not extracted — IDomainEvent is not in the base list, only OrderEventBase is
+public record OrderPlaced(Guid OrderId, string Reference) : OrderEventBase(OrderId);
+```
+
+If you want derived records extracted, either keep `IDomainEvent` on each record, or flatten the hierarchy — base record properties can be composed into each event directly.
+
 ### Co-located enums
 
 Enums defined in the same file as event records are included verbatim.

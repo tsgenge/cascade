@@ -15,12 +15,18 @@ public sealed class EventsSourceWriter
     private readonly string _outputDir;
     private readonly NamespaceMapper _namespaceMapper;
     private readonly bool _overwrite;
+    private readonly IReadOnlyDictionary<string, string> _eventToAggregateMap;
 
-    public EventsSourceWriter(string outputDir, NamespaceMapper namespaceMapper, bool overwrite)
+    public EventsSourceWriter(
+        string outputDir,
+        NamespaceMapper namespaceMapper,
+        bool overwrite,
+        IReadOnlyDictionary<string, string> eventToAggregateMap)
     {
         _outputDir = outputDir;
         _namespaceMapper = namespaceMapper;
         _overwrite = overwrite;
+        _eventToAggregateMap = eventToAggregateMap;
     }
 
     public IReadOnlyList<WrittenFile> WriteEventFiles(IReadOnlyList<ScannedEventFile> eventFiles, string sourceRootNamespace)
@@ -30,7 +36,9 @@ public sealed class EventsSourceWriter
         foreach (var file in eventFiles)
         {
             var targetNamespace = _namespaceMapper.MapNamespace(file.SourceNamespace);
-            var relativeFolder = _namespaceMapper.GetRelativeOutputFolder(file.SourceNamespace);
+            var relativeFolder = GetAggregateBasedFolder(file, sourceRootNamespace)
+                ?? _namespaceMapper.GetRelativeOutputFolder(file.SourceNamespace);
+
             var outputFolder = string.IsNullOrEmpty(relativeFolder)
                 ? _outputDir
                 : Path.Combine(_outputDir, relativeFolder);
@@ -50,6 +58,29 @@ public sealed class EventsSourceWriter
         }
 
         return written;
+    }
+
+    /// <summary>
+    /// Determines the folder path based on aggregate names from appliers (e.g., "Person/Events").
+    /// Returns null if aggregates are unknown or mixed within the file.
+    /// </summary>
+    private string? GetAggregateBasedFolder(ScannedEventFile file, string sourceRootNamespace)
+    {
+        var aggregates = file.EventRecords
+            .Select(r => AggregateResolver.GetAggregateForEvent(r, file.SourceNamespace, sourceRootNamespace, _eventToAggregateMap))
+            .Where(a => !string.IsNullOrEmpty(a))
+            .Distinct()
+            .ToList();
+
+        // If all events in the file belong to the same aggregate, use that
+        if (aggregates.Count == 1)
+        {
+            var aggregateName = aggregates[0]!;
+            return Path.Combine(aggregateName, "Events");
+        }
+
+        // Mixed or unknown aggregates - fall back to namespace-based
+        return null;
     }
 
     public IReadOnlyList<WrittenFile> WriteExternalEnumFiles(

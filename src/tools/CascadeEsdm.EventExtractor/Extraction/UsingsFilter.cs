@@ -4,21 +4,18 @@ namespace CascadeEsdm.EventExtractor.Extraction;
 
 /// <summary>
 /// Determines which using directives should be retained in a generated event file.
-/// Write-model-specific namespaces that have no relevance to the events assembly are removed.
+/// Events are self-contained — only usings for the shared kernel and system types are kept.
 /// </summary>
 public static class UsingsFilter
 {
     /// <summary>
-    /// Namespace prefixes that are exclusively write-model concerns and must be stripped
-    /// from generated event files.
+    /// Namespace prefixes that are required/allowed in the events assembly.
+    /// All other usings are stripped to keep events self-contained.
     /// </summary>
-    private static readonly string[] WriteModelOnlyPrefixes =
+    private static readonly string[] AllowedPrefixes =
     [
-        "CascadeEsdm.WriteModel.Hydration",
-        "CascadeEsdm.WriteModel.CommandHandling",
-        "CascadeEsdm.WriteModel.Security",
-        "CascadeEsdm.WriteModel.Composition",
-        "CascadeEsdm.WriteModel.EventStream",
+        "System",
+        "CascadeEsdm.SharedKernel",
     ];
 
     public static IEnumerable<UsingDirectiveSyntax> Filter(
@@ -29,15 +26,13 @@ public static class UsingsFilter
         {
             var name = u.Name?.ToString() ?? string.Empty;
 
-            if (IsWriteModelOnly(name))
-                continue;
-
-            yield return u;
+            if (IsAllowed(name))
+                yield return u;
         }
     }
 
-    private static bool IsWriteModelOnly(string namespaceName) =>
-        WriteModelOnlyPrefixes.Any(prefix =>
+    private static bool IsAllowed(string namespaceName) =>
+        AllowedPrefixes.Any(prefix =>
             namespaceName.Equals(prefix, StringComparison.Ordinal) ||
             namespaceName.StartsWith(prefix + ".", StringComparison.Ordinal));
 }
