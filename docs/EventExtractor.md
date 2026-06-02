@@ -18,7 +18,7 @@ At pre-build time the tool:
 
 1. **Scans** all `.cs` files under your project root for `record` types implementing `IDomainEvent`
 2. **Strips** write-model-only concerns from each file — `IEventApplier` classes, and `using` directives for write-model namespaces
-3. **Rewrites** namespaces from your write-model root (e.g. `Acme.Orders.WriteModel`) to an events root (e.g. `Acme.Orders.Events`)
+3. **Rewrites** namespaces from your write-model root (e.g. `Acme.Orders.WriteModel`) to a schema root (e.g. `Acme.Orders.Schema`)
 4. **Resolves** any external enum dependencies referenced by event records but defined in non-event files, and copies them into an `Enums/` subfolder
 5. **Generates** a standalone `.csproj` referencing only `CascadeEsdm.SharedKernel.Abstractions` (on first run; never overwritten thereafter)
 6. **Reports** what was found and written to stdout
@@ -45,8 +45,8 @@ On the next build, the extractor runs before compilation and writes the events p
 
 ```
 MyApp.WriteModel/
-MyApp.Events/           ← generated
-  MyApp.Events.csproj
+MyApp.Schema/           ← generated
+  MyApp.Schema.csproj
   Orders/
     Events/
       OrderPlaced.cs
@@ -55,7 +55,7 @@ MyApp.Events/           ← generated
     OrderStatus.cs
 ```
 
-Add `MyApp.Events/` to source control. Add it to your solution. Maybe build and publish to your own private nuget feed. Reference it from consumer projects.
+Add `MyApp.Schema/` to source control. Add it to your solution. Maybe build and publish to your own private nuget feed. Reference it from consumer projects.
 
 ---
 
@@ -66,23 +66,23 @@ Set these in your write-model project's `<PropertyGroup>`:
 | Property | Default | Description |
 |---|---|---|
 | `CascadeEventsEnabled` | `true` | Set to `false` to disable extraction entirely |
-| `CascadeEventsOutputDir` | `$(MSBuildProjectDirectory)\..\AssemblyName.Events` | Where the generated project is written |
-| `CascadeEventsAssemblyName` | RootNamespace with write-model suffix stripped, + `.Events` | Assembly name of the generated project |
+| `CascadeEventsOutputDir` | `$(MSBuildProjectDirectory)\..\AssemblyName.Schema` | Where the generated project is written |
+| `CascadeEventsAssemblyName` | RootNamespace with write-model suffix stripped, + `.Schema` | Assembly name of the generated project |
 | `CascadeEventsNamespace` | Same as `CascadeEventsAssemblyName` | Root namespace used in generated files |
 | `CascadeEventsOverwrite` | `false` | When `true`, regenerates all files on every build; the `.csproj` is still never overwritten |
 | `CascadeEventsRequireExtractor` | `false` | When `true`, a missing tool is a build error instead of a warning |
 
 ### Assembly name defaulting
 
-If `CascadeEventsAssemblyName` is not set, the tool strips a recognised write-model suffix from `RootNamespace` and appends `.Events`:
+If `CascadeEventsAssemblyName` is not set, the tool strips a recognised write-model suffix from `RootNamespace` and appends `.Schema`:
 
 | `RootNamespace` | Resolved assembly name |
 |---|---|
-| `Acme.Orders.WriteModel` | `Acme.Orders.Events` |
-| `Acme.Orders.Domain` | `Acme.Orders.Events` |
-| `Acme.Orders.Write` | `Acme.Orders.Events` |
-| `Acme.Orders.Application` | `Acme.Orders.Events` |
-| `Acme.Orders` | `Acme.Orders.Events` |
+| `Acme.Orders.WriteModel` | `Acme.Orders.Schema` |
+| `Acme.Orders.Domain` | `Acme.Orders.Schema` |
+| `Acme.Orders.Write` | `Acme.Orders.Schema` |
+| `Acme.Orders.Application` | `Acme.Orders.Schema` |
+| `Acme.Orders` | `Acme.Orders.Schema` |
 
 ---
 
@@ -97,10 +97,10 @@ Any `record` whose base list contains `IDomainEvent` is included:
 public record OrderPlaced(Guid OrderId, string Reference, OrderStatus Status) : IDomainEvent;
 ```
 
-Becomes in the events assembly:
+Becomes in the schema assembly:
 
 ```csharp
-// generated — Acme.Orders.Events.Orders.Events
+// generated — Acme.Orders.Schema.Orders.Events
 public record OrderPlaced(Guid OrderId, string Reference, OrderStatus Status) : IDomainEvent;
 ```
 
@@ -128,6 +128,28 @@ Enums defined in the same file as event records are included verbatim.
 ### External enum dependencies
 
 Enums referenced by event records but defined elsewhere in the project are detected and copied into an `Enums/` subfolder under the events project root, placed in a `<TargetRootNamespace>.Enums` namespace.
+
+### Non-primitive parameter types
+
+The extractor only copies enums automatically. Classes, records, structs, and interfaces referenced in event parameters are **not copied** — doing so would risk pulling in arbitrarily deep type graphs, including types from high-level assemblies that have no place in a minimal events contract.
+
+The recommended approach is to **use primitives wherever possible** in event records:
+
+```csharp
+// ✅ prefer — portable, no external dependencies
+public record OrderPlaced(Guid OrderId, string Reference, int StatusCode) : IDomainEvent;
+
+// ⚠️ works but requires manual wiring — consumers must also reference the type
+public record SecurityDescriptorSet(MySecurityDescriptor Descriptor) : IDomainEvent;
+```
+
+If a non-primitive type is genuinely part of the public event contract, add a reference to the assembly that defines it directly in the generated `.csproj`. Because the `.csproj` is never overwritten, this addition is stable across rebuilds:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Acme.Shared.Contracts" Version="1.0.0" />
+</ItemGroup>
+```
 
 ### What is stripped
 
@@ -163,8 +185,8 @@ On first run a `.csproj` is created with a single dependency:
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>Acme.Orders.Events</AssemblyName>
-    <RootNamespace>Acme.Orders.Events</RootNamespace>
+    <AssemblyName>Acme.Orders.Schema</AssemblyName>
+    <RootNamespace>Acme.Orders.Schema</RootNamespace>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -204,10 +226,10 @@ The tool can be invoked directly outside of MSBuild:
 ```bash
 cascade-extract-events \
   --source-root      "/path/to/MyApp.WriteModel" \
-  --output-dir       "/path/to/MyApp.Events" \
+  --output-dir       "/path/to/MyApp.Schema" \
   --root-namespace   "Acme.Orders.WriteModel" \
-  --assembly-name    "Acme.Orders.Events" \
-  --events-namespace "Acme.Orders.Events" \
+  --assembly-name    "Acme.Orders.Schema" \
+  --events-namespace "Acme.Orders.Schema" \
   --overwrite        false
 ```
 

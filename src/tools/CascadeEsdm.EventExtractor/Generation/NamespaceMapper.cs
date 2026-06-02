@@ -37,6 +37,21 @@ public sealed class NamespaceMapper
     }
 
     /// <summary>
+    /// Converts a relative folder path (e.g. <c>Person\Events</c>) into a namespace rooted at
+    /// the target root namespace (e.g. <c>Acme.Orders.Schema.Person.Events</c>).
+    /// This keeps the in-file namespace declaration consistent with the folder structure
+    /// when the folder was derived from aggregate names rather than the source namespace.
+    /// </summary>
+    public string FolderToNamespace(string relativeFolder)
+    {
+        if (string.IsNullOrEmpty(relativeFolder))
+            return _targetRootNamespace;
+
+        var ns = relativeFolder.Replace(Path.DirectorySeparatorChar, '.').Replace('/', '.');
+        return $"{_targetRootNamespace}.{ns}";
+    }
+
+    /// <summary>
     /// Derives the relative output path for a source file, preserving aggregate folder structure.
     ///
     /// Example:

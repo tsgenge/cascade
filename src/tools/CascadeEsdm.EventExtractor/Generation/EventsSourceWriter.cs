@@ -35,9 +35,13 @@ public sealed class EventsSourceWriter
 
         foreach (var file in eventFiles)
         {
-            var targetNamespace = _namespaceMapper.MapNamespace(file.SourceNamespace);
-            var relativeFolder = GetAggregateBasedFolder(file, sourceRootNamespace)
+            var aggregateFolder = GetAggregateBasedFolder(file, sourceRootNamespace);
+            var relativeFolder = aggregateFolder
                 ?? _namespaceMapper.GetRelativeOutputFolder(file.SourceNamespace);
+
+            var targetNamespace = aggregateFolder != null
+                ? _namespaceMapper.FolderToNamespace(aggregateFolder)
+                : _namespaceMapper.MapNamespace(file.SourceNamespace);
 
             var outputFolder = string.IsNullOrEmpty(relativeFolder)
                 ? _outputDir

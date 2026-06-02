@@ -13,7 +13,7 @@ public sealed class ExtractorOptions
 
     /// <summary>
     /// Assembly name (and default root namespace) for the generated events project.
-    /// Defaults to the source RootNamespace with a trailing write-model segment stripped, plus ".Events".
+    /// Defaults to the source RootNamespace with a trailing write-model segment stripped, plus ".Schema".
     /// </summary>
     public string? AssemblyName { get; init; }
 
@@ -45,9 +45,9 @@ public sealed class ExtractorOptions
         foreach (var suffix in StripSuffixes)
         {
             if (rootNamespace.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-                return rootNamespace[..^suffix.Length] + ".Events";
+                return rootNamespace[..^suffix.Length] + ".Schema";
         }
 
-        return rootNamespace + ".Events";
+        return rootNamespace + ".Schema";
     }
 }

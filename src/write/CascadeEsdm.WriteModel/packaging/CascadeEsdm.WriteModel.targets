@@ -26,7 +26,7 @@
     <PropertyGroup>
         <CascadeEventsEnabled Condition="'$(CascadeEventsEnabled)'          == ''">true</CascadeEventsEnabled>
         <CascadeEventsAssemblyName Condition="'$(CascadeEventsAssemblyName)'     == ''"></CascadeEventsAssemblyName>
-        <CascadeEventsOutputDir Condition="'$(CascadeEventsOutputDir)'        == ''">$(MSBuildProjectDirectory)\..\$(RootNamespace).Events</CascadeEventsOutputDir>
+        <CascadeEventsOutputDir Condition="'$(CascadeEventsOutputDir)'        == ''">$(MSBuildProjectDirectory)\..\$(RootNamespace).Schema</CascadeEventsOutputDir>
         <CascadeEventsNamespace Condition="'$(CascadeEventsNamespace)'        == ''"></CascadeEventsNamespace>
         <CascadeEventsOverwrite Condition="'$(CascadeEventsOverwrite)'        == ''">false</CascadeEventsOverwrite>
         <CascadeEventsRequireExtractor Condition="'$(CascadeEventsRequireExtractor)' == ''">false</CascadeEventsRequireExtractor>

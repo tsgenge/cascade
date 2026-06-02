@@ -6,12 +6,12 @@ namespace CascadeEsdm.EventExtractor.Tests.Configuration;
 public class ExtractorOptionsTests
 {
     [Theory]
-    [InlineData("Acme.Orders.WriteModel", "Acme.Orders.Events")]
-    [InlineData("Acme.Orders.Domain",     "Acme.Orders.Events")]
-    [InlineData("Acme.Orders.Write",      "Acme.Orders.Events")]
-    [InlineData("Acme.Orders.Application","Acme.Orders.Events")]
-    [InlineData("Acme.Orders",            "Acme.Orders.Events")]
-    public void ResolvedAssemblyName_StripsSuffix_AndAppendsEvents(string rootNamespace, string expected)
+    [InlineData("Acme.Orders.WriteModel", "Acme.Orders.Schema")]
+    [InlineData("Acme.Orders.Domain",     "Acme.Orders.Schema")]
+    [InlineData("Acme.Orders.Write",      "Acme.Orders.Schema")]
+    [InlineData("Acme.Orders.Application","Acme.Orders.Schema")]
+    [InlineData("Acme.Orders",            "Acme.Orders.Schema")]
+    public void ResolvedAssemblyName_StripsSuffix_AndAppendsSchema(string rootNamespace, string expected)
     {
         var options = new ExtractorOptions
         {
