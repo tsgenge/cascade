@@ -23,10 +23,6 @@ var assemblyNameOption = new Option<string?>(
     name: "--assembly-name",
     description: "Override the generated assembly name. Defaults to stripping a write-model suffix from RootNamespace and appending .Events.");
 
-var eventsNamespaceOption = new Option<string?>(
-    name: "--events-namespace",
-    description: "Override the root namespace used in generated event files. Defaults to the resolved assembly name.");
-
 var overwriteOption = new Option<bool>(
     name: "--overwrite",
     description: "When true, existing generated files are overwritten. When false (default), the .csproj is never overwritten and .cs files are only updated if changed.",
@@ -38,12 +34,11 @@ var rootCommand = new RootCommand("Extracts IDomainEvent records from a CascadeE
     outputDirOption,
     rootNamespaceOption,
     assemblyNameOption,
-    eventsNamespaceOption,
     overwriteOption,
 };
 
 rootCommand.SetHandler(
-    (string sourceRoot, string outputDir, string rootNamespace, string? assemblyName, string? eventsNamespace, bool overwrite) =>
+    (string sourceRoot, string outputDir, string rootNamespace, string? assemblyName, bool overwrite) =>
     {
         var options = new ExtractorOptions
         {
@@ -51,7 +46,6 @@ rootCommand.SetHandler(
             OutputDir = outputDir,
             RootNamespace = rootNamespace,
             AssemblyName = assemblyName,
-            EventsNamespace = eventsNamespace,
             Overwrite = overwrite,
         };
 
@@ -61,7 +55,6 @@ rootCommand.SetHandler(
     outputDirOption,
     rootNamespaceOption,
     assemblyNameOption,
-    eventsNamespaceOption,
     overwriteOption);
 
 return await rootCommand.InvokeAsync(args);

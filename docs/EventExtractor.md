@@ -68,7 +68,6 @@ Set these in your write-model project's `<PropertyGroup>`:
 | `CascadeEventsEnabled` | `true` | Set to `false` to disable extraction entirely |
 | `CascadeEventsOutputDir` | `$(MSBuildProjectDirectory)\..\AssemblyName.Schema` | Where the generated project is written |
 | `CascadeEventsAssemblyName` | RootNamespace with write-model suffix stripped, + `.Schema` | Assembly name of the generated project |
-| `CascadeEventsNamespace` | Same as `CascadeEventsAssemblyName` | Root namespace used in generated files |
 | `CascadeEventsOverwrite` | `false` | When `true`, regenerates all files on every build; the `.csproj` is still never overwritten |
 | `CascadeEventsRequireExtractor` | `false` | When `true`, a missing tool is a build error instead of a warning |
 
@@ -83,6 +82,44 @@ If `CascadeEventsAssemblyName` is not set, the tool strips a recognised write-mo
 | `Acme.Orders.Write` | `Acme.Orders.Schema` |
 | `Acme.Orders.Application` | `Acme.Orders.Schema` |
 | `Acme.Orders` | `Acme.Orders.Schema` |
+
+> **Important:** The root namespace of generated files is always set equal to the resolved assembly name. The two cannot differ. This invariant is required for `$type`-based deserialisation — see [Service Bus serialisation](#service-bus-serialisation) below.
+>
+> If you override `CascadeEventsAssemblyName`, ensure your consumer's `SchemaTypeNameMapper` will see the same name. When in doubt, rely on the default.
+
+---
+
+## Service Bus Serialisation
+
+When publishing an `EventEnvelope` to a service bus topic, the `IDomainEvent` stored in `Event` must carry a `$type` discriminator that consumers can resolve without access to the write-model assembly.
+
+`DefaultSerialisationSettings.ForServiceBusPublishing()` provides serialiser options that rewrite the `$type` from the write-model identity to the schema assembly identity automatically — no configuration required:
+
+```csharp
+var options = DefaultSerialisationSettings.ForServiceBusPublishing();
+var json = JsonSerializer.Serialize(envelope, options);
+```
+
+Given a write-model event `Acme.Orders.WriteModel.Orders.Events.OrderPlaced` in assembly `Acme.Orders.WriteModel`, the emitted `$type` will be:
+
+```
+Acme.Orders.Schema.Orders.Events.OrderPlaced, Acme.Orders.Schema
+```
+
+This is exactly what the schema assembly contains. A consumer that references `Acme.Orders.Schema` and uses the same `ForServiceBusPublishing()` options (or `UsingTypeQualifiedName()` with the schema assembly loaded) can deserialise the envelope without any additional wiring.
+
+### How the mapping works
+
+`SchemaTypeNameMapper` applies the same deterministic suffix-strip rule as the extractor to both the namespace prefix and the assembly component of the `$type` string:
+
+1. Strip the recognised write-model suffix from the assembly name (`.WriteModel`, `.Domain`, `.Write`, `.Application`) and append `.Schema`
+2. Replace the matching namespace prefix in the fully-qualified type name with the new assembly name
+
+Because the rule is derived entirely from the type itself, the publisher needs no knowledge of the schema project — there is no configuration to keep in sync.
+
+### Constraint
+
+This mapping relies on the schema assembly name and root namespace being identical. The extractor enforces this: the root namespace of generated files always equals the resolved assembly name and cannot be overridden independently. If you override `CascadeEventsAssemblyName`, the same name must be used as the root namespace of the generated project (which the extractor sets automatically).
 
 ---
 
@@ -229,7 +266,6 @@ cascade-extract-events \
   --output-dir       "/path/to/MyApp.Schema" \
   --root-namespace   "Acme.Orders.WriteModel" \
   --assembly-name    "Acme.Orders.Schema" \
-  --events-namespace "Acme.Orders.Schema" \
   --overwrite        false
 ```
 
@@ -239,5 +275,4 @@ cascade-extract-events \
 | `--output-dir` | Yes | Directory to write the generated events project into |
 | `--root-namespace` | Yes | `RootNamespace` of the source project |
 | `--assembly-name` | No | Override the generated assembly name |
-| `--events-namespace` | No | Override the root namespace in generated files |
 | `--overwrite` | No | Overwrite existing source files (default: `false`) |

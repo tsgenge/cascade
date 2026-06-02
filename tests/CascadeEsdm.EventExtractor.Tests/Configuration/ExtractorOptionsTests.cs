@@ -51,16 +51,15 @@ public class ExtractorOptionsTests
     }
 
     [Fact]
-    public void ResolvedEventsNamespace_UsesExplicitNamespace_WhenProvided()
+    public void ResolvedEventsNamespace_AlwaysEqualsResolvedAssemblyName()
     {
         var options = new ExtractorOptions
         {
-            SourceRoot      = ".",
-            OutputDir       = ".",
-            RootNamespace   = "Acme.Orders.WriteModel",
-            EventsNamespace = "Custom.Ns",
+            SourceRoot    = ".",
+            OutputDir     = ".",
+            RootNamespace = "Acme.Orders.WriteModel",
         };
 
-        options.ResolvedEventsNamespace.Should().Be("Custom.Ns");
+        options.ResolvedEventsNamespace.Should().Be(options.ResolvedAssemblyName);
     }
 }

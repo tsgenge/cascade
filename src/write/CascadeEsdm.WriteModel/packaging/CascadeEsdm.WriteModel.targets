@@ -15,8 +15,6 @@
                                       Default: $(MSBuildProjectDirectory)\..\AssemblyName.Events
         CascadeEventsAssemblyName     Override the generated assembly name.
                                       Default: RootNamespace with trailing write-model segment stripped, + '.Events'
-        CascadeEventsNamespace        Override the root namespace in generated files.
-                                      Default: same as CascadeEventsAssemblyName
         CascadeEventsOverwrite        Set to 'true' to overwrite all generated files on every build.
                                       Default: false (only writes new/changed files; never overwrites the .csproj)
         CascadeEventsRequireExtractor Set to 'true' to make a missing tool a build error instead of a warning.
@@ -27,7 +25,6 @@
         <CascadeEventsEnabled Condition="'$(CascadeEventsEnabled)'          == ''">true</CascadeEventsEnabled>
         <CascadeEventsAssemblyName Condition="'$(CascadeEventsAssemblyName)'     == ''"></CascadeEventsAssemblyName>
         <CascadeEventsOutputDir Condition="'$(CascadeEventsOutputDir)'        == ''">$(MSBuildProjectDirectory)\..\$(RootNamespace).Schema</CascadeEventsOutputDir>
-        <CascadeEventsNamespace Condition="'$(CascadeEventsNamespace)'        == ''"></CascadeEventsNamespace>
         <CascadeEventsOverwrite Condition="'$(CascadeEventsOverwrite)'        == ''">false</CascadeEventsOverwrite>
         <CascadeEventsRequireExtractor Condition="'$(CascadeEventsRequireExtractor)' == ''">false</CascadeEventsRequireExtractor>
     </PropertyGroup>
@@ -62,10 +59,9 @@
 
         <PropertyGroup>
             <_CascadeAssemblyNameArg Condition="'$(CascadeEventsAssemblyName)' != ''">--assembly-name &quot;$(CascadeEventsAssemblyName)&quot;</_CascadeAssemblyNameArg>
-            <_CascadeNamespaceArg Condition="'$(CascadeEventsNamespace)'    != ''">--events-namespace &quot;$(CascadeEventsNamespace)&quot;</_CascadeNamespaceArg>
         </PropertyGroup>
 
-        <Exec Command="dotnet cascade-extract-events --source-root &quot;$(MSBuildProjectDirectory)&quot; --output-dir &quot;$(CascadeEventsOutputDir)&quot; --root-namespace &quot;$(RootNamespace)&quot;$(_CascadeAssemblyNameArg)$(_CascadeNamespaceArg) --overwrite $(CascadeEventsOverwrite)"
+        <Exec Command="dotnet cascade-extract-events --source-root &quot;$(MSBuildProjectDirectory)&quot; --output-dir &quot;$(CascadeEventsOutputDir)&quot; --root-namespace &quot;$(RootNamespace)&quot;$(_CascadeAssemblyNameArg) --overwrite $(CascadeEventsOverwrite)"
               ConsoleToMsBuild="true"/>
     </Target>
 

@@ -18,12 +18,6 @@ public sealed class ExtractorOptions
     public string? AssemblyName { get; init; }
 
     /// <summary>
-    /// Root namespace to use in the generated event files.
-    /// Defaults to AssemblyName when not specified.
-    /// </summary>
-    public string? EventsNamespace { get; init; }
-
-    /// <summary>
     /// When true, existing generated .cs files and the .csproj are overwritten on every run.
     /// When false (default), the .csproj is never overwritten and .cs files are only written if missing or changed.
     /// </summary>
@@ -33,9 +27,7 @@ public sealed class ExtractorOptions
     public string ResolvedAssemblyName =>
         AssemblyName ?? ComputeDefaultAssemblyName(RootNamespace);
 
-    /// <summary>Resolves the effective root namespace for generated files.</summary>
-    public string ResolvedEventsNamespace =>
-        EventsNamespace ?? ResolvedAssemblyName;
+    public string ResolvedEventsNamespace => ResolvedAssemblyName;
 
     private static readonly string[] StripSuffixes =
         [".WriteModel", ".Domain", ".Write", ".Application"];
