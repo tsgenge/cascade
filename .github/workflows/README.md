@@ -1,44 +1,60 @@
 # GitHub Actions CI/CD Workflows
 
-This directory contains GitHub Actions workflows for building, testing, and publishing the Cascade Event Sourcing framework to NuGet.
+This directory contains GitHub Actions workflows for validating pull requests and publishing the Cascade Event Sourcing framework to NuGet.
+
+Branch model:
+- **`develop`** → pre-release (alpha) packages
+- **`master`** → release packages
+- **Pull requests** → validated by the PR Validation workflow (build + test)
 
 ## Workflows
 
-### `ci-cd.yml` (Main Pipeline)
-The main CI/CD pipeline that orchestrates the entire build and publish process.
+### `pr-validation.yml` (PR Validation)
+Validates pull requests. Intended to be a required status check.
 
 **Triggers:**
-- Push to `master` or `develop` branches
-- Pull requests to `master` or `develop` branches
+- Pull requests (any base branch)
+- Manual workflow dispatch
+
+**Jobs:**
+1. **build-and-test**: Restores, builds the solution, and runs all tests
+
+### `ci-cd.yml` (Main Pipeline)
+Builds, tests, and publishes packages on pushes to the long-lived branches. It does **not** run on pull requests — that is handled by PR Validation.
+
+**Triggers:**
+- Push to `master` or `develop`
 - Manual workflow dispatch
 
 **Jobs:**
 1. **build-and-test**: Builds the solution and runs all tests
-2. **publish-prerelease**: Publishes pre-release packages when pushing to `develop`
-3. **publish-release**: Publishes release packages when pushing to `master`
+2. **publish-prerelease**: Publishes pre-release packages on push to `develop`
+3. **publish-release**: Publishes release packages on push to `master`
 
 ### `publish-packages.yml` (Reusable Workflow)
-A reusable workflow that handles the packaging and publishing logic.
+A reusable workflow (called via `workflow_call`) that handles packaging and publishing.
 
 **Inputs:**
 - `is-prerelease`: Boolean flag to determine if this is a pre-release build
 
 **Version Strategy:**
-- **Pre-release** (develop branch): `1.0.0-beta.{build-number}+{short-sha}`
-- **Release** (master branch): 
-  - If tagged: Uses the git tag version (e.g., `v1.2.3` → `1.2.3`)
+- **Pre-release** (`develop`): `1.0.0-alpha.{build-number}+{short-sha}`
+- **Release** (`master`):
+  - If tagged: uses the git tag version (e.g., `v1.2.3` → `1.2.3`)
   - If not tagged: `1.0.{build-number}`
 
 ## Package Publishing Order
 
 Packages are built and published in dependency order:
 
-1. `Cascade.SharedKernel.Abstractions` (no dependencies)
-2. `Cascade.SharedKernel` (depends on SharedKernel.Abstractions)
-3. `Cascade.Commands.Abstractions` (depends on SharedKernel.Abstractions)
-4. `Cascade.Commands` (depends on SharedKernel + Commands.Abstractions)
-5. `Cascade.Views.Abstractions` (no dependencies)
-6. `Cascade.Views` (depends on Views.Abstractions)
+1. `CascadeEsdm.SharedKernel.Abstractions` (no dependencies)
+2. `CascadeEsdm.SharedKernel` (depends on SharedKernel.Abstractions)
+3. `CascadeEsdm.WriteModel.Abstractions` (depends on SharedKernel.Abstractions)
+4. `CascadeEsdm.WriteModel` (depends on SharedKernel + WriteModel.Abstractions)
+5. `CascadeEsdm.ReadModel.Abstractions` (no dependencies)
+6. `CascadeEsdm.ReadModel` (depends on ReadModel.Abstractions)
+7. `CascadeEsdm.EventExtractor` (dotnet tool, `net10.0` only)
+8. `CascadeEsdm.AIContext`
 
 ## Setup Instructions
 
@@ -60,11 +76,10 @@ Edit `Directory.Build.props` in the repository root to update:
 - `<PackageProjectUrl>` - Your GitHub repository URL
 - `<RepositoryUrl>` - Your GitHub repository URL
 
-### 3. Create Branches
+### 3. Branches
 
-Ensure you have the required branches:
+- `develop` - For pre-release/alpha versions
 - `master` - For stable releases
-- `develop` - For pre-release/beta versions
 
 ## Local Development vs CI/CD
 
@@ -84,7 +99,7 @@ This is controlled by the `UseProjectReferences` property in `Directory.Build.pr
 
 ## Testing the Workflow
 
-### Test Pre-release Publishing
+### Pre-release Publishing
 ```bash
 git checkout develop
 # Make changes
@@ -92,25 +107,25 @@ git commit -m "Test pre-release"
 git push origin develop
 ```
 
-This will trigger a build and publish packages like `1.0.0-beta.42+abc1234` to NuGet.
+This publishes packages like `1.0.0-alpha.42+abc1234` to NuGet.
 
-### Test Release Publishing
+### Release Publishing
 ```bash
 git checkout master
 git merge develop
 git push origin master
 ```
 
-This will trigger a build and publish packages like `1.0.42` to NuGet.
+This publishes packages like `1.0.42` to NuGet.
 
-### Test with Git Tags
+### Tagged Release
 ```bash
 git checkout master
 git tag v1.2.3
 git push origin v1.2.3
 ```
 
-This will publish packages with version `1.2.3` and create a GitHub release.
+This publishes packages with version `1.2.3` and creates a GitHub release.
 
 ## Troubleshooting
 
@@ -133,8 +148,7 @@ This will publish packages with version `1.2.3` and create a GitHub release.
 To manually create packages locally (for testing):
 
 ```bash
-# Build with NuGet package references
-dotnet pack src/shared/Cascade.SharedKernel.Abstractions/Cascade.SharedKernel.Abstractions.csproj \
+dotnet pack src/shared/CascadeEsdm.SharedKernel.Abstractions/CascadeEsdm.SharedKernel.Abstractions.csproj \
   --configuration Release \
   --output ./artifacts \
   /p:Version=1.0.0-local \
