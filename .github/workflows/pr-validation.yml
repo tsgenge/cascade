@@ -1,9 +1,7 @@
-name: CI/CD Pipeline
+name: PR Validation
 
 on:
-  push:
-    branches:
-      - develop
+  pull_request:
   workflow_dispatch:
 
 env:
@@ -15,7 +13,7 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -42,12 +40,3 @@ jobs:
         with:
           name: test-results
           path: '**/TestResults/**/*'
-
-  publish-prerelease:
-    name: Publish Pre-release
-    needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-    uses: ./.github/workflows/publish-packages.yml
-    with:
-      is-prerelease: true
-    secrets: inherit
