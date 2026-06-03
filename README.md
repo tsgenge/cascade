@@ -43,6 +43,7 @@ Cascade removes those decisions. Engineers implement commands, emit events, and 
 | Package | Description |
 |---|---|
 | `CascadeEsdm.EventExtractor` | Pre-build tool that extracts `IDomainEvent` records from your write model into a clean, publishable events assembly |
+| `CascadeEsdm.AIContext` | Installs AI agent context and best practices into your IDE's rules directory on build |
 
 ---
 
@@ -138,6 +139,24 @@ MyApp.Events/           ← generated, add to source control
 ```
 
 Write your events and appliers together. Publish only the events. No duplication. No drift. See [docs/EventExtractor.md](docs/EventExtractor.md) for full details.
+
+---
+
+## AI Agent Context
+
+Cascade ships a package that gives AI agents in your IDE (Windsurf, Cursor, GitHub Copilot) automatic context about the framework — patterns, conventions, composition, exceptions, and the event extractor.
+
+```bash
+dotnet add package CascadeEsdm.AIContext
+```
+
+On your next build, a `cascade-esdm.md` rules file is written into your project's AI agent configuration directory:
+
+- **`.devin/rules/`** — Windsurf
+- **`.cursor/rules/`** — Cursor
+- **`AGENTS.md`** — fallback for other agents
+
+Add the generated file to source control so all team members and CI agents share the same context. The file is only updated when the package version changes.
 
 ---
 

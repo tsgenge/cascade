@@ -85,6 +85,7 @@ jobs:
             "src/read/CascadeEsdm.ReadModel.Abstractions/CascadeEsdm.ReadModel.Abstractions.csproj"
             "src/read/CascadeEsdm.ReadModel/CascadeEsdm.ReadModel.csproj"
             "src/tools/CascadeEsdm.EventExtractor/CascadeEsdm.EventExtractor.csproj"
+            "src/tools/CascadeEsdm.AIContext/CascadeEsdm.AIContext.csproj"
           )
           
           # Pack each project and add to local feed

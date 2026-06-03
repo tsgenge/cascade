@@ -1,0 +1,70 @@
+<Project>
+
+  <PropertyGroup>
+    <CascadeAIContextSourceFile>$(MSBuildThisFileDirectory)..\content\cascade-esdm.md</CascadeAIContextSourceFile>
+    <CascadeAIContextSolutionDir Condition="'$(SolutionDir)' != '' AND '$(SolutionDir)' != '*Undefined*'">$(SolutionDir)</CascadeAIContextSolutionDir>
+    <CascadeAIContextSolutionDir Condition="'$(CascadeAIContextSolutionDir)' == ''">$(MSBuildProjectDirectory)\</CascadeAIContextSolutionDir>
+
+    <CascadeDevinRulesDir>$(CascadeAIContextSolutionDir).devin\rules\</CascadeDevinRulesDir>
+    <CascadeDevinDir>$(CascadeAIContextSolutionDir).devin\</CascadeDevinDir>
+    <CascadeWindsurfRulesDir>$(CascadeAIContextSolutionDir).windsurf\rules\</CascadeWindsurfRulesDir>
+    <CascadeWindsurfDir>$(CascadeAIContextSolutionDir).windsurf\</CascadeWindsurfDir>
+    <CascadeCursorRulesDir>$(CascadeAIContextSolutionDir).cursor\rules\</CascadeCursorRulesDir>
+    <CascadeCursorDir>$(CascadeAIContextSolutionDir).cursor\</CascadeCursorDir>
+    <CascadeAgentsMdPath>$(CascadeAIContextSolutionDir)AGENTS.md</CascadeAgentsMdPath>
+  </PropertyGroup>
+
+  <Target Name="CascadeInstallAIContext" BeforeTargets="BeforeBuild">
+
+    <PropertyGroup>
+      <_CascadeDevinExists Condition="Exists('$(CascadeDevinDir)')">true</_CascadeDevinExists>
+      <_CascadeWindsurfExists Condition="Exists('$(CascadeWindsurfDir)')">true</_CascadeWindsurfExists>
+      <_CascadeCursorExists Condition="Exists('$(CascadeCursorDir)')">true</_CascadeCursorExists>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(CascadeDevinRulesDir)" Condition="'$(_CascadeDevinExists)' == 'true'" />
+    <Copy
+      SourceFiles="$(CascadeAIContextSourceFile)"
+      DestinationFiles="$(CascadeDevinRulesDir)cascade-esdm.md"
+      SkipUnchangedFiles="true"
+      Condition="'$(_CascadeDevinExists)' == 'true'" />
+    <Message
+      Text="Cascade ESDM: AI context rules written to .devin/rules/cascade-esdm.md"
+      Importance="high"
+      Condition="'$(_CascadeDevinExists)' == 'true'" />
+
+    <MakeDir Directories="$(CascadeWindsurfRulesDir)" Condition="'$(_CascadeWindsurfExists)' == 'true'" />
+    <Copy
+      SourceFiles="$(CascadeAIContextSourceFile)"
+      DestinationFiles="$(CascadeWindsurfRulesDir)cascade-esdm.md"
+      SkipUnchangedFiles="true"
+      Condition="'$(_CascadeWindsurfExists)' == 'true'" />
+    <Message
+      Text="Cascade ESDM: AI context rules written to .windsurf/rules/cascade-esdm.md"
+      Importance="high"
+      Condition="'$(_CascadeWindsurfExists)' == 'true'" />
+
+    <MakeDir Directories="$(CascadeCursorRulesDir)" Condition="'$(_CascadeCursorExists)' == 'true'" />
+    <Copy
+      SourceFiles="$(CascadeAIContextSourceFile)"
+      DestinationFiles="$(CascadeCursorRulesDir)cascade-esdm.md"
+      SkipUnchangedFiles="true"
+      Condition="'$(_CascadeCursorExists)' == 'true'" />
+    <Message
+      Text="Cascade ESDM: AI context rules written to .cursor/rules/cascade-esdm.md"
+      Importance="high"
+      Condition="'$(_CascadeCursorExists)' == 'true'" />
+
+    <Copy
+      SourceFiles="$(CascadeAIContextSourceFile)"
+      DestinationFiles="$(CascadeAgentsMdPath)"
+      SkipUnchangedFiles="true"
+      Condition="'$(_CascadeDevinExists)' != 'true' AND '$(_CascadeWindsurfExists)' != 'true' AND '$(_CascadeCursorExists)' != 'true'" />
+    <Message
+      Text="Cascade ESDM: AI context written to AGENTS.md (no .devin, .windsurf or .cursor directory detected)"
+      Importance="high"
+      Condition="'$(_CascadeDevinExists)' != 'true' AND '$(_CascadeWindsurfExists)' != 'true' AND '$(_CascadeCursorExists)' != 'true'" />
+
+  </Target>
+
+</Project>

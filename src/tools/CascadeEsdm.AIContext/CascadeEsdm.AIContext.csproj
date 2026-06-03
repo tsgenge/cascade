@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <PackageId>CascadeEsdm.AIContext</PackageId>
+        <Description>AI agent context and best practices for projects using the Cascade ESDM framework. Installs a cascade-esdm.md rules file into .windsurf/rules/, .cursor/rules/, or AGENTS.md on first build.</Description>
+        <PackageIcon>icon.jpg</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <TargetFrameworks>netstandard2.1;net10.0</TargetFrameworks>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <NoPackageAnalysis>true</NoPackageAnalysis>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="build\CascadeEsdm.AIContext.props" Pack="true" PackagePath="build\" />
+        <None Include="content\cascade-esdm.md" Pack="true" PackagePath="content\" />
+        <Content Include="content\cascade-esdm.md" Pack="true" PackagePath="contentFiles\any\any\" />
+        <None Include="lib\netstandard2.1\_._" Pack="true" PackagePath="lib\netstandard2.1\" />
+        <None Include="lib\net10.0\_._" Pack="true" PackagePath="lib\net10.0\" />
+        <None Include="docs\README.md" Pack="true" PackagePath="\" />
+        <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+</Project>
