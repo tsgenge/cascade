@@ -48,6 +48,4 @@ jobs:
     needs: build-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     uses: ./.github/workflows/publish-packages.yml
-    with:
-      is-prerelease: true
     secrets: inherit
