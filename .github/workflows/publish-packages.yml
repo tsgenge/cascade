@@ -2,6 +2,11 @@ name: Publish Packages
 
 on:
   workflow_call:
+    inputs:
+      is-prerelease:
+        required: true
+        type: boolean
+        description: 'Whether this is a pre-release build'
 
 env:
   DOTNET_VERSION: '10.0.x'
@@ -25,14 +30,37 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Calculate version
-        id: version
+      - name: Calculate version (Pre-release)
+        if: inputs.is-prerelease
+        id: version-prerelease
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
           BUILD_NUMBER=$(git rev-list --count develop)
           VERSION="${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ env.VERSION_PATCH }}-alpha.$BUILD_NUMBER+$SHORT_SHA"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Pre-release version: $VERSION"
+
+      - name: Calculate version (Release)
+        if: ${{ !inputs.is-prerelease }}
+        id: version-release
+        run: |
+          if git describe --tags --exact-match 2>/dev/null; then
+            VERSION=$(git describe --tags --exact-match | sed 's/^v//')
+          else
+            BUILD_NUMBER=$(git rev-list --count master)
+            VERSION="${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.$BUILD_NUMBER"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Release version: $VERSION"
+
+      - name: Set version output
+        id: version
+        run: |
+          if [ "${{ inputs.is-prerelease }}" == "true" ]; then
+            echo "version=${{ steps.version-prerelease.outputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ steps.version-release.outputs.version }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Pack packages using local feed
         run: |
@@ -106,9 +134,18 @@ jobs:
           
           echo "✅ All packages published successfully"
 
+      - name: Create GitHub Release
+        if: ${{ !inputs.is-prerelease && startsWith(github.ref, 'refs/tags/') }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./artifacts/*.nupkg
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nuget-packages-prerelease
+          name: nuget-packages-${{ inputs.is-prerelease && 'prerelease' || 'release' }}
           path: ./artifacts/*.nupkg
           retention-days: 30

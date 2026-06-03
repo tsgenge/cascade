@@ -5,8 +5,8 @@
 1. **Add NuGet API Key** to GitHub Secrets as `NUGET_API_KEY`
 2. **Open a PR** → PR Validation runs build + tests
 3. **Push to `develop`** → Pre-release packages (e.g., `1.0.0-alpha.42+abc1234`)
-
-> This repo uses a single `develop` branch (no gitflow/`master`).
+4. **Push to `master`** → Release packages (e.g., `1.0.42`)
+5. **Tag on `master`** → Versioned release (e.g., `v1.2.3` → `1.2.3`)
 
 ## Local Development
 
@@ -49,6 +49,22 @@ git push origin develop
 ```
 → Publishes `1.0.0-alpha.{build}+{sha}` to NuGet
 
+### Release
+```bash
+git checkout master
+git merge develop
+git push origin master
+```
+→ Publishes `1.0.{build}` to NuGet
+
+### Tagged Release
+```bash
+git checkout master
+git tag v1.2.3
+git push origin v1.2.3
+```
+→ Publishes `1.2.3` to NuGet + creates a GitHub Release
+
 ## How It Works
 
 ### Local Development (Default)
@@ -83,19 +99,19 @@ AIContext
 | Packages not publishing | Check `NUGET_API_KEY` secret is set |
 | Build fails | Verify tests pass locally first |
 | Changes not reflected | Ensure not using `/p:UseProjectReferences=false` locally |
-| Version conflict | Increment version |
+| Version conflict | Increment version or use a different tag |
 
 ## Files
 
 - `Directory.Build.props` - NuGet metadata and conditional properties
 - `*.csproj` - Conditional references (project vs NuGet)
 - `.github/workflows/pr-validation.yml` - PR validation (build + test)
-- `.github/workflows/ci-cd.yml` - Main pipeline (build/test + prerelease publish on `develop`)
+- `.github/workflows/ci-cd.yml` - Main pipeline (build/test + publish on `develop`/`master`)
 - `.github/workflows/publish-packages.yml` - Reusable publish workflow
 
 ## Next Steps
 
 1. Update package metadata in `Directory.Build.props`
 2. Add `NUGET_API_KEY` to GitHub Secrets
-3. Test by pushing to `develop` branch
+3. Test by pushing to `develop` (prerelease) or `master` (release)
 4. Monitor GitHub Actions for build status
