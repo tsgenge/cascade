@@ -101,6 +101,8 @@ internal class PolymorphicTypeConverter<TType> : JsonConverter<TType>
 
     public override bool CanConvert(Type typeToConvert)
     {
-        return typeToConvert.IsAssignableTo(typeof(TType)) && !typeToConvert.IsAssignableTo(typeof(IValueObject));
+        // Use IsAssignableFrom instead of IsAssignableTo for .NET Standard 2.1 compatibility
+        // IsAssignableTo was introduced in .NET 5, but IsAssignableFrom has been available since .NET Framework 1.1
+        return typeof(TType).IsAssignableFrom(typeToConvert) && !typeof(IValueObject).IsAssignableFrom(typeToConvert);
     }
 }

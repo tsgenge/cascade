@@ -5,7 +5,7 @@ namespace CascadeEsdm.SharedKernel.Infrastructure.Serialisation;
 internal static class SchemaTypeNameMapper
 {
     private static readonly string[] StripSuffixes =
-        [".WriteModel", ".Domain", ".Write", ".Application"];
+        [".WriteModel", ".Domain", ".Write", ".Application", ".Schema"];
 
     private static readonly Regex AssemblyComponentPattern =
         new(@",\s*([\w\.]+)$", RegexOptions.Compiled);
@@ -33,8 +33,7 @@ internal static class SchemaTypeNameMapper
 
     internal static string ComputeSchemaAssemblyName(string assemblyName)
     {
-        foreach (var suffix in StripSuffixes)
-        {
+        foreach (var suffix in StripSuffixes) {
             if (assemblyName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
                 return assemblyName[..^suffix.Length] + ".Schema";
         }

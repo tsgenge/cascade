@@ -1,6 +1,6 @@
 <Project>
     <PropertyGroup>
-        <TargetFrameworks>net10.0</TargetFrameworks>
+        <TargetFrameworks>netstandard2.1;net10.0</TargetFrameworks>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>latest</LangVersion>
@@ -27,4 +27,10 @@
         <!-- Version will be set by CI/CD pipeline -->
         <Version Condition="'$(Version)' == ''">1.0.0-local</Version>
     </PropertyGroup>
+    
+    <!-- Package references for .NET Standard 2.1 compatibility -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <PackageReference Include="System.Text.Json" Version="8.0.5" />
+        <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    </ItemGroup>
 </Project>

@@ -2,7 +2,7 @@ namespace CascadeEsdm.SharedKernel.Security;
 
 public class RoleBasedSecurityDescriptor : ISecurityDescriptor
 {
-    public IReadOnlyDictionary<string, Permissions> SecurityDescriptors { get; init; } = new Dictionary<string, Permissions>(StringComparer.OrdinalIgnoreCase);
+    public IReadOnlyDictionary<string, Permissions> SecurityDescriptors { get; set; } = new Dictionary<string, Permissions>(StringComparer.OrdinalIgnoreCase);
 }
 
 [Flags]

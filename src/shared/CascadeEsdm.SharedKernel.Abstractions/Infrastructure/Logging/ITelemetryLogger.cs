@@ -16,7 +16,16 @@ public enum TelemetryOperationKind
     Consumer
 }
 
-public record TelemetryParent(string TraceParent, string TraceState)
+public record TelemetryParent
 {
+    public string TraceParent { get; }
+    public string TraceState { get; }
+
+    public TelemetryParent(string traceParent, string traceState)
+    {
+        TraceParent = traceParent;
+        TraceState = traceState;
+    }
+
     public bool IsValid => !string.IsNullOrWhiteSpace(TraceParent) && !string.IsNullOrWhiteSpace(TraceState);
 }
