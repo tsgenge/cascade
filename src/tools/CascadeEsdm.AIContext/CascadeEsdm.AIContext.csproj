@@ -10,12 +10,18 @@
         <NoPackageAnalysis>true</NoPackageAnalysis>
     </PropertyGroup>
 
+    <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
+        <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel.Abstractions\CascadeEsdm.SharedKernel.Abstractions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
+        <PackageReference Include="CascadeEsdm.SharedKernel.Abstractions" Version="$(CascadeVersion)" />
+    </ItemGroup>
+
     <ItemGroup>
         <None Include="build\CascadeEsdm.AIContext.props" Pack="true" PackagePath="build\" />
         <None Include="content\cascade-esdm.md" Pack="true" PackagePath="content\" />
         <Content Include="content\cascade-esdm.md" Pack="true" PackagePath="contentFiles\any\any\" />
-        <None Include="lib\netstandard2.1\_._" Pack="true" PackagePath="lib\netstandard2.1\" />
-        <None Include="lib\net10.0\_._" Pack="true" PackagePath="lib\net10.0\" />
         <None Include="docs\README.md" Pack="true" PackagePath="\" />
         <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
     </ItemGroup>
