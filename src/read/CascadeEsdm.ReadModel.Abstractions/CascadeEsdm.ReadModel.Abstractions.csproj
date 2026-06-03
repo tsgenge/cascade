@@ -11,4 +11,17 @@
     <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
     <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
+    <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel.Abstractions\CascadeEsdm.SharedKernel.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
+    <PackageReference Include="CascadeEsdm.SharedKernel.Abstractions" Version="$(CascadeVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CascadeEsdm.ReadModel.Tests"/>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+  </ItemGroup>
 </Project>
