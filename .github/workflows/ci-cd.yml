@@ -51,12 +51,3 @@ jobs:
     with:
       is-prerelease: true
     secrets: inherit
-
-  publish-release:
-    name: Publish Release
-    needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    uses: ./.github/workflows/publish-packages.yml
-    with:
-      is-prerelease: false
-    secrets: inherit
