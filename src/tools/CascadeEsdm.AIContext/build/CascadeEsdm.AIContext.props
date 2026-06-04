@@ -14,7 +14,7 @@
     <CascadeAgentsMdPath>$(CascadeAIContextSolutionDir)AGENTS.md</CascadeAgentsMdPath>
   </PropertyGroup>
 
-  <Target Name="CascadeInstallAIContext" BeforeTargets="BeforeBuild">
+  <Target Name="CascadeInstallAIContext" AfterTargets="Restore">
 
     <PropertyGroup>
       <_CascadeDevinExists Condition="Exists('$(CascadeDevinDir)')">true</_CascadeDevinExists>
@@ -22,48 +22,44 @@
       <_CascadeCursorExists Condition="Exists('$(CascadeCursorDir)')">true</_CascadeCursorExists>
     </PropertyGroup>
 
-    <MakeDir Directories="$(CascadeDevinRulesDir)" Condition="'$(_CascadeDevinExists)' == 'true'" />
+    <MakeDir Directories="$(CascadeDevinRulesDir)" Condition="'$(_CascadeDevinExists)' == 'true' AND !Exists('$(CascadeDevinRulesDir)cascade-esdm.md')" />
     <Copy
       SourceFiles="$(CascadeAIContextSourceFile)"
       DestinationFiles="$(CascadeDevinRulesDir)cascade-esdm.md"
-      SkipUnchangedFiles="true"
-      Condition="'$(_CascadeDevinExists)' == 'true'" />
+      Condition="'$(_CascadeDevinExists)' == 'true' AND !Exists('$(CascadeDevinRulesDir)cascade-esdm.md')" />
     <Message
       Text="Cascade ESDM: AI context rules written to .devin/rules/cascade-esdm.md"
       Importance="high"
-      Condition="'$(_CascadeDevinExists)' == 'true'" />
+      Condition="'$(_CascadeDevinExists)' == 'true' AND !Exists('$(CascadeDevinRulesDir)cascade-esdm.md')" />
 
-    <MakeDir Directories="$(CascadeWindsurfRulesDir)" Condition="'$(_CascadeWindsurfExists)' == 'true'" />
+    <MakeDir Directories="$(CascadeWindsurfRulesDir)" Condition="'$(_CascadeWindsurfExists)' == 'true' AND !Exists('$(CascadeWindsurfRulesDir)cascade-esdm.md')" />
     <Copy
       SourceFiles="$(CascadeAIContextSourceFile)"
       DestinationFiles="$(CascadeWindsurfRulesDir)cascade-esdm.md"
-      SkipUnchangedFiles="true"
-      Condition="'$(_CascadeWindsurfExists)' == 'true'" />
+      Condition="'$(_CascadeWindsurfExists)' == 'true' AND !Exists('$(CascadeWindsurfRulesDir)cascade-esdm.md')" />
     <Message
       Text="Cascade ESDM: AI context rules written to .windsurf/rules/cascade-esdm.md"
       Importance="high"
-      Condition="'$(_CascadeWindsurfExists)' == 'true'" />
+      Condition="'$(_CascadeWindsurfExists)' == 'true' AND !Exists('$(CascadeWindsurfRulesDir)cascade-esdm.md')" />
 
-    <MakeDir Directories="$(CascadeCursorRulesDir)" Condition="'$(_CascadeCursorExists)' == 'true'" />
+    <MakeDir Directories="$(CascadeCursorRulesDir)" Condition="'$(_CascadeCursorExists)' == 'true' AND !Exists('$(CascadeCursorRulesDir)cascade-esdm.md')" />
     <Copy
       SourceFiles="$(CascadeAIContextSourceFile)"
       DestinationFiles="$(CascadeCursorRulesDir)cascade-esdm.md"
-      SkipUnchangedFiles="true"
-      Condition="'$(_CascadeCursorExists)' == 'true'" />
+      Condition="'$(_CascadeCursorExists)' == 'true' AND !Exists('$(CascadeCursorRulesDir)cascade-esdm.md')" />
     <Message
       Text="Cascade ESDM: AI context rules written to .cursor/rules/cascade-esdm.md"
       Importance="high"
-      Condition="'$(_CascadeCursorExists)' == 'true'" />
+      Condition="'$(_CascadeCursorExists)' == 'true' AND !Exists('$(CascadeCursorRulesDir)cascade-esdm.md')" />
 
     <Copy
       SourceFiles="$(CascadeAIContextSourceFile)"
       DestinationFiles="$(CascadeAgentsMdPath)"
-      SkipUnchangedFiles="true"
-      Condition="'$(_CascadeDevinExists)' != 'true' AND '$(_CascadeWindsurfExists)' != 'true' AND '$(_CascadeCursorExists)' != 'true'" />
+      Condition="'$(_CascadeDevinExists)' != 'true' AND '$(_CascadeWindsurfExists)' != 'true' AND '$(_CascadeCursorExists)' != 'true' AND !Exists('$(CascadeAgentsMdPath)')" />
     <Message
       Text="Cascade ESDM: AI context written to AGENTS.md (no .devin, .windsurf or .cursor directory detected)"
       Importance="high"
-      Condition="'$(_CascadeDevinExists)' != 'true' AND '$(_CascadeWindsurfExists)' != 'true' AND '$(_CascadeCursorExists)' != 'true'" />
+      Condition="'$(_CascadeDevinExists)' != 'true' AND '$(_CascadeWindsurfExists)' != 'true' AND '$(_CascadeCursorExists)' != 'true' AND !Exists('$(CascadeAgentsMdPath)')" />
 
   </Target>
 

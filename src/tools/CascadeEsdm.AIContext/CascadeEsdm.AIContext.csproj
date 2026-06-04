@@ -8,6 +8,7 @@
         <TargetFrameworks>netstandard2.1;net10.0</TargetFrameworks>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <NoPackageAnalysis>true</NoPackageAnalysis>
+        <IncludeSymbols>false</IncludeSymbols>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
