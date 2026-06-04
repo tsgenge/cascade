@@ -13,7 +13,7 @@ ESDM is one of the most powerful approaches to system architecture. Events as th
 
 The problem is the framework. To implement ESDM correctly you need opinions on dozens of decisions: how commands are dispatched, how aggregates are hydrated, how events are stored, how concurrency is handled, how read models are projected. Every team that tries makes different mistakes, usually without realising they are mistakes until they're baked in.
 
-Cascade removes those decisions. Engineers implement commands, emit events, and build projections. The framework handles everything else.
+Cascade removes those decisions. Engineers implement commands, emit events, add policies and build view projections. The framework handles everything else.
 
 ---
 
