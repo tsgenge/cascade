@@ -6,8 +6,10 @@ public class ReadModelBuilder
 {
     private readonly IServiceCollection _services;
 
-    public ReadModelBuilder(IServiceCollection services)
+    internal ReadModelBuilder(IServiceCollection services)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
     }
+
+    public IServiceCollection Services => _services;
 }

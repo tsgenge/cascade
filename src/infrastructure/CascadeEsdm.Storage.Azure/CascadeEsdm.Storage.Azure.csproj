@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <PackageId>CascadeEsdm.Storage.Azure</PackageId>
+        <Description>Provides an Azure Table Storage implementation of ITableStore for ReadModel sequence tracking.</Description>
+        <PackageIcon>icon.jpg</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
+        <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Azure.Data.Tables" Version="12.9.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />
+    </ItemGroup>
+</Project>
