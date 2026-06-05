@@ -7,7 +7,7 @@ namespace CascadeEsdm.ReadModel.Projecting;
 ///     Applies the data carried by an event to a view row and, for row-creating events,
 ///     resolves the identifier of the new row.
 /// </summary>
-public interface IViewEventMapper<TView>
+internal interface IViewEventMapper<TView>
     where TView : IView
 {
     void Map(TView view, EventEnvelope @event);

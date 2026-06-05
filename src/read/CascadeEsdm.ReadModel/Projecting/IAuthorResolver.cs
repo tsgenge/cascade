@@ -7,7 +7,7 @@ namespace CascadeEsdm.ReadModel.Projecting;
 ///     Resolves the <see cref="UserIdentity" /> of the user who authored a view row,
 ///     used when projecting into an <see cref="Views.IAuthoredView" />.
 /// </summary>
-public interface IAuthorResolver
+internal interface IAuthorResolver
 {
     Task<UserIdentity?> ResolveAsync(AuthenticatedContext context);
 }

@@ -8,7 +8,7 @@ namespace CascadeEsdm.ReadModel.Projecting;
 ///     Persistence gateway used by the projector to load, save, and delete view rows
 ///     during projection.
 /// </summary>
-public interface IViewProjectionStore<TView>
+internal interface IViewProjectionStore<TView>
     where TView : IView
 {
     Task<(IList<TView> Rows, Partition Partition)> GetRowsAsync(EventEnvelope @event);

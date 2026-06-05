@@ -7,7 +7,7 @@ namespace CascadeEsdm.ReadModel.Projecting;
 ///     Determines whether a view supports a given event and what structural effect
 ///     (add / change / remove row) the event has on the view.
 /// </summary>
-public interface IEventCapabilityEvaluator<TView>
+internal interface IEventCapabilityEvaluator<TView>
     where TView : IView
 {
     bool Supports(EventEnvelope @event);

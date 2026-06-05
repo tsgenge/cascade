@@ -6,7 +6,7 @@ namespace CascadeEsdm.ReadModel.ValueObjects;
 ///     The last projected sequence checkpoint for an aggregate subject within a view,
 ///     used to detect stale or out-of-order events.
 /// </summary>
-public record Sequence
+internal record Sequence
 {
     public Sequence(Subject subject, DateTimeOffset utcWhen, long value)
     {
