@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup>
-    <CascadeAIContextSourceFile>$(MSBuildThisFileDirectory)..\content\cascade-esdm.md</CascadeAIContextSourceFile>
+    <CascadeAIContextSourceFile>$(MSBuildThisFileDirectory)..\ai-context\cascade-esdm.md</CascadeAIContextSourceFile>
     <CascadeAIContextSolutionDir Condition="'$(SolutionDir)' != '' AND '$(SolutionDir)' != '*Undefined*'">$(SolutionDir)</CascadeAIContextSolutionDir>
     <CascadeAIContextSolutionDir Condition="'$(CascadeAIContextSolutionDir)' == ''">$(MSBuildProjectDirectory)\</CascadeAIContextSolutionDir>
 
