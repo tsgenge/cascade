@@ -228,6 +228,115 @@ Use `DefaultSerialisationSettings.ForServiceBusPublishing()` when serialising `E
 
 ---
 
+## Views and View Configuration
+
+Views are read-model rows — query-optimised projections of domain events. When creating a view, the agent must:
+
+1. **Define the view class** — implement `IView` (or `IAuthoredView`), decorate with `[PartitionFormat]`
+2. **Create the configuration** — inherit `ViewProfileConfiguration<TView>`, override `Configure`
+3. **Register events** — use the fluent API to declare how each event type maps to the view
+
+### View class
+
+```csharp
+using CascadeEsdm.ReadModel.Views;
+
+[PartitionFormat("orders")]
+public class OrderView : IView
+{
+    public Guid Id { get; set; }
+    public Guid? ParentId { get; set; }
+    public DateTimeOffset Created { get; set; }
+    public DateTimeOffset Modified { get; set; }
+    public IList<string> ClientPermissions { get; set; } = new List<string>();
+    public string Reference { get; set; } = string.Empty;
+    public decimal Total { get; set; }
+}
+```
+
+`[PartitionFormat]` tokens: `{partitionId}`, `{tenantId}`, `{userId}`. Static partitions use a plain string (e.g. `"orders"`). Explicit partitions include `{partitionId}` (e.g. `"lineitems-{partitionId}"`).
+
+### Configuration — static partition
+
+```csharp
+using CascadeEsdm.ReadModel.Projecting.Configuration;
+
+internal class OrderViewConfiguration : ViewProfileConfiguration<OrderView>
+{
+    protected override void Configure(ViewEventBuilder<OrderView> builder)
+    {
+        var config = builder.UsesStaticPartitionKey();
+
+        config.For<OrderPlaced>()
+            .UsingRowLocator((e, o) => new(nameof(OrderView.Id), e.OrderId))
+            .AddsNewRow((e, o) => e.OrderId)
+            .ForProperty(v => v.Reference, e => e.Reference);
+
+        config.For<OrderTotalUpdated>()
+            .UsingRowLocator((e, o) => new(nameof(OrderView.Id), e.OrderId))
+            .ChangesRows()
+            .ForMember(v => v.Total, x => x.MapFrom(e => e.NewTotal));
+
+        config.For<OrderCancelled>()
+            .UsingRowLocator((e, o) => new(nameof(OrderView.Id), e.OrderId))
+            .RemovesRows();
+    }
+}
+```
+
+### Configuration — explicit partition
+
+Use when the storage partition depends on event properties (e.g. child entities scoped to a parent):
+
+```csharp
+[PartitionFormat("lineitems-{partitionId}")]
+public class LineItemView : IView { /* ... */ }
+
+internal class LineItemViewConfiguration : ViewProfileConfiguration<LineItemView>
+{
+    protected override void Configure(ViewEventBuilder<LineItemView> builder)
+    {
+        var config = builder.UsesExplicitPartitionKey();
+
+        config.For<LineItemAdded>()
+            .UsingPartitionIdentifier((e, o) => o!.Subject.Id)
+            .AndRowLocator((e, o) => new(nameof(LineItemView.Id), e.LineItemId))
+            .AddsNewRow((e, o) => e.LineItemId)
+            .ForProperty(v => v.ParentId, (e, o) => o!.Subject.Id);
+
+        config.For<LineItemRemoved>()
+            .UsingPartitionIdentifier((e, o) => o!.Subject.Id)
+            .AndRowLocator((e, o) => new(nameof(LineItemView.Id), e.LineItemId))
+            .RemovesRows();
+    }
+}
+```
+
+### Fluent API chain
+
+```
+ViewProfileConfiguration<TView>.Configure(ViewEventBuilder<TView>)
+  ├── .UsesStaticPartitionKey() → .For<TEvent>() → .UsingRowLocator(locator) → MutationStrategy
+  └── .UsesExplicitPartitionKey() → .For<TEvent>() → .UsingPartitionIdentifier(expr) → .AndRowLocator(locator) → MutationStrategy
+
+MutationStrategy:
+  ├── .AddsNewRow(idResolver) → IMappingExpression (chain .ForProperty / .ForMember / .ConvertUsing)
+  ├── .ChangesRows() → IMappingExpression (chain .ForProperty / .ForMember / .ConvertUsing)
+  └── .RemovesRows()
+```
+
+### Key rules for AI agents
+
+- View configurations are `internal class` — they are registered automatically, not instantiated by consumers
+- Every event must have both a **row locator** and a **mutation strategy** — the framework validates this
+- `Created` and `Modified` are set automatically — do not map them manually
+- Use `.ForProperty` for type-safe same-type mappings; use `.ForMember` for computed or cross-type mappings
+- Use `.ConvertUsing` only when member-level mapping is insufficient (e.g. collection mutations)
+- The `EventEnvelope` is available as the second parameter in locator lambdas (`o` or `envelope`) — access `Subject`, `Time`, `SecurityContext` etc.
+- For explicit partitions, the partition identifier must be resolved **before** the row locator (`.UsingPartitionIdentifier` → `.AndRowLocator`)
+
+---
+
 ## Code Style
 
 - XML doc comments (`///`) only on `public` members of `public` types
