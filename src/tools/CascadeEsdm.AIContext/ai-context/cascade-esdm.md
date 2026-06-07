@@ -23,6 +23,7 @@ Engineers **do not** wire up command handlers manually, manage event streams dir
 | `CascadeEsdm.ReadModel.Abstractions` | Read-side interfaces for projections and queries |
 | `CascadeEsdm.ReadModel` | Read model infrastructure |
 | `CascadeEsdm.Storage.CosmosDb` | Azure Cosmos DB event stream and read model storage |
+| `CascadeEsdm.Storage.Azure` | Azure Table Storage implementation of `ITableStore<TEntity>` |
 | `CascadeEsdm.DistributedLocks` | Azure Storage distributed lock provider |
 | `CascadeEsdm.Logging.OpenTelemetry` | OpenTelemetry structured logging / Application Insights |
 | `CascadeEsdm.EventExtractor` | Pre-build tool — extracts `IDomainEvent` records into a publishable events assembly |
@@ -60,14 +61,61 @@ public class EventStreamContainer : IDocumentContainerDefinition
 
 ---
 
+## Aggregates
+
+- Implement `IAggregateRoot`
+- Aggregates are the transactional boundary for domain write operations and enforce business rules
+- Aggregates are containers for entities; entities within an aggregate are collections of ValueObjects
+- Entities are mutable and exposed as public properties on the aggregate to allow mutation during event application (Hydration)
+- Aggregates are hydrated by replaying events from the event stream — never loaded from a snapshot of their properties
+- State is mutated only inside `IEventApplier.Apply()` — never inside command executors
+- Command executors receive the already-hydrated aggregate; they read state and yield events
+- Aggregates should be as small as possible; if an aggregate needs information from another to make a decision, consider restructuring
+
+### Folder Structure
+
+```
+Domain/
+  Orders/                         ← aggregate directory (pluralised)
+    OrderAggregate.cs
+    Entities/
+      OrderItem.cs
+    ValueObjects/
+      OrderId.cs
+    Commands/
+      PlaceOrder.cs
+    Events/
+      OrderPlaced.cs
+    Exceptions/                   ← optional
+      OrderAlreadyExistsException.cs
+    Services/                     ← optional
+```
+
+---
+
 ## Commands
 
 - Implement `ICommand`
+- Commands are `record` types with primary constructors accepting only value objects
 - Define `GetSubject(ICommandEnvelope)` — returns the `Subject` identifying the target aggregate
-- Commands are `record` types
-- Executors are `internal class` types implementing `ICommandExecutor<TCommand, TAggregate>`
+- Commands are `public`; executors are `internal class` types
+- Place commands in the `Commands` folder within the aggregate directory
+
+### Naming
+
+- Name in the imperative as **VerbNoun** (e.g. `PlaceOrder`, `ChangePersonName`)
+- Avoid CRUD terminology (`Create`, `Update`, `Delete`) — prefer `Add`, `Change`, `Remove`
+- Name uniquely to prevent confusion (e.g. `ChangePersonName` not `ChangeName`)
+- Commands don't need Time, Id, or other metadata — these are on `ICommandEnvelope`
+
+### Command Executor
+
+- Each command has a single `ICommandExecutor<TCommand, TAggregate>`, implemented in the **same file** as the command
 - `ExecuteAsync` yields `EventEnvelope` instances via `IAsyncEnumerable`
 - `GetSecurityDescriptorAsync` returns the security descriptor (or `null` if no auth required)
+- Commands should not directly change aggregate state — they emit events
+- Use `await Task.CompletedTask` when no actual async work occurs
+- Throw exceptions inheriting from `ExceptionBase` for validation failures
 
 ```csharp
 public record PlaceOrder(OrderId OrderId, string Reference) : ICommand
@@ -87,6 +135,8 @@ internal class PlaceOrderExecutor : ICommandExecutor<PlaceOrder, OrderAggregate>
         yield return envelope.CreateEvent(
             new OrderPlaced(envelope.Command.OrderId.Value, envelope.Command.Reference),
             aggregate);
+
+        await Task.CompletedTask;
     }
 
     public Task<ISecurityDescriptor?> GetSecurityDescriptorAsync(
@@ -95,7 +145,7 @@ internal class PlaceOrderExecutor : ICommandExecutor<PlaceOrder, OrderAggregate>
 }
 ```
 
-### Concurrency locking
+### Concurrency Locking
 
 Apply `[CommandLock]` to a command to acquire a distributed lock before execution. The lock is scoped to the subject (aggregate-level) or to the subject + command type (command-level).
 
@@ -104,9 +154,19 @@ Apply `[CommandLock]` to a command to acquire a distributed lock before executio
 ## Events
 
 - Implement `IDomainEvent`
-- Events are `record` types
-- Defined alongside their appliers in the write model
-- **Use primitives in event parameters wherever possible** — avoids type graph leakage into published contracts
+- Events are `record` types representing historical facts
+- **Use primitives in event parameters** — avoids type graph leakage into published contracts
+- Do not include validation or logic — events represent truths, not intentions
+- Events do not define metadata (Id, Time, Subject) — these are on `EventEnvelope`
+- Place events in the `Events` folder under their respective aggregate
+- Events are emitted by `ICommandExecutor` implementations
+
+### Naming
+
+- Name in the past tense using a **NounVerb** pattern (e.g. `OrderPlaced`, `WorkItemCommentAdded`)
+- Do not include the word "Event" in the name
+- Events should be the past tense version of the command
+- Avoid CRUD verbs — prefer `Added`, `Changed`, `Removed`
 
 ```csharp
 public record OrderPlaced(Guid OrderId, string Reference) : IDomainEvent;
@@ -114,7 +174,7 @@ public record OrderPlaced(Guid OrderId, string Reference) : IDomainEvent;
 
 ### Event Appliers
 
-Implement `IEventApplier<TEvent, TAggregate>`. Co-locate the applier with the event record:
+Implement `IEventApplier<TEvent, TAggregate>`. Co-locate the applier with the event record in the same file:
 
 ```csharp
 internal class OrderPlacedApplier : IEventApplier<OrderPlaced, OrderAggregate>
@@ -128,26 +188,37 @@ internal class OrderPlacedApplier : IEventApplier<OrderPlaced, OrderAggregate>
 }
 ```
 
-### Inheritance constraint
+Event appliers should be **optimistic** — since they replay historical events, they do not need guard clauses or validation:
+
+```csharp
+// ✅ Correct — optimistic application
+aggregate.Person.FirstName = new(@event.FirstName);
+
+// ❌ Unnecessary — the event is a historical fact
+if (aggregate.Person != null)
+{
+    aggregate.Person.FirstName = new(@event.FirstName);
+}
+```
+
+When setting ValueObject properties, use `new()` rather than the explicit type name:
+
+```csharp
+aggregate.Person.FirstName = new(@event.FirstName);    // ✅
+aggregate.Person.FirstName = new FirstName(@event.FirstName);  // ❌
+```
+
+### Inheritance Constraint
 
 The Event Extractor is syntactic — it only extracts records where `IDomainEvent` appears **literally in the record's own base list**. Do not rely on inherited interface satisfaction:
 
 ```csharp
-// Extracted — IDomainEvent is in the base list
+// ✅ Extracted — IDomainEvent is in the base list
 public record OrderPlaced(Guid OrderId, string Reference) : IDomainEvent;
 
-// NOT extracted — IDomainEvent is not directly in the base list
+// ❌ NOT extracted — IDomainEvent is not directly in the base list
 public record OrderPlaced(Guid OrderId, string Reference) : OrderEventBase(OrderId);
 ```
-
----
-
-## Aggregates
-
-- Implement `IAggregateRoot`
-- Aggregates are hydrated by replaying events from the event stream — never loaded from a snapshot of their properties
-- State is mutated only inside `IEventApplier.Apply()` — never inside command executors
-- Command executors receive the already-hydrated aggregate; they read state and yield events
 
 ---
 
@@ -156,8 +227,11 @@ public record OrderPlaced(Guid OrderId, string Reference) : OrderEventBase(Order
 - Implement `IValueObject<TValue>`, immutable
 - Use primary constructors
 - Implement implicit conversion operators to/from the underlying primitive
-- For ID-style VOs: provide `static Empty` and `static bool IsEmpty` semantics
-- Instantiate with `new(value)` syntax
+- Instantiate with `new(value)` syntax, not `new TypeName(value)`
+
+### ID-Style ValueObjects
+
+Provide `static Empty` and `static bool IsEmpty` semantics:
 
 ```csharp
 public record OrderId(Guid Value) : IValueObject<Guid>
@@ -169,6 +243,10 @@ public record OrderId(Guid Value) : IValueObject<Guid>
     public static implicit operator Guid(OrderId id) => id.Value;
 }
 ```
+
+### Non-ID ValueObjects
+
+No `Empty`/`IsEmpty` semantics required. If validation is needed, use a constant `Pattern` property with regex (for strings) and throw a `ValidationException` or a suitable exception inheriting from `ExceptionBase`.
 
 ---
 
@@ -222,7 +300,7 @@ MyApp.Schema/           ← generated, add to source control
 | `CascadeEventsOverwrite` | `false` | Regenerate all files on every build |
 | `CascadeEventsRequireExtractor` | `false` | Promote missing tool to build error |
 
-### Service Bus serialisation
+### Service Bus Serialisation
 
 Use `DefaultSerialisationSettings.ForServiceBusPublishing()` when serialising `EventEnvelope` for service bus publishing. This rewrites `$type` from the write-model identity to the schema assembly identity automatically — no configuration required.
 
@@ -341,4 +419,4 @@ MutationStrategy:
 
 - XML doc comments (`///`) only on `public` members of `public` types
 - No inline comments (`//`) anywhere — code should speak for itself
-- No comments on non-public members
+- No comments on non-public members — they drift from implementation and become lies; prefer clear naming
