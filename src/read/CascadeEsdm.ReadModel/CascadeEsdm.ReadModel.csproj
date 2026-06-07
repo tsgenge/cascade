@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFrameworks>net10.0</TargetFrameworks>
     <PackageId>CascadeEsdm.ReadModel</PackageId>
     <Description>View/Query implementation for the Cascade Event Sourcing framework</Description>
     <PackageIcon>icon.jpg</PackageIcon>
@@ -21,16 +22,8 @@
     <PackageReference Include="CascadeEsdm.ReadModel.Abstractions" Version="$(CascadeVersion)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.1'">
-    <PackageReference Include="AutoMapper" Version="13.0.1" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-    <Compile Remove="Projecting/Configuration/**" />
-    <Compile Remove="Projecting/ProjectionConfigurationException.cs" />
-  </ItemGroup>
-
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
   </ItemGroup>
 
