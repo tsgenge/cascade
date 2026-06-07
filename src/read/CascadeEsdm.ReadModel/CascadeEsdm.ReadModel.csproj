@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFrameworks>net10.0</TargetFrameworks>
     <PackageId>CascadeEsdm.ReadModel</PackageId>
     <Description>View/Query implementation for the Cascade Event Sourcing framework</Description>
     <PackageIcon>icon.jpg</PackageIcon>
@@ -22,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
   </ItemGroup>
 
