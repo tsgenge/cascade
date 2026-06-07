@@ -13,6 +13,7 @@ public class RowLocatorStrategy<TView, TEvent> : EventBuilder<TView, TEvent>
 
     public MutationStrategy<TView, TEvent> UsingRowLocator(Func<TEvent, EventEnvelope?, KeyValuePair<string, Guid>> locatorExpression, QueryOperation? queryOperation = null)
     {
+        StateMonitor.RowLocationMethod = RowLocationMethod.Implicit;
         Expression.UsingRowLocator(Profile, locatorExpression, queryOperation);
         return new MutationStrategy<TView, TEvent>(Expression, Profile, StateMonitor);
     }
