@@ -183,6 +183,7 @@ Packages are available on [NuGet](https://www.nuget.org/packages?q=cascadeesdm).
 ## Further Reading
 
 - [cascade-esdm.org](https://cascade-esdm.org) — the thinking behind the framework
+- [docs/ReadLayer.md](docs/ReadLayer.md) — creating and configuring views in the read layer
 - [docs/CompositionUsage.md](docs/CompositionUsage.md) — composition and registration patterns
 - [docs/EventExtractor.md](docs/EventExtractor.md) — the event extractor in detail
 
