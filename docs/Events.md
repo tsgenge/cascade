@@ -1,0 +1,87 @@
+# Event Conventions
+
+## Standards
+
+- Events are immutable record objects representing historical facts.
+- Use primitive types for all event properties (do not use value objects). Events are statements of historical fact — they do not need validation, logic, or transformation that value objects provide.
+- All events inherit from the `IDomainEvent` marker interface and are `public`.
+- Use primary constructors to enforce value provision at creation.
+- Do not include validation or encapsulated logic — events represent truths, not intentions.
+- Events do not need to define metadata such as Id, Time, or Subject — these are stored on the `EventEnvelope`.
+- Place events in the `Events` folder under their respective aggregate.
+- Events are emitted by `ICommandExecutor` implementations during command execution.
+
+```csharp
+public record OrderPlaced(Guid OrderId, string Reference) : IDomainEvent;
+```
+
+---
+
+## Naming
+
+- Name events in the past tense using a **NounVerb** pattern (e.g. `WorkItemCommentAdded`). They should not include the word "Event".
+- Events should be the past tense version of the command, where possible.
+- Avoid CRUD verbs (`Created`, `Updated`, `Deleted`), preferring instead `Added`, `Changed`, `Removed`.
+
+---
+
+## Aggregate Hydration Using Events
+
+- Events are ingested into the aggregate during hydration from the event stream source. This typically occurs during command execution in the `CommandHandler` base and is handled by the framework.
+- The `IAggregateHydrator<TAggregate>` implementation forms the aggregate by pulling events from the event stream, resolving the `IEventApplier<TEvent, TAggregate>` for each event, and applying them.
+
+---
+
+## Event Appliers
+
+- Implement `IEventApplier<TEvent, TAggregate>` in the **same file** as the event record. The applier mutates the aggregate directly using its public properties.
+- The `IEventApplier` should be implemented as an `internal class`.
+- When setting ValueObject properties of an entity during applier execution, use `new()` to reduce `using` statements:
+
+```csharp
+aggregate.Person.FirstName = new(@event.FirstName);
+
+// Rather than:
+aggregate.Person.FirstName = new FirstName(@event.FirstName);
+```
+
+- The `IEventApplier` does not need (and should not) change the `LastSequence` property of the aggregate.
+- Event appliers are discovered and registered automatically in the Composition Root.
+- Event appliers should be **optimistic** in approach — since they are replaying historical events, they do not need to verify or validate using if statements. For example, this guard is unnecessary:
+
+```csharp
+// ❌ Unnecessary — the event is a historical fact, no need to check
+if (aggregate.Person != null)
+{
+    aggregate.Person.FirstName = new(@event.FirstName);
+}
+
+// ✅ Correct — optimistic application
+aggregate.Person.FirstName = new(@event.FirstName);
+```
+
+---
+
+## Inheritance Constraint
+
+The Event Extractor is syntactic — it only extracts records where `IDomainEvent` appears **literally in the record's own base list**. Do not rely on inherited interface satisfaction:
+
+```csharp
+// ✅ Extracted — IDomainEvent is in the base list
+public record OrderPlaced(Guid OrderId, string Reference) : IDomainEvent;
+
+// ❌ NOT extracted — IDomainEvent is not directly in the base list
+public record OrderPlaced(Guid OrderId, string Reference) : OrderEventBase(OrderId);
+```
+
+If you want derived records extracted, either keep `IDomainEvent` on each record, or flatten the hierarchy.
+
+---
+
+## Related Conventions
+
+- [Aggregates](Aggregates.md)
+- [Commands](Commands.md)
+- [Value Objects](ValueObjects.md)
+- [Exceptions](Exceptions.md)
+- [Event Extractor](EventExtractor.md)

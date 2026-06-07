@@ -1,18 +1,13 @@
 # CascadeEsdm.Storage.Azure
 
-Azure Table Storage implementation of `ITableStore<TEntity>` for the Cascade ESDM framework.
+Azure Table Storage implementation of `ITableStore<TEntity>` for the [Cascade ESDM](https://github.com/tsgenge/cascade) framework.
 
-## Usage
+## Installation
 
-```csharp
-services.AddCascadeEsdm(cascade =>
-{
-    cascade.WithInfrastructure(infra =>
-    {
-        infra.UseAzureTableStorage(tables =>
-        {
-            tables.WithConnectionString("UseDevelopmentStorage=true");
-        });
-    });
-});
+```bash
+dotnet add package CascadeEsdm.Storage.Azure
 ```
+
+## Documentation
+
+For full documentation, conventions, and examples: [github.com/tsgenge/cascade](https://github.com/tsgenge/cascade)

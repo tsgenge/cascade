@@ -186,6 +186,11 @@ Packages are available on [NuGet](https://www.nuget.org/packages?q=cascadeesdm).
 - [docs/ReadModel.md](docs/ReadModel.md) — creating and configuring views in the read model
 - [docs/CompositionUsage.md](docs/CompositionUsage.md) — composition and registration patterns
 - [docs/EventExtractor.md](docs/EventExtractor.md) — the event extractor in detail
+- [docs/Aggregates.md](docs/Aggregates.md) — aggregate conventions and folder structure
+- [docs/Commands.md](docs/Commands.md) — command and executor conventions
+- [docs/Events.md](docs/Events.md) — event and applier conventions
+- [docs/ValueObjects.md](docs/ValueObjects.md) — value object conventions
+- [docs/Exceptions.md](docs/Exceptions.md) — exception handling conventions
 
 ---
 
