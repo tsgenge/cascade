@@ -85,3 +85,4 @@ If you want derived records extracted, either keep `IDomainEvent` on each record
 - [Value Objects](ValueObjects.md)
 - [Exceptions](Exceptions.md)
 - [Event Extractor](EventExtractor.md)
+- [Read Model](ReadModel.md) — projecting events into query-optimised views

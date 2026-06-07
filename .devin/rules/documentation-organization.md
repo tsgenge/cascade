@@ -71,6 +71,7 @@ Primary maintenance effort is on the root README, `/docs/`, and `AIContext/ai-co
 | Event conventions | — | — | detailed | detailed | — |
 | Value object conventions | — | — | detailed | detailed | — |
 | Exception conventions | — | — | detailed | detailed | — |
+| Read model / views | — | — | detailed | detailed | — |
 | Event extractor | summary | — | detailed | summary | — |
 | Code style | — | — | — | yes | yes |
 | CI/CD and workflows | — | — | — | — | if needed |

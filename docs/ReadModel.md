@@ -372,3 +372,11 @@ ViewProfileConfiguration<TView>
                                                         ├── .ChangesRows() → IMappingExpression
                                                         └── .RemovesRows()
 ```
+
+---
+
+## Related Conventions
+
+- [Events](Events.md) — event records that views project
+- [Aggregates](Aggregates.md) — the write-side aggregates whose events feed projections
+- [Exceptions](Exceptions.md) — exception handling conventions
