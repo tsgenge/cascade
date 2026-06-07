@@ -5,11 +5,11 @@ using CascadeEsdm.ReadModel.Querying;
 
 namespace CascadeEsdm.ReadModel.Projecting.Configuration;
 
-internal class ExplicitPartitionRowLocatorStrategy<TView, TEvent> : EventBuilder<TView, TEvent>
+public class ExplicitPartitionRowLocatorStrategy<TView, TEvent> : EventBuilder<TView, TEvent>
     where TView : IView
     where TEvent : IDomainEvent
 {
-    public ExplicitPartitionRowLocatorStrategy(IMappingExpression<TEvent, TView> expression, Profile profile, EventStateMonitor<TView, TEvent> stateMonitor) : base(expression, profile, stateMonitor) { }
+    internal ExplicitPartitionRowLocatorStrategy(IMappingExpression<TEvent, TView> expression, Profile profile, EventStateMonitor<TView, TEvent> stateMonitor) : base(expression, profile, stateMonitor) { }
 
     public MutationStrategy<TView, TEvent> AndRowLocator(Func<TEvent, EventEnvelope?, KeyValuePair<string, Guid>> locatorExpression, QueryOperation? queryOperation = null)
     {

@@ -4,15 +4,15 @@ using CascadeEsdm.ReadModel.Views;
 
 namespace CascadeEsdm.ReadModel.Projecting.Configuration;
 
-internal class ViewEventBuilder<TView> : ViewEventBuilder
+public class ViewEventBuilder<TView> : ViewEventBuilder
     where TView : IView
 {
     private readonly IViewEventRegister<TView> _eventRegister;
     private PartitionResolutionMethod? _partitionMethod;
 
-    public Profile Profile { get; }
+    internal Profile Profile { get; }
 
-    public ViewEventBuilder(Profile profile, IViewEventRegister<TView> eventRegister)
+    internal ViewEventBuilder(Profile profile, IViewEventRegister<TView> eventRegister)
     {
         Profile = profile;
         _eventRegister = eventRegister;
@@ -30,12 +30,12 @@ internal class ViewEventBuilder<TView> : ViewEventBuilder
         return new ExplicitPartitionEventBuilder<TView>(this);
     }
 
-    public void EventRegistered<TEvent>(EventStateMonitor monitor)
+    internal void EventRegistered<TEvent>(EventStateMonitor monitor)
     {
         _eventRegister.RegisterEvent(typeof(TEvent), monitor);
     }
 
-    public override void Validate()
+    internal override void Validate()
     {
         if (_partitionMethod == null)
             throw new ProjectionConfigurationException<TView>($"PartitionStrategy not specified with {nameof(UsesStaticPartitionKey)} or {nameof(UsesExplicitPartitionKey)}");
@@ -50,20 +50,20 @@ internal class ViewEventBuilder<TView> : ViewEventBuilder
     }
 }
 
-internal abstract class ViewEventBuilder
+public abstract class ViewEventBuilder
 {
-    public abstract void Validate();
+    internal abstract void Validate();
 }
 
-internal abstract class EventBuilder<TView, TEvent>
+public abstract class EventBuilder<TView, TEvent>
     where TView : IView
     where TEvent : IDomainEvent
 {
     protected readonly IMappingExpression<TEvent, TView> Expression;
     protected readonly Profile Profile;
-    protected readonly EventStateMonitor<TView, TEvent> StateMonitor;
+    internal readonly EventStateMonitor<TView, TEvent> StateMonitor;
 
-    protected EventBuilder(IMappingExpression<TEvent, TView> expression, Profile profile, EventStateMonitor<TView, TEvent> stateMonitor)
+    internal EventBuilder(IMappingExpression<TEvent, TView> expression, Profile profile, EventStateMonitor<TView, TEvent> stateMonitor)
     {
         Expression = expression;
         Profile = profile;

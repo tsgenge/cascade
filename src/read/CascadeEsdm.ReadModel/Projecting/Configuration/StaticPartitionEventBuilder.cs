@@ -3,12 +3,12 @@ using CascadeEsdm.ReadModel.Views;
 
 namespace CascadeEsdm.ReadModel.Projecting.Configuration;
 
-internal class StaticPartitionEventBuilder<TView>
+public class StaticPartitionEventBuilder<TView>
     where TView : IView
 {
     private readonly ViewEventBuilder<TView> _root;
 
-    public StaticPartitionEventBuilder(ViewEventBuilder<TView> root)
+    internal StaticPartitionEventBuilder(ViewEventBuilder<TView> root)
     {
         _root = root;
     }

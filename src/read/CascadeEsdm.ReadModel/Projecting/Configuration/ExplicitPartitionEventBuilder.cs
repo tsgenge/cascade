@@ -3,12 +3,12 @@ using CascadeEsdm.ReadModel.Views;
 
 namespace CascadeEsdm.ReadModel.Projecting.Configuration;
 
-internal class ExplicitPartitionEventBuilder<TView>
+public class ExplicitPartitionEventBuilder<TView>
     where TView : IView
 {
     private readonly ViewEventBuilder<TView> _root;
 
-    public ExplicitPartitionEventBuilder(ViewEventBuilder<TView> root)
+    internal ExplicitPartitionEventBuilder(ViewEventBuilder<TView> root)
     {
         _root = root;
     }

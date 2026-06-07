@@ -4,11 +4,11 @@ using CascadeEsdm.ReadModel.Views;
 
 namespace CascadeEsdm.ReadModel.Projecting.Configuration;
 
-internal class MutationStrategy<TView, TEvent> : EventBuilder<TView, TEvent>
+public class MutationStrategy<TView, TEvent> : EventBuilder<TView, TEvent>
     where TView : IView
     where TEvent : IDomainEvent
 {
-    public MutationStrategy(IMappingExpression<TEvent, TView> expression, Profile profile, EventStateMonitor<TView, TEvent> stateMonitor) : base(expression, profile, stateMonitor) { }
+    internal MutationStrategy(IMappingExpression<TEvent, TView> expression, Profile profile, EventStateMonitor<TView, TEvent> stateMonitor) : base(expression, profile, stateMonitor) { }
 
     public IMappingExpression<TEvent, TView> AddsNewRow(Func<TEvent, EventEnvelope?, Guid> newIdResolver)
     {
