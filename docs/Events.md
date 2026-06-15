@@ -25,6 +25,64 @@ public record OrderPlaced(Guid OrderId, string Reference) : IDomainEvent;
 
 ---
 
+## Event Envelopes
+
+### Definition
+
+Event envelopes wrap domain events with metadata required for storage, routing, and projection. The `EventEnvelope` is a record in `CascadeEsdm.SharedKernel.Events` that contains the event plus all contextual information about when, why, and by whom the event was created.
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Id` | `Guid` | Unique identifier for this event instance |
+| `Source` | `EventSource` | References the aggregate type, command ID, and command type that produced this event |
+| `Subject` | `Subject` | The aggregate instance this event belongs to |
+| `Type` | `string` | The event type name (event.GetType().Name) |
+| `SecurityContext` | `AuthenticatedContext` | User identity and tenant that triggered the command |
+| `Channel` | `ClientChannel` | Originating channel (used for view projection notifications) |
+| `Event` | `IDomainEvent` | The wrapped domain event instance |
+| `Sequence` | `int` | Position within the aggregate's event stream |
+| `Time` | `DateTimeOffset` | When the event occurred (UTC) |
+
+### Event Source
+
+The `EventSource` value object identifies the origin of an event:
+
+```csharp
+// Format: {AssemblyName}/{AggregateType}/{CommandType}/{CommandId}
+// Example: MyDomain/OrderAggregate/PlaceOrder/550e8400-e29b-41d4-a716-446655440000
+```
+
+Use `EventSource.ForAggregate<TAggregate>(commandId, commandType)` to create an event source for an aggregate.
+
+### Creating Events
+
+Events are created using the `CreateEvent` extension method on `ICommandEnvelope`:
+
+```csharp
+public async IAsyncEnumerable<IEventEnvelope> ExecuteAsync(
+    ICommandEnvelope<PlaceOrder> envelope, OrderAggregate aggregate)
+{
+    yield return envelope.CreateEvent(
+        new OrderPlaced(envelope.Command.OrderId.Value, envelope.Command.Reference),
+        aggregate);
+
+    await Task.CompletedTask;
+}
+```
+
+The extension method automatically:
+- Increments `aggregate.LastSequence` for the sequence number
+- Creates the `EventSource` from the aggregate type, command ID, and command type
+- Extracts the `Subject` from the command
+- Copies `SecurityContext` and `Channel` from the command envelope
+- Sets `Time` to current UTC
+- Sets `Type` to the event type name
+- Generates a new `Guid` for the event `Id`
+
+---
+
 ## Aggregate Hydration Using Events
 
 - Events are ingested into the aggregate during hydration from the event stream source. This typically occurs during command execution in the `CommandHandler` base and is handled by the framework.

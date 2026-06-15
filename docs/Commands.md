@@ -6,7 +6,7 @@
 - Commands should not be shared across aggregates. Some commands may share a name (for example `SetSecurityDescriptor`) but each aggregate should have its own implementation to prevent coupling.
 - If shared services need to recognise shared commands, use a shared interface in a common library (Shared Kernel).
 - Place commands in the `Commands` folder within the aggregate directory.
-- A command cannot exist without being valid due to the role of Value Objects in validation.
+- A command cannot exist without being valid due to the role of Value Objects in validation. This removes a huge amount of "logic" checking for validity in your domain.
 - Commands implement `ICommand`, which requires a `GetSubject` method.
 - Commands are created `public`.
 - Commands that are not "Add" commands should include the ID of the aggregate as a property (as a value object) to allow formation of the Subject.
@@ -61,6 +61,47 @@ public async IAsyncEnumerable<IEventEnvelope> ExecuteAsync(
 - Multiple events can be emitted by using `yield return`.
 - `GetSecurityDescriptorAsync` provides the security context for the command execution.
 - The `ICommandExecutor` for each command is discovered and registered automatically in the Composition Root.
+
+---
+
+## Command Envelopes
+
+### Definition
+
+Command envelopes wrap commands with metadata required for processing. The framework provides `ICommandEnvelope` and `ICommandEnvelope<TCommand>` interfaces, with `CommandEnvelope` and `CommandEnvelope<TCommand>` implementations. `ICommandEnvelope` should be avoided - it's used for serialisation purposes and is marked as deprecated.
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Id` | `Guid` | Unique identifier for this command invocation |
+| `Type` | `string` | The command type name (typeof(TCommand).Name) |
+| `Command` | `ICommand` / `TCommand` | The wrapped command instance |
+| `SecurityContext` | `AuthenticatedContext` | User identity and tenant information |
+| `Channel` | `ClientChannel` | Originating channel (e.g., API, WebSocket) |
+| `Time` | `DateTimeOffset` | When the command was created (UTC) |
+
+### Instancing
+
+Create a `CommandEnvelope<TCommand>` using the constructor:
+
+```csharp
+var envelope = new CommandEnvelope<PlaceOrder>(
+    command: new PlaceOrder(orderId, reference),
+    securityContext: new AuthenticatedContext(userIdentity, tenant),
+    channel: new ClientChannel("api"));
+```
+
+The envelope automatically assigns:
+- A new `Guid` for `Id`
+- The current UTC time for `Time`
+- The command type name for `Type`
+
+For serialization scenarios, a constructor accepting all properties is also available.
+
+---
+### Client Channel
+The client channel is used during the asynchronous eventual consistency. When an event is used to project an view, on its update the source event ClientChannel is used to notify the client of the update. Clients generally use the update of a view to refresh their local state.
 
 ---
 

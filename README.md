@@ -17,6 +17,13 @@ Cascade removes those decisions. Engineers implement commands, emit events, add 
 
 ---
 
+## Features
+
+- ** AI Agent Friendly Structure ** - implement tightly focused ICommandExecutors and IEventAppliers. Packages providing agent context markdown for common providers.
+- ** All the benefits of ESDM ** - traceability, temporal queries, strong bounded context. A balance of cohesion and loose coupling.
+- ** Out of the box event extraction ** - extract events from your write model into a clean, publishable events assembly.
+- ** Clear direction for inexperienced teams ** - ESDM is hard. Let us do the heavy lifting, while you implement (or orchestrate AI!) behaviour.
+
 ## What's in the Box
 
 ### Core packages
@@ -48,101 +55,6 @@ Cascade removes those decisions. Engineers implement commands, emit events, add 
 
 ---
 
-## Quick Start
-
-### 1. Install packages
-
-```bash
-dotnet add package CascadeEsdm.WriteModel
-dotnet add package CascadeEsdm.Storage.CosmosDb
-dotnet add package CascadeEsdm.DistributedLocks
-dotnet add package CascadeEsdm.Logging.OpenTelemetry
-```
-
-### 2. Register in your host
-
-```csharp
-services.AddCascadeEsdm(cascade => cascade
-    .WithInfrastructure(infra => infra
-        .UseCosmosDbStorage<AppConfig>(storage => storage
-            .EventStreamContainer<EventStreamContainer>()
-            .WithContainer<ReadModelContainer>())
-        .UseAzureDistributedLocks<AppConfig>(config => config.StorageConnectionString)
-        .UseApplicationInsights())
-    .WithWriteModel(write => write
-        .RegisterWriteModel()
-        .RegisterCommandsFromAssembly<MyAggregate>()));
-```
-
-### 3. Define a command and aggregate
-
-```csharp
-public record PlaceOrder(OrderId OrderId, string Reference) : ICommand
-{
-    public Subject GetSubject(ICommandEnvelope envelope) =>
-        Subject.ForAggregate<OrderAggregate>(OrderId.Value);
-}
-
-internal class PlaceOrderExecutor : ICommandExecutor<PlaceOrder, OrderAggregate>
-{
-    public async IAsyncEnumerable<EventEnvelope> ExecuteAsync(
-        ICommandEnvelope<PlaceOrder> envelope, OrderAggregate aggregate)
-    {
-        if (aggregate.Exists)
-            throw new ConflictException("Order already exists");
-
-        yield return envelope.CreateEvent(
-            new OrderPlaced(envelope.Command.OrderId.Value, envelope.Command.Reference),
-            aggregate);
-    }
-
-    public Task<ISecurityDescriptor?> GetSecurityDescriptorAsync(
-        ICommandEnvelope<PlaceOrder> envelope, OrderAggregate aggregate) =>
-        Task.FromResult<ISecurityDescriptor?>(null);
-}
-```
-
-### 4. Define an event and apply it
-
-```csharp
-public record OrderPlaced(Guid OrderId, string Reference) : IDomainEvent;
-
-internal class OrderPlacedApplier : IEventApplier<OrderPlaced, OrderAggregate>
-{
-    public void Apply(OrderAggregate aggregate, OrderPlaced @event, EventEnvelope envelope)
-    {
-        aggregate.OrderId = new(@event.OrderId);
-        aggregate.Reference = @event.Reference;
-        aggregate.Exists = true;
-    }
-}
-```
-
----
-
-## The Event Extractor
-
-Your event records are the contract between your write model and everything that consumes it — read models, integrations, other services. Cascade includes a pre-build tool that automatically extracts those records into a clean, dependency-light events assembly.
-
-```bash
-dotnet tool install -g CascadeEsdm.EventExtractor
-```
-
-From your next build, an events project is generated alongside your write model:
-
-```
-MyApp.WriteModel/
-MyApp.Events/           ← generated, add to source control
-  MyApp.Events.csproj
-  Orders/
-    Events/
-      OrderPlaced.cs
-```
-
-Write your events and appliers together. Publish only the events. No duplication. No drift. See [docs/EventExtractor.md](docs/EventExtractor.md) for full details.
-
----
-
 ## AI Agent Context
 
 Cascade ships a package that gives AI agents in your IDE (Windsurf, Cursor, GitHub Copilot) automatic context about the framework — patterns, conventions, composition, exceptions, and the event extractor.
@@ -165,17 +77,17 @@ Add the generated file to source control so all team members and CI agents share
 
 **Opinionated by intent.** Cascade has opinions so your engineers don't need to. The right decisions are already made — concurrency strategy, hydration, command dispatch, event storage.
 
-**Technology substitutable.** Azure today, something else tomorrow. Storage and lock providers are pluggable. The domain code doesn't change.
+**Technology Abstraction.** Azure today, something else tomorrow. Storage and lock providers are pluggable. The domain code doesn't change.
 
 **Engineers focus on function.** Write commands, emit events, build projections. The framework handles the rest.
 
-**Cohesion over fragmentation.** Events and their appliers live together. The extractor publishes only what belongs in the contract. No artificial splits to satisfy infrastructure concerns.
+**Cohesion over unnecessary abstraction.** Events and their appliers live together. The extractor publishes only what belongs in the contract. No artificial splits to satisfy infrastructure concerns.
 
 ---
 
 ## Status
 
-Beta — initial release Q2 2026. The core write model and infrastructure packages are stable. The event extractor is in active development.
+Alpha — initial release Q2 2026. The core write model and infrastructure packages are stable. The event extractor is in active development.
 
 Packages are available on [NuGet](https://www.nuget.org/packages?q=cascadeesdm).
 
@@ -184,6 +96,7 @@ Packages are available on [NuGet](https://www.nuget.org/packages?q=cascadeesdm).
 ## Further Reading
 
 - [cascade-esdm.org](https://cascade-esdm.org) — the thinking behind the framework
+- [docs/WriteModel.md](docs/WriteModel.md) — creating and configuring aggregates
 - [docs/ReadModel.md](docs/ReadModel.md) — creating and configuring views in the read model
 - [docs/CompositionUsage.md](docs/CompositionUsage.md) — composition and registration patterns
 - [docs/EventExtractor.md](docs/EventExtractor.md) — the event extractor in detail

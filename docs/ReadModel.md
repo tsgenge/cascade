@@ -1,4 +1,4 @@
-# Read Layer — Creating and Configuring Views
+# Read Model — Creating and Configuring Views
 
 ## Overview
 

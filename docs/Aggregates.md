@@ -4,22 +4,23 @@
 
 The aggregate provides the transactional boundary for domain write operations and enforces business rules. Aggregates contain commands which emit events.
 
-Aggregates should be as small as possible; if an aggregate needs information from another to make a decision, consider the architecture of your aggregates — a merge may be required.
+Aggregates should be as small as possible; if an aggregate needs information from another to make a decision, consider the architecture of your aggregates — a merge may be required. BUT, its easier to merge aggregates than split them later.
 
 ---
 
 ## Standards
 
-- Aggregates are the root entities of the domain model.
-- Aggregates are containers for entities.
+- Aggregates are the root enty points of the domain model.
+- Aggregates are containers for Entities.
 - Entities within an aggregate are collections of ValueObjects.
 - Entities are mutable.
 - Entities are exposed as public properties on the aggregate to allow mutation during event application (Hydration).
 - ValueObjects are immutable.
 - Aggregates implement `IAggregateRoot`.
-- Aggregates are hydrated by replaying events from the event stream — never loaded from a snapshot of their properties.
+- Aggregates are hydrated by replaying events from the event stream.
 - State is mutated only inside `IEventApplier.Apply()` — never inside command executors.
 - Command executors receive the already-hydrated aggregate; they read state and yield events.
+- Command executors never mutate state directly.
 
 ---
 
