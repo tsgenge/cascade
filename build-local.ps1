@@ -105,7 +105,8 @@ if (-not $SkipPack) {
         "src/write/CascadeEsdm.WriteModel.Abstractions/CascadeEsdm.WriteModel.Abstractions.csproj",
         "src/write/CascadeEsdm.WriteModel/CascadeEsdm.WriteModel.csproj",
         "src/read/CascadeEsdm.ReadModel.Abstractions/CascadeEsdm.ReadModel.Abstractions.csproj",
-        "src/read/CascadeEsdm.ReadModel/CascadeEsdm.ReadModel.csproj"
+        "src/read/CascadeEsdm.ReadModel/CascadeEsdm.ReadModel.csproj",
+        "src/infrastructure/CascadeEsdm.SignalR/CascadeEsdm.SignalR.csproj"
     )
     
     # Pack each project
