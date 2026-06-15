@@ -3,7 +3,6 @@ using CascadeEsdm.ReadModel.Projecting;
 using CascadeEsdm.ReadModel.Projecting.Configuration;
 using CascadeEsdm.ReadModel.Querying;
 using CascadeEsdm.ReadModel.ValueObjects;
-using CascadeEsdm.ReadModel.Views;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Infrastructure.Storage;
 using CascadeEsdm.SharedKernel.Querying;
@@ -12,7 +11,7 @@ using CascadeEsdm.SharedKernel.ValueObjects;
 using FluentAssertions;
 using NSubstitute;
 
-namespace CascadeEsdm.ReadModel.UnitTests.Projecting;
+namespace CascadeEsdm.ReadModel.UnitTests.UnitTests.Projecting;
 
 public class ViewProjectionStoreTests
 {

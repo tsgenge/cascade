@@ -1,7 +1,7 @@
 using CascadeEsdm.ReadModel.Views;
 using CascadeEsdm.SharedKernel.Events;
 
-namespace CascadeEsdm.ReadModel.UnitTests.Projecting.Configuration;
+namespace CascadeEsdm.ReadModel.UnitTests.UnitTests.Projecting.Configuration;
 
 public class ItemAddedEvent : IDomainEvent
 {

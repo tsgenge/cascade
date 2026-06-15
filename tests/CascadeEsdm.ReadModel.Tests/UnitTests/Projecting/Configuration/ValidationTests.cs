@@ -3,7 +3,7 @@ using CascadeEsdm.ReadModel.Projecting;
 using CascadeEsdm.ReadModel.Projecting.Configuration;
 using FluentAssertions;
 
-namespace CascadeEsdm.ReadModel.UnitTests.Projecting.Configuration;
+namespace CascadeEsdm.ReadModel.UnitTests.UnitTests.Projecting.Configuration;
 
 public class ValidationTests
 {

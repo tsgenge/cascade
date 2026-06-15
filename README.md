@@ -23,12 +23,12 @@ Cascade removes those decisions. Engineers implement commands, emit events, add 
 
 | Package | Description |
 |---|---|
-| `CascadeEsdm.SharedKernel.Abstractions` | Core interfaces — `IDomainEvent`, `IAggregateRoot`, `IEventApplier`, value object contracts |
+| `CascadeEsdm.SharedKernel.Abstractions` | Core interfaces — `IDomainEvent`, `IAggregateRoot`, value object contracts |
 | `CascadeEsdm.SharedKernel` | Base implementations for aggregates, value objects, and shared kernel types |
-| `CascadeEsdm.WriteModel.Abstractions` | Write-side interfaces — `ICommand`, `ICommandExecutor`, `ICommandEnvelope` |
+| `CascadeEsdm.WriteModel.Abstractions` | Write-side interfaces — `ICommand`, `ICommandExecutor`, `ICommandEnvelope`, `IEventApplier` |
 | `CascadeEsdm.WriteModel` | Command dispatch, aggregate hydration, event stream writing, concurrency, MSBuild integration |
-| `CascadeEsdm.ReadModel.Abstractions` | Read-side interfaces for projections and queries |
-| `CascadeEsdm.ReadModel` | Read model infrastructure |
+| `CascadeEsdm.ReadModel.Abstractions` | Read-side interfaces for projections and queries - `IViewProjector`, `IView` |
+| `CascadeEsdm.ReadModel` | Read model implementations |
 
 ### Infrastructure packages
 

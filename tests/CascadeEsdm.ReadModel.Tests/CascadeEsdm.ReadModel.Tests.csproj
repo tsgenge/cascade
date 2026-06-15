@@ -12,4 +12,8 @@
     <ProjectReference Include="..\..\src\read\CascadeEsdm.ReadModel\CascadeEsdm.ReadModel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="UnitTests\" />
+  </ItemGroup>
+
 </Project>

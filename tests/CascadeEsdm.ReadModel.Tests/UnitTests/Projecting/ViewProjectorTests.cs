@@ -8,7 +8,7 @@ using CascadeEsdm.SharedKernel.ValueObjects;
 using FluentAssertions;
 using NSubstitute;
 
-namespace CascadeEsdm.ReadModel.UnitTests.Projecting;
+namespace CascadeEsdm.ReadModel.UnitTests.UnitTests.Projecting;
 
 public class ViewProjectorTests
 {

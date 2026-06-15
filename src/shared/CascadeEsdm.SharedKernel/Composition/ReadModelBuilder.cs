@@ -10,9 +10,4 @@ public class ReadModelBuilder
     }
 
     public IServiceCollection Services { get; }
-
-    internal void Validate()
-    {
-        //Validate all views are registered?
-    }
 }

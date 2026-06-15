@@ -5,7 +5,7 @@ using CascadeEsdm.SharedKernel.Security;
 using CascadeEsdm.SharedKernel.ValueObjects;
 using FluentAssertions;
 
-namespace CascadeEsdm.ReadModel.UnitTests.Projecting.Configuration;
+namespace CascadeEsdm.ReadModel.UnitTests.UnitTests.Projecting.Configuration;
 
 public class StaticPartitionConfigurationTests
 {

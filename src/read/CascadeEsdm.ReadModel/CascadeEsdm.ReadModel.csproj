@@ -1,35 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFrameworks>net10.0</TargetFrameworks>
-    <PackageId>CascadeEsdm.ReadModel</PackageId>
-    <Description>View/Query implementation for the Cascade Event Sourcing framework</Description>
-    <PackageIcon>icon.jpg</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFrameworks>net10.0</TargetFrameworks>
+        <PackageId>CascadeEsdm.ReadModel</PackageId>
+        <Description>View/Query implementation for the Cascade Event Sourcing framework</Description>
+        <PackageIcon>icon.jpg</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
-    <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="docs\README.md" Pack="true" PackagePath="\"/>
+        <None Include="docs\icon.jpg" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 
-  <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
-    <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />
-    <ProjectReference Include="..\CascadeEsdm.ReadModel.Abstractions\CascadeEsdm.ReadModel.Abstractions.csproj" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
+        <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj"/>
+        <ProjectReference Include="..\CascadeEsdm.ReadModel.Abstractions\CascadeEsdm.ReadModel.Abstractions.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
-    <PackageReference Include="CascadeEsdm.SharedKernel" Version="$(CascadeVersion)" />
-    <PackageReference Include="CascadeEsdm.ReadModel.Abstractions" Version="$(CascadeVersion)" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
+        <PackageReference Include="CascadeEsdm.SharedKernel" Version="$(CascadeVersion)"/>
+        <PackageReference Include="CascadeEsdm.ReadModel.Abstractions" Version="$(CascadeVersion)"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="13.0.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="AutoMapper" Version="13.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <InternalsVisibleTo Include="CascadeEsdm.ReadModel.UnitTests"/>
-    <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
-  </ItemGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="CascadeEsdm.ReadModel.Tests"/>
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+    </ItemGroup>
 
 </Project>

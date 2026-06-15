@@ -18,8 +18,6 @@ public class ModelBuilder
         var builder = new WriteModelBuilder(_services, _infraBuilder.EventStreamContainerType!);
         configure(builder);
 
-        builder.Validate();
-
         return _services;
     }
 
@@ -27,8 +25,6 @@ public class ModelBuilder
     {
         var builder = new ReadModelBuilder(_services);
         configure(builder);
-
-        builder.Validate();
 
         return _services;
     }

@@ -1,13 +1,12 @@
 using CascadeEsdm.ReadModel.Projecting;
 using CascadeEsdm.ReadModel.ValueObjects;
-using CascadeEsdm.ReadModel.Views;
 using CascadeEsdm.SharedKernel.Infrastructure.Storage;
 using CascadeEsdm.SharedKernel.ValueObjects;
 using FluentAssertions;
 using NSubstitute;
-using static CascadeEsdm.ReadModel.Projecting.SequenceStore<CascadeEsdm.ReadModel.UnitTests.Projecting.TestView>;
+using static CascadeEsdm.ReadModel.Projecting.SequenceStore<CascadeEsdm.ReadModel.UnitTests.UnitTests.Projecting.TestView>;
 
-namespace CascadeEsdm.ReadModel.UnitTests.Projecting;
+namespace CascadeEsdm.ReadModel.UnitTests.UnitTests.Projecting;
 
 public class SequenceStoreTests
 {

@@ -1,4 +1,5 @@
 using AutoMapper;
+using CascadeEsdm.ReadModel.Infrastructure;
 using CascadeEsdm.ReadModel.Projecting;
 using CascadeEsdm.ReadModel.Projecting.Configuration;
 using CascadeEsdm.ReadModel.Projecting.Decorators;
@@ -28,9 +29,14 @@ public static class ReadModelBuilderExtensions
         viewConfiguration(viewBuilder);
 
         var viewTypes = viewBuilder.Views;
-        builder.Services.RegisterAutomapper(viewTypes);
+        builder.Services.RegisterAutomapper(viewTypes.ToArray());
 
         //TODO: Talk about Automapper converters, including those used to locate partitions.
+
+        if (builder.Services.All(s => s.ServiceType != typeof(IViewNotificationService))) {
+            throw new InvalidOperationException(
+                "The ViewNotificationService must be defined in the WithInfrastructure() call.");
+        }
 
         return builder;
     }
