@@ -9,8 +9,6 @@
   <ItemGroup>
     <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
     <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
-    <None Include="packaging\CascadeEsdm.WriteModel.targets" Pack="true" PackagePath="build\" />
-    <None Include="packaging\CascadeEsdm.WriteModel.targets" Pack="true" PackagePath="buildTransitive\" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">

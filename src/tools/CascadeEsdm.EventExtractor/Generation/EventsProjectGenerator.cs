@@ -31,7 +31,7 @@ public static class EventsProjectGenerator
           <PropertyGroup>
             <AssemblyName>{assemblyName}</AssemblyName>
             <RootNamespace>{rootNamespace}</RootNamespace>
-            <TargetFramework>net10.0</TargetFramework>
+            <TargetFramework>netstandard2.1</TargetFramework>
             <Nullable>enable</Nullable>
             <ImplicitUsings>enable</ImplicitUsings>
             <LangVersion>latest</LangVersion>

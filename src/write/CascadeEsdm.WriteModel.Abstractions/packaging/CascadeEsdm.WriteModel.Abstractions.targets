@@ -1,7 +1,7 @@
 <Project>
 
     <!--
-      CascadeEsdm.WriteModel MSBuild integration.
+      CascadeEsdm.WriteModel.Abstractions MSBuild integration.
       Injects a pre-build step that extracts IDomainEvent records from the author's project
       into a standalone, publishable events assembly.
 
