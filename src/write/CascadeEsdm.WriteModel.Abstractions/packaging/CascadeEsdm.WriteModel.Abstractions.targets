@@ -56,13 +56,14 @@
     <Target Name="CascadeExtractEvents"
             BeforeTargets="Build"
             DependsOnTargets="CascadeCheckExtractorInstalled"
-            Condition="'$(CascadeEventsEnabled)' == 'true' and '$(_CascadeExtractorPresent)' == 'true'">
+            Condition="'$(CascadeEventsEnabled)' == 'true'">
 
         <PropertyGroup>
             <_CascadeAssemblyNameArg Condition="'$(CascadeEventsAssemblyName)' != ''">--assembly-name &quot;$(CascadeEventsAssemblyName)&quot;</_CascadeAssemblyNameArg>
         </PropertyGroup>
 
-        <Exec Command="dotnet cascade-extract-events --source-root &quot;$(MSBuildProjectDirectory)&quot; --output-dir &quot;$(CascadeEventsOutputDir)&quot; --root-namespace &quot;$(RootNamespace)&quot;$(_CascadeAssemblyNameArg) --overwrite $(CascadeEventsOverwrite)"
+        <Exec Command="cascade-extract-events --source-root &quot;$(MSBuildProjectDirectory)&quot; --output-dir &quot;$(CascadeEventsOutputDir)&quot; --root-namespace &quot;$(RootNamespace)&quot;$(_CascadeAssemblyNameArg) --overwrite $(CascadeEventsOverwrite)"
+              Condition="'$(_CascadeExtractorPresent)' == 'true'"
               ConsoleToMsBuild="true"/>
     </Target>
 
