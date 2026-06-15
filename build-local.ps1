@@ -157,4 +157,13 @@ if (-not $SkipPack) {
 }
 
 Write-Host ""
+
+# Clean up local feed from NuGet sources
+if (-not $SkipPack) {
+    Write-Host "🧹 Cleaning up local NuGet source..." -ForegroundColor Yellow
+    dotnet nuget remove source $sourceName 2>$null
+    Write-Host "✅ Local feed removed from NuGet sources" -ForegroundColor Green
+    Write-Host ""
+}
+
 Write-Host "✅ Build script completed successfully!" -ForegroundColor Green

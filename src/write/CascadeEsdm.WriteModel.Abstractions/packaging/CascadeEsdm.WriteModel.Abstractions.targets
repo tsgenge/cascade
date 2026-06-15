@@ -55,6 +55,7 @@
 
     <Target Name="CascadeExtractEvents"
             BeforeTargets="Build"
+            DependsOnTargets="CascadeCheckExtractorInstalled"
             Condition="'$(CascadeEventsEnabled)' == 'true' and '$(_CascadeExtractorPresent)' == 'true'">
 
         <PropertyGroup>
