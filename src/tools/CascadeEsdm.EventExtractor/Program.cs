@@ -61,7 +61,10 @@ return await rootCommand.InvokeAsync(args);
 
 static void Run(ExtractorOptions options)
 {
-    var eventFiles = ProjectScanner.FindEventFiles(options.SourceRoot);
+    // Single-pass scan for both event files and aggregate roots (avoids redundant file I/O)
+    var scanResult = ProjectScanner.Scan(options.SourceRoot);
+    var eventFiles = scanResult.EventFiles;
+    var aggregateRoots = scanResult.AggregateRoots;
 
     if (eventFiles.Count == 0)
     {
@@ -88,7 +91,8 @@ static void Run(ExtractorOptions options)
         outputDir: options.OutputDir,
         namespaceMapper: namespaceMapper,
         overwrite: options.Overwrite,
-        eventToAggregateMap: eventToAggregateMap);
+        eventToAggregateMap: eventToAggregateMap,
+        aggregateRoots: aggregateRoots);
 
     var writtenEventFiles = writer.WriteEventFiles(eventFiles, options.RootNamespace);
     var writtenEnumFiles = writer.WriteExternalEnumFiles(externalEnums, options.ResolvedEventsNamespace);

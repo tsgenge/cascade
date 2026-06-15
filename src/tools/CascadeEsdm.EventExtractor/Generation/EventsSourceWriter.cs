@@ -16,17 +16,20 @@ public sealed class EventsSourceWriter
     private readonly NamespaceMapper _namespaceMapper;
     private readonly bool _overwrite;
     private readonly IReadOnlyDictionary<string, string> _eventToAggregateMap;
+    private readonly IReadOnlyList<AggregateRootInfo> _aggregateRoots;
 
     public EventsSourceWriter(
         string outputDir,
         NamespaceMapper namespaceMapper,
         bool overwrite,
-        IReadOnlyDictionary<string, string> eventToAggregateMap)
+        IReadOnlyDictionary<string, string> eventToAggregateMap,
+        IReadOnlyList<AggregateRootInfo> aggregateRoots)
     {
         _outputDir = outputDir;
         _namespaceMapper = namespaceMapper;
         _overwrite = overwrite;
         _eventToAggregateMap = eventToAggregateMap;
+        _aggregateRoots = aggregateRoots;
     }
 
     public IReadOnlyList<WrittenFile> WriteEventFiles(IReadOnlyList<ScannedEventFile> eventFiles, string sourceRootNamespace)
@@ -71,7 +74,7 @@ public sealed class EventsSourceWriter
     private string? GetAggregateBasedFolder(ScannedEventFile file, string sourceRootNamespace)
     {
         var aggregates = file.EventRecords
-            .Select(r => AggregateResolver.GetAggregateForEvent(r, file.SourceNamespace, sourceRootNamespace, _eventToAggregateMap))
+            .Select(r => AggregateResolver.GetAggregateForEvent(r, file.SourceNamespace, sourceRootNamespace, _eventToAggregateMap, _aggregateRoots))
             .Where(a => !string.IsNullOrEmpty(a))
             .Distinct()
             .ToList();

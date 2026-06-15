@@ -86,7 +86,7 @@ public class AggregateResolverTests
     }
 
     [Fact]
-    public void GetAggregateForEvent_ReturnsAggregateFromMap_WhenApplierFound()
+    public void GetAggregateForEvent_ReturnsPluralisedAggregateName_WhenApplierFound()
     {
         var file = CreateScannedFile(
             "TestDomain.People.Events",
@@ -97,20 +97,23 @@ public class AggregateResolverTests
         var eventRecord = file.EventRecords[0];
 
         var aggregate = AggregateResolver.GetAggregateForEvent(
-            eventRecord, file.SourceNamespace, "TestDomain", map);
+            eventRecord, file.SourceNamespace, "TestDomain", map, []);
 
-        aggregate.Should().Be("Person");  // "Aggregate" suffix stripped
+        aggregate.Should().Be("People");  // "Aggregate" suffix stripped and pluralised
     }
 
     [Fact]
-    public void GetAggregateForEvent_StripsAggregateSuffix()
+    public void GetAggregateForEvent_PluralisesAggregateName()
     {
         var cases = new[]
         {
-            ("PersonAggregate", "Person"),
-            ("OrderAggregate", "Order"),
-            ("SomeEntityAggregate", "SomeEntity"),
-            ("NoSuffix", "NoSuffix"),
+            ("PersonAggregate", "People"),
+            ("OrderAggregate", "Orders"),
+            ("DoorAggregate", "Doors"),
+            ("CompanyAggregate", "Companies"),
+            ("BusAggregate", "Buses"),
+            ("ChildAggregate", "Children"),
+            ("StatusAggregate", "Statuses"),
         };
 
         foreach (var (input, expected) in cases)
@@ -122,27 +125,117 @@ public class AggregateResolverTests
 
             var map = AggregateResolver.BuildEventToAggregateMap([file]);
             var aggregate = AggregateResolver.GetAggregateForEvent(
-                file.EventRecords[0], file.SourceNamespace, "TestDomain", map);
+                file.EventRecords[0], file.SourceNamespace, "TestDomain", map, []);
 
             aggregate.Should().Be(expected, $"for input {input}");
         }
     }
 
     [Fact]
-    public void GetAggregateForEvent_FallsBackToNamespace_WhenNoApplierFound()
+    public void GetAggregateForEvent_PluralisesAggregateWithoutSuffix()
+    {
+        // Even when the name doesn't end with "Aggregate", it should still be pluralised
+        var file = CreateScannedFile(
+            "TestDomain.Test.Events",
+            ["TestEvent"],
+            [("TestEvent", "Door")]);
+
+        var map = AggregateResolver.BuildEventToAggregateMap([file]);
+        var aggregate = AggregateResolver.GetAggregateForEvent(
+            file.EventRecords[0], file.SourceNamespace, "TestDomain", map, []);
+
+        aggregate.Should().Be("Doors");
+    }
+
+    [Fact]
+    public void GetAggregateForEvent_FallsBackToClosestAggregateRoot_WhenNoApplierFound()
     {
         var file = CreateScannedFile(
             "TestDomain.Orders.Events",
             ["OrderPlaced"],
-            appliers: null);  // No appliers
+            appliers: null);
+
+        var map = AggregateResolver.BuildEventToAggregateMap([file]);
+        var eventRecord = file.EventRecords[0];
+
+        // Simulate IAggregateRoot class found in the source assembly
+        var aggregateRoots = new[]
+        {
+            new AggregateRootInfo("OrderAggregate", "TestDomain.Orders"),
+            new AggregateRootInfo("PersonAggregate", "TestDomain.People"),
+        };
+
+        var aggregate = AggregateResolver.GetAggregateForEvent(
+            eventRecord, file.SourceNamespace, "TestDomain", map, aggregateRoots);
+
+        // "TestDomain.Orders.Events" is closest to "TestDomain.Orders" (OrderAggregate)
+        aggregate.Should().Be("Orders");  // Pluralised from "Order"
+    }
+
+    [Fact]
+    public void GetAggregateForEvent_ClosestAggregateRoot_PicksHigherInNamespaceTree()
+    {
+        var file = CreateScannedFile(
+            "TestDomain.Shipping.Tracking.Events",
+            ["PackageShipped"],
+            appliers: null);
+
+        var map = AggregateResolver.BuildEventToAggregateMap([file]);
+        var eventRecord = file.EventRecords[0];
+
+        // Two aggregate roots: one in a deeper namespace, one higher up
+        var aggregateRoots = new[]
+        {
+            new AggregateRootInfo("TrackingAggregate", "TestDomain.Shipping.Tracking.Model"),
+            new AggregateRootInfo("ShipmentAggregate", "TestDomain.Shipping"),
+        };
+
+        var aggregate = AggregateResolver.GetAggregateForEvent(
+            eventRecord, file.SourceNamespace, "TestDomain", map, aggregateRoots);
+
+        // "TestDomain.Shipping" is higher up the namespace tree from "TestDomain.Shipping.Tracking.Events"
+        aggregate.Should().Be("Shipments");  // Pluralised from "Shipment"
+    }
+
+    [Fact]
+    public void GetAggregateForEvent_ClosestAggregateRoot_PrefersDirectParentNamespace()
+    {
+        var file = CreateScannedFile(
+            "TestDomain.Accounts.Events",
+            ["AccountCreated"],
+            appliers: null);
+
+        var map = AggregateResolver.BuildEventToAggregateMap([file]);
+        var eventRecord = file.EventRecords[0];
+
+        var aggregateRoots = new[]
+        {
+            new AggregateRootInfo("AccountAggregate", "TestDomain.Accounts"),
+            new AggregateRootInfo("UserAggregate", "TestDomain.Users"),
+        };
+
+        var aggregate = AggregateResolver.GetAggregateForEvent(
+            eventRecord, file.SourceNamespace, "TestDomain", map, aggregateRoots);
+
+        // "TestDomain.Accounts" is a direct parent of "TestDomain.Accounts.Events"
+        aggregate.Should().Be("Accounts");
+    }
+
+    [Fact]
+    public void GetAggregateForEvent_FallsBackToNamespace_WhenNoApplierAndNoAggregateRoot()
+    {
+        var file = CreateScannedFile(
+            "TestDomain.Orders.Events",
+            ["OrderPlaced"],
+            appliers: null);
 
         var map = AggregateResolver.BuildEventToAggregateMap([file]);
         var eventRecord = file.EventRecords[0];
 
         var aggregate = AggregateResolver.GetAggregateForEvent(
-            eventRecord, file.SourceNamespace, "TestDomain", map);
+            eventRecord, file.SourceNamespace, "TestDomain", map, []);
 
-        aggregate.Should().Be("Orders");  // Second segment of namespace
+        aggregate.Should().Be("Orders");  // Second segment of namespace (already plural in this case)
     }
 
     [Fact]
@@ -177,5 +270,31 @@ public class AggregateResolverTests
         var map = AggregateResolver.BuildEventToAggregateMap([file]);
 
         map.Should().ContainKey("OrderPlaced").WhoseValue.Should().Be("OrderAggregate");
+    }
+
+    [Fact]
+    public void GetAggregateForEvent_ClosestAggregateRoot_UsesFirstDiscoveredWhenEquidistant()
+    {
+        var file = CreateScannedFile(
+            "TestDomain.Sales.Events",
+            ["SaleCompleted"],
+            appliers: null);
+
+        var map = AggregateResolver.BuildEventToAggregateMap([file]);
+        var eventRecord = file.EventRecords[0];
+
+        // Two aggregate roots at same distance — should pick first discovered
+        var aggregateRoots = new[]
+        {
+            new AggregateRootInfo("InvoiceAggregate", "TestDomain.Billing"),
+            new AggregateRootInfo("SaleAggregate", "TestDomain.Sales"),
+        };
+
+        var aggregate = AggregateResolver.GetAggregateForEvent(
+            eventRecord, file.SourceNamespace, "TestDomain", map, aggregateRoots);
+
+        // "TestDomain.Sales" is a direct parent namespace of "TestDomain.Sales.Events"
+        // while "TestDomain.Billing" is not, so SaleAggregate is closest
+        aggregate.Should().Be("Sales");
     }
 }
