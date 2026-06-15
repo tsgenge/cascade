@@ -1,6 +1,7 @@
-using CascadeEsdm.SharedKernel.Events;
+using CascadeEsdm.ReadModel.Projecting.Configuration;
 using CascadeEsdm.ReadModel.ValueObjects;
 using CascadeEsdm.ReadModel.Views;
+using CascadeEsdm.SharedKernel.Events;
 
 namespace CascadeEsdm.ReadModel.Projecting;
 
@@ -39,25 +40,20 @@ internal class ViewProjector<TView> : IViewProjector<TView>
 
         lastSequence = new Sequence(@event.Subject, @event.Time, @event.Sequence);
 
-        if (_eventEvaluator.Supports(@event))
-        {
+        if (_eventEvaluator.Supports(@event)) {
             var allEffected = new List<Projection<TView>>();
 
-            if (_eventEvaluator.RemovesRow(@event))
-            {
+            if (_eventEvaluator.RemovesRow(@event)) {
                 allEffected.AddRange(await _projectionStore.DeleteAsync(@event));
             }
-            else
-            {
+            else {
                 var (rows, partition) = await _projectionStore.GetRowsAsync(@event);
 
-                if (rows.Count == 0 && _eventEvaluator.AddsRow(@event))
-                {
+                if (rows.Count == 0 && _eventEvaluator.AddsRow(@event)) {
                     var newRow = Activator.CreateInstance<TView>();
                     newRow.Id = _eventMapper.GetNewRowId(@event);
 
-                    if (newRow is IAuthoredView authored && _authorResolver != null)
-                    {
+                    if (newRow is IAuthoredView authored && _authorResolver != null) {
                         var identity = await _authorResolver.ResolveAsync(@event.SecurityContext);
                         if (identity != null)
                             authored.Author = identity;
@@ -69,14 +65,12 @@ internal class ViewProjector<TView> : IViewProjector<TView>
                     rows = new List<TView> { newRow };
                     allEffected.Add(new Projection<TView>(ProjectionEffect.Added, newRow, partition));
                 }
-                else
-                {
+                else {
                     allEffected.AddRange(
                         rows.Select(r => new Projection<TView>(ProjectionEffect.Changed, r, partition)));
                 }
 
-                foreach (var row in rows)
-                {
+                foreach (var row in rows) {
                     _eventMapper.Map(row, @event);
                 }
 

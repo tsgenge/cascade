@@ -1,4 +1,5 @@
 using CascadeEsdm.ReadModel.Projecting;
+using CascadeEsdm.ReadModel.Projecting.Configuration;
 using CascadeEsdm.ReadModel.ValueObjects;
 using CascadeEsdm.ReadModel.Views;
 using CascadeEsdm.SharedKernel.Events;
@@ -11,33 +12,43 @@ namespace CascadeEsdm.ReadModel.UnitTests.Projecting;
 
 public class ViewProjectorTests
 {
-    private readonly IEventCapabilityEvaluator<TestView> _evaluator = Substitute.For<IEventCapabilityEvaluator<TestView>>();
-    private readonly IViewEventMapper<TestView> _mapper = Substitute.For<IViewEventMapper<TestView>>();
-    private readonly IViewProjectionStore<TestView> _store = Substitute.For<IViewProjectionStore<TestView>>();
-    private readonly IViewSequenceStore<TestView> _sequenceStore = Substitute.For<IViewSequenceStore<TestView>>();
     private readonly IAuthorResolver _authorResolver = Substitute.For<IAuthorResolver>();
 
-    private ViewProjector<TestView> CreateSut(IAuthorResolver? authorResolver = null) =>
-        new(_evaluator, _mapper, _store, _sequenceStore, authorResolver);
+    private readonly IEventCapabilityEvaluator<TestView> _evaluator =
+        Substitute.For<IEventCapabilityEvaluator<TestView>>();
 
-    private static Subject CreateSubject() => new(Guid.NewGuid(), "TestAggregate");
+    private readonly IViewEventMapper<TestView> _mapper = Substitute.For<IViewEventMapper<TestView>>();
+    private readonly IViewSequenceStore<TestView> _sequenceStore = Substitute.For<IViewSequenceStore<TestView>>();
+    private readonly IViewProjectionStore<TestView> _store = Substitute.For<IViewProjectionStore<TestView>>();
 
-    private static EventEnvelope CreateEnvelope(Subject? subject = null, int sequence = 1) =>
-        new(
-            source: new EventSource("TestAssembly/TestAggregate", Guid.NewGuid(), "TestCommand"),
-            subject: subject ?? CreateSubject(),
-            securityContext: new AuthenticatedContext(
+    private ViewProjector<TestView> CreateSut(IAuthorResolver? authorResolver = null)
+    {
+        return new ViewProjector<TestView>(_evaluator, _mapper, _store, _sequenceStore, authorResolver);
+    }
+
+    private static Subject CreateSubject()
+    {
+        return new Subject(Guid.NewGuid(), "TestAggregate");
+    }
+
+    private static EventEnvelope CreateEnvelope(Subject? subject = null, int sequence = 1)
+    {
+        return new EventEnvelope(
+            new EventSource("TestAssembly/TestAggregate", Guid.NewGuid(), "TestCommand"),
+            subject ?? CreateSubject(),
+            new AuthenticatedContext(
                 new UserIdentity(Guid.NewGuid()),
                 new Tenant(Guid.NewGuid())),
-            channel: ClientChannel.Empty,
-            @event: new TestEvent(),
-            sequence: sequence);
+            ClientChannel.Empty,
+            new TestEvent(),
+            sequence);
+    }
 
     [Fact]
     public async Task ProjectAsync_WhenEventIsStale_ReturnsStale()
     {
         var subject = CreateSubject();
-        var envelope = CreateEnvelope(subject, sequence: 3);
+        var envelope = CreateEnvelope(subject, 3);
 
         _sequenceStore.GetLastSequenceAsync(subject)
             .Returns(new Sequence(subject, DateTimeOffset.UtcNow, 5));
@@ -52,7 +63,7 @@ public class ViewProjectorTests
     public async Task ProjectAsync_WhenSequenceGapDetected_ReturnsReplay()
     {
         var subject = CreateSubject();
-        var envelope = CreateEnvelope(subject, sequence: 5);
+        var envelope = CreateEnvelope(subject, 5);
 
         _sequenceStore.GetLastSequenceAsync(subject)
             .Returns(new Sequence(subject, DateTimeOffset.UtcNow, 2));
@@ -67,7 +78,7 @@ public class ViewProjectorTests
     public async Task ProjectAsync_WhenEventNotSupported_ReturnsNotApplicable_AndSavesSequence()
     {
         var subject = CreateSubject();
-        var envelope = CreateEnvelope(subject, sequence: 1);
+        var envelope = CreateEnvelope(subject, 1);
 
         _sequenceStore.GetLastSequenceAsync(subject)
             .Returns(Sequence.Initial(subject));
@@ -83,7 +94,7 @@ public class ViewProjectorTests
     public async Task ProjectAsync_WhenAddsRow_CreatesNewView_AppliesEvent_AndReturnsSuccess()
     {
         var subject = CreateSubject();
-        var envelope = CreateEnvelope(subject, sequence: 1);
+        var envelope = CreateEnvelope(subject, 1);
         var partition = new Partition("test-partition");
         var newRowId = Guid.NewGuid();
 
@@ -113,7 +124,7 @@ public class ViewProjectorTests
     {
         var parentId = Guid.NewGuid();
         var subject = new Subject(Guid.NewGuid(), "TestAggregate", parentId);
-        var envelope = CreateEnvelope(subject, sequence: 1);
+        var envelope = CreateEnvelope(subject, 1);
         var partition = new Partition("test-partition");
 
         _sequenceStore.GetLastSequenceAsync(subject)
@@ -133,7 +144,7 @@ public class ViewProjectorTests
     public async Task ProjectAsync_WhenChangesExistingRows_AppliesEvent_AndReturnsSuccess()
     {
         var subject = CreateSubject();
-        var envelope = CreateEnvelope(subject, sequence: 1);
+        var envelope = CreateEnvelope(subject, 1);
         var partition = new Partition("test-partition");
         var existingView = new TestView { Id = Guid.NewGuid() };
 
@@ -158,7 +169,7 @@ public class ViewProjectorTests
     public async Task ProjectAsync_WhenNoRowsFoundAndNotAdding_ReturnsRecordNotFound()
     {
         var subject = CreateSubject();
-        var envelope = CreateEnvelope(subject, sequence: 1);
+        var envelope = CreateEnvelope(subject, 1);
         var partition = new Partition("test-partition");
 
         _sequenceStore.GetLastSequenceAsync(subject)
@@ -178,7 +189,7 @@ public class ViewProjectorTests
     public async Task ProjectAsync_WhenRemovesRow_DeletesAndReturnsSuccess()
     {
         var subject = CreateSubject();
-        var envelope = CreateEnvelope(subject, sequence: 1);
+        var envelope = CreateEnvelope(subject, 1);
         var partition = new Partition("test-partition");
         var removedView = new TestView { Id = Guid.NewGuid() };
         var deletedProjections = new List<Projection<TestView>>
@@ -206,7 +217,7 @@ public class ViewProjectorTests
     public async Task ProjectAsync_WhenAuthoredView_ResolvesAuthor()
     {
         var subject = CreateSubject();
-        var envelope = CreateEnvelope(subject, sequence: 1);
+        var envelope = CreateEnvelope(subject, 1);
         var partition = new Partition("test-partition");
         var authorId = new UserIdentity(Guid.NewGuid());
 
@@ -237,7 +248,7 @@ public class ViewProjectorTests
     public async Task ProjectAsync_WhenSequenceIsExactlyNext_Processes()
     {
         var subject = CreateSubject();
-        var envelope = CreateEnvelope(subject, sequence: 4);
+        var envelope = CreateEnvelope(subject, 4);
         var partition = new Partition("test-partition");
 
         _sequenceStore.GetLastSequenceAsync(subject)
@@ -257,7 +268,7 @@ public class ViewProjectorTests
     public async Task ProjectAsync_WithoutAuthorResolver_SkipsAuthorResolution()
     {
         var subject = CreateSubject();
-        var envelope = CreateEnvelope(subject, sequence: 1);
+        var envelope = CreateEnvelope(subject, 1);
         var partition = new Partition("test-partition");
 
         var evaluator = Substitute.For<IEventCapabilityEvaluator<AuthoredTestView>>();

@@ -1,25 +1,38 @@
 using AutoMapper;
-using CascadeEsdm.SharedKernel.Events;
-using CascadeEsdm.SharedKernel.Infrastructure.Storage;
-using CascadeEsdm.SharedKernel.Querying;
 using CascadeEsdm.ReadModel.Projecting.Configuration;
 using CascadeEsdm.ReadModel.Querying;
 using CascadeEsdm.ReadModel.Utilities;
 using CascadeEsdm.ReadModel.ValueObjects;
 using CascadeEsdm.ReadModel.Views;
+using CascadeEsdm.SharedKernel.Events;
+using CascadeEsdm.SharedKernel.Infrastructure.Storage;
+using CascadeEsdm.SharedKernel.Querying;
 
 namespace CascadeEsdm.ReadModel.Projecting;
+
+/// <summary>
+///     Persistence gateway used by the projector to load, save, and delete view rows
+///     during projection.
+/// </summary>
+internal interface IViewProjectionStore<TView>
+    where TView : IView
+{
+    Task<(IList<TView> Rows, Partition Partition)> GetRowsAsync(EventEnvelope @event);
+    Task<IReadOnlyList<Projection<TView>>> DeleteAsync(EventEnvelope @event);
+    Task SaveAsync(IEnumerable<TView> rows, EventEnvelope @event);
+}
 
 internal class ViewProjectionStore<TView, TContainer> : IViewProjectionStore<TView>
     where TContainer : IDocumentContainerDefinition
     where TView : IView
 {
-    private readonly IPartitionedContainer<TContainer> _store;
+    private readonly IDictionary<Guid, ViewDocument> _cache = new Dictionary<Guid, ViewDocument>();
     private readonly IMapper _mapper;
     private readonly IProjectionPartitionLocator<TView> _partitionLocator;
-    private readonly IDictionary<Guid, ViewDocument> _cache = new Dictionary<Guid, ViewDocument>();
+    private readonly IPartitionedContainer<TContainer> _store;
 
-    public ViewProjectionStore(IPartitionedContainer<TContainer> store, IMapper mapper, IProjectionPartitionLocator<TView> partitionLocator)
+    public ViewProjectionStore(IPartitionedContainer<TContainer> store, IMapper mapper,
+        IProjectionPartitionLocator<TView> partitionLocator)
     {
         _store = store ?? throw new ArgumentNullException(nameof(store));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -36,8 +49,7 @@ internal class ViewProjectionStore<TView, TContainer> : IViewProjectionStore<TVi
             partition.Value,
             queryInfo.Parameters));
 
-        foreach (var doc in page.Page)
-        {
+        foreach (var doc in page.Page) {
             _cache.TryAdd(doc.View!.Id, doc);
         }
 
@@ -54,8 +66,7 @@ internal class ViewProjectionStore<TView, TContainer> : IViewProjectionStore<TVi
             partition.Value,
             queryInfo.Parameters));
 
-        foreach (var doc in page.Page)
-        {
+        foreach (var doc in page.Page) {
             await _store.DeleteAsync<ViewDocument>(doc.Id, doc.PartitionKey);
         }
 
@@ -75,18 +86,16 @@ internal class ViewProjectionStore<TView, TContainer> : IViewProjectionStore<TVi
         var rowLocator = GetRowLocator(@event);
         var queryParams = new Dictionary<string, string>
         {
-            { "@subject", @event.Subject.Value },
-            { "@type", typeof(TView).Name }
+            { "@subject", @event.Subject.Value }, { "@type", typeof(TView).Name }
         };
         var query = "select * from c where c.type = @type and ";
 
-        if (rowLocator != null)
-        {
-            query += $"({rowLocator.Operation.ToQueryString($"c.view.{rowLocator.PropertySelector.Key.ToCamelCase()}", "@selectValue")})";
+        if (rowLocator != null) {
+            query +=
+                $"({rowLocator.Operation.ToQueryString($"c.view.{rowLocator.PropertySelector.Key.ToCamelCase()}", "@selectValue")})";
             queryParams.Add("@selectValue", rowLocator.PropertySelector.Value.ToString());
         }
-        else
-        {
+        else {
             query += "(array_contains(c.sources, @subject))";
         }
 
@@ -96,15 +105,13 @@ internal class ViewProjectionStore<TView, TContainer> : IViewProjectionStore<TVi
     private QueryDefinition GetDeleteInfo(EventEnvelope @event)
     {
         var rowLocator = GetRowLocator(@event)
-            ?? throw new ArgumentNullException(nameof(@event),
-                $"The delete mapping for event {@event.Event.GetType().Name} did not have a RowLocator defined.");
+                         ?? throw new ArgumentNullException(nameof(@event),
+                             $"The delete mapping for event {@event.Event.GetType().Name} did not have a RowLocator defined.");
 
-        var queryParams = new Dictionary<string, string>
-        {
-            { "@type", typeof(TView).Name }
-        };
+        var queryParams = new Dictionary<string, string> { { "@type", typeof(TView).Name } };
 
-        var query = $"select * from c where c.type = @type and {rowLocator.Operation.ToQueryString($"c.view.{rowLocator.PropertySelector.Key.ToCamelCase()}", "@selectValue")}";
+        var query =
+            $"select * from c where c.type = @type and {rowLocator.Operation.ToQueryString($"c.view.{rowLocator.PropertySelector.Key.ToCamelCase()}", "@selectValue")}";
         queryParams.Add("@selectValue", rowLocator.PropertySelector.Value.ToString());
 
         return new QueryDefinition(query, queryParams);
@@ -112,12 +119,10 @@ internal class ViewProjectionStore<TView, TContainer> : IViewProjectionStore<TVi
 
     private RowLocator<TView>? GetRowLocator(EventEnvelope @event)
     {
-        try
-        {
+        try {
             return _mapper.Map<RowLocator<TView>>(@event.Event, o => o.State = @event);
         }
-        catch (AutoMapperMappingException)
-        {
+        catch (AutoMapperMappingException) {
             return null;
         }
     }
@@ -129,8 +134,7 @@ internal class ViewProjectionStore<TView, TContainer> : IViewProjectionStore<TVi
         {
             _cache.TryGetValue(p.Id, out var existing);
 
-            if (existing != null)
-            {
+            if (existing != null) {
                 existing.View = p;
 
                 if (existing.Sources.All(s => !s.Equals(@event.Subject.Value)))
@@ -138,21 +142,16 @@ internal class ViewProjectionStore<TView, TContainer> : IViewProjectionStore<TVi
 
                 return existing;
             }
-            else
+
+            return new ViewDocument
             {
-                return new ViewDocument
-                {
-                    Id = p.Id,
-                    PartitionKey = partition.Value,
-                    Created = DateTime.UtcNow,
-                    View = p,
-                    Type = typeof(TView).Name,
-                    Sources = new List<string>
-                    {
-                        @event.Subject.Value
-                    }
-                };
-            }
+                Id = p.Id,
+                PartitionKey = partition.Value,
+                Created = DateTime.UtcNow,
+                View = p,
+                Type = typeof(TView).Name,
+                Sources = new List<string> { @event.Subject.Value }
+            };
         }).ToList();
     }
 }

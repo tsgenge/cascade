@@ -15,6 +15,7 @@
     <Project Path="src/infrastructure/CascadeEsdm.DistributedLocks/CascadeEsdm.DistributedLocks.csproj" />
     <Project Path="src/infrastructure/CascadeEsdm.Logging.OpenTelemetry/CascadeEsdm.Logging.OpenTelemetry.csproj" />
     <Project Path="src/infrastructure/CascadeEsdm.Storage.CosmosDb/CascadeEsdm.Storage.CosmosDb.csproj" />
+    <Project Path="src/infrastructure/CascadeEsdm.SignalR/CascadeEsdm.SignalR.csproj" />
     <Project Path="src/infrastructure/CascadeEsdm.Storage.Azure/CascadeEsdm.Storage.Azure.csproj" />
   </Folder>
   <Folder Name="/5. Tools/">

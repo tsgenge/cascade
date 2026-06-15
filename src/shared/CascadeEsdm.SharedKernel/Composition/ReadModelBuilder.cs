@@ -4,12 +4,15 @@ namespace CascadeEsdm.SharedKernel.Composition;
 
 public class ReadModelBuilder
 {
-    private readonly IServiceCollection _services;
-
     internal ReadModelBuilder(IServiceCollection services)
     {
-        _services = services ?? throw new ArgumentNullException(nameof(services));
+        Services = services ?? throw new ArgumentNullException(nameof(services));
     }
 
-    public IServiceCollection Services => _services;
+    public IServiceCollection Services { get; }
+
+    internal void Validate()
+    {
+        //Validate all views are registered?
+    }
 }

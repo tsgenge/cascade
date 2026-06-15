@@ -1,8 +1,16 @@
-using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.ReadModel.Views;
+using CascadeEsdm.SharedKernel.Events;
 using System.Collections.Concurrent;
 
 namespace CascadeEsdm.ReadModel.Projecting.Configuration;
+
+internal interface IEventCapabilityEvaluator<TView>
+    where TView : IView
+{
+    bool Supports(EventEnvelope @event);
+    bool AddsRow(EventEnvelope @event);
+    bool RemovesRow(EventEnvelope @event);
+}
 
 internal class EventCapabilityEvaluator<TView> : IEventCapabilityEvaluator<TView>
     where TView : IView

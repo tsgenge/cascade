@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.SignalR.Management" Version="1.33.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\read\CascadeEsdm.ReadModel.Abstractions\CascadeEsdm.ReadModel.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\read\CascadeEsdm.ReadModel\CascadeEsdm.ReadModel.csproj"/>
+    </ItemGroup>
+
+</Project>
