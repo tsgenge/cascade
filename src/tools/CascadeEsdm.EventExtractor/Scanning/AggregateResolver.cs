@@ -68,21 +68,34 @@ public static class AggregateResolver
     }
 
     /// <summary>
-    /// Determines the aggregate name for a given event, falling back to namespace parsing if no applier found.
+    /// Determines the aggregate name for a given event, applying pluralisation to the resolved name.
+    /// Resolution order:
+    /// 1. IEventApplier map (strip "Aggregate" suffix, pluralise)
+    /// 2. Closest IAggregateRoot by namespace proximity (strip "Aggregate" suffix, pluralise)
+    /// 3. Namespace-based fallback (first segment after root namespace)
     /// </summary>
     public static string? GetAggregateForEvent(
         RecordDeclarationSyntax eventRecord,
         string sourceNamespace,
         string sourceRootNamespace,
-        IReadOnlyDictionary<string, string> eventToAggregateMap)
+        IReadOnlyDictionary<string, string> eventToAggregateMap,
+        IReadOnlyList<AggregateRootInfo> aggregateRoots)
     {
         var eventName = eventRecord.Identifier.Text;
 
         // First: try to find from applier map
         if (eventToAggregateMap.TryGetValue(eventName, out var aggregateFromMap))
         {
-            // Strip "Aggregate" suffix for cleaner folder names
-            return StripAggregateSuffix(aggregateFromMap);
+            var stripped = StripAggregateSuffix(aggregateFromMap);
+            return Pluraliser.Pluralise(stripped);
+        }
+
+        // Second: find closest IAggregateRoot by namespace proximity
+        var closestRoot = FindClosestAggregateRoot(sourceNamespace, aggregateRoots);
+        if (closestRoot != null)
+        {
+            var stripped = StripAggregateSuffix(closestRoot.ClassName);
+            return Pluraliser.Pluralise(stripped);
         }
 
         // Fallback: parse from namespace (e.g., CascadeEsdm.TestDomain.People.Events → People)
@@ -97,6 +110,52 @@ public static class AggregateResolver
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Finds the closest IAggregateRoot to the event's namespace by walking up the namespace tree.
+    /// An aggregate root is a candidate only if the event namespace starts with the root's namespace
+    /// (i.e., the root is in a parent/ancestor namespace). Among candidates, the most specific
+    /// parent (longest namespace) wins. If tied, the first discovered wins.
+    /// </summary>
+    private static AggregateRootInfo? FindClosestAggregateRoot(
+        string eventNamespace,
+        IReadOnlyList<AggregateRootInfo> aggregateRoots)
+    {
+        if (aggregateRoots.Count == 0)
+            return null;
+
+        AggregateRootInfo? best = null;
+        int bestLength = -1;
+
+        foreach (var root in aggregateRoots)
+        {
+            // The root must be in a parent namespace (event namespace starts with root namespace)
+            if (!IsAncestorNamespace(eventNamespace, root.Namespace))
+                continue;
+
+            // Prefer the most specific (longest) ancestor namespace
+            if (root.Namespace.Length > bestLength)
+            {
+                bestLength = root.Namespace.Length;
+                best = root;
+            }
+        }
+
+        return best;
+    }
+
+    /// <summary>
+    /// Returns true if <paramref name="ancestorNamespace"/> is a proper ancestor of
+    /// <paramref name="descendantNamespace"/> (the descendant starts with the ancestor followed by a dot).
+    /// </summary>
+    private static bool IsAncestorNamespace(string descendantNamespace, string ancestorNamespace)
+    {
+        if (descendantNamespace.Length <= ancestorNamespace.Length)
+            return false;
+
+        return descendantNamespace.StartsWith(ancestorNamespace, StringComparison.Ordinal)
+            && descendantNamespace[ancestorNamespace.Length] == '.';
     }
 
     private static string StripAggregateSuffix(string aggregateName)
