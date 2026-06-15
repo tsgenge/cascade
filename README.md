@@ -37,6 +37,7 @@ Cascade removes those decisions. Engineers implement commands, emit events, add 
 | `CascadeEsdm.Storage.CosmosDb` | Azure Cosmos DB event stream and read model storage |
 | `CascadeEsdm.DistributedLocks` | Azure Storage distributed lock provider for aggregate-level concurrency |
 | `CascadeEsdm.Logging.OpenTelemetry` | OpenTelemetry-based structured logging and Application Insights integration |
+| `CascadeEsdm.SignalR` | Azure SignalR real-time view change notifications |
 
 ### Tools
 
