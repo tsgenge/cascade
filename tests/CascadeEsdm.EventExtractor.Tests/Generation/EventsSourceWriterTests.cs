@@ -45,14 +45,15 @@ public class EventsSourceWriterTests : IDisposable
     }
 
     [Fact]
-    public void WriteIsExternalInitPolyfill_ReturnsNull_WhenFileUnchanged()
+    public void WriteIsExternalInitPolyfill_AlwaysReturnsFile_EvenWhenUnchanged()
     {
         var writer = CreateWriter();
         writer.WriteIsExternalInitPolyfill();
 
         var result = writer.WriteIsExternalInitPolyfill();
 
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.Kind.Should().Be(WrittenFileKind.Polyfill);
     }
 
     [Fact]
@@ -141,5 +142,19 @@ public class EventsSourceWriterTests : IDisposable
 
         Directory.Exists(orphanDir).Should().BeFalse();
         Directory.Exists(Path.Combine(_outputDir, "Removed")).Should().BeFalse();
+    }
+
+    [Fact]
+    public void RemoveOrphanedFiles_DoesNotDeletePolyfill_WhenInWrittenList()
+    {
+        var writer = CreateWriter();
+
+        // Write polyfill first (simulates previous run), then use its path in keep list
+        var polyfill = writer.WriteIsExternalInitPolyfill();
+
+        var removed = writer.RemoveOrphanedFiles(new List<WrittenFile> { polyfill });
+
+        File.Exists(polyfill.Path).Should().BeTrue();
+        removed.Should().BeEmpty();
     }
 }

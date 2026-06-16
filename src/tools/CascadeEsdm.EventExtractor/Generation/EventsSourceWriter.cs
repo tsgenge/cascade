@@ -58,10 +58,9 @@ public sealed class EventsSourceWriter
             var extractedSource = EventSyntaxExtractor.Extract(file, targetNamespace, sourceRootNamespace);
 
             if (ShouldWrite(outputPath, extractedSource))
-            {
                 File.WriteAllText(outputPath, extractedSource);
-                written.Add(new WrittenFile(outputPath, WrittenFileKind.EventRecord));
-            }
+
+            written.Add(new WrittenFile(outputPath, WrittenFileKind.EventRecord));
         }
 
         return written;
@@ -111,16 +110,15 @@ public sealed class EventsSourceWriter
             var source = BuildEnumFile(dep, enumsNamespace);
 
             if (ShouldWrite(outputPath, source))
-            {
                 File.WriteAllText(outputPath, source);
-                written.Add(new WrittenFile(outputPath, WrittenFileKind.Enum));
-            }
+
+            written.Add(new WrittenFile(outputPath, WrittenFileKind.Enum));
         }
 
         return written;
     }
 
-    public WrittenFile? WriteIsExternalInitPolyfill()
+    public WrittenFile WriteIsExternalInitPolyfill()
     {
         var outputPath = Path.Combine(_outputDir, "IsExternalInit.cs");
 
@@ -137,12 +135,9 @@ public sealed class EventsSourceWriter
             """;
 
         if (ShouldWrite(outputPath, content))
-        {
             File.WriteAllText(outputPath, content);
-            return new WrittenFile(outputPath, WrittenFileKind.Polyfill);
-        }
 
-        return null;
+        return new WrittenFile(outputPath, WrittenFileKind.Polyfill);
     }
 
     /// <summary>

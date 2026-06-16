@@ -100,7 +100,7 @@ static void Run(ExtractorOptions options)
 
     var allWritten = writtenEventFiles
         .Concat(writtenEnumFiles)
-        .Concat(writtenPolyfill is not null ? [writtenPolyfill] : [])
+        .Append(writtenPolyfill)
         .ToList();
 
     var removedFiles = writer.RemoveOrphanedFiles(allWritten);
