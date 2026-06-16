@@ -50,7 +50,9 @@ services.AddCascadeEsdm(cascade => cascade
             .AddCommandExecutor<ChangePersonFirstName, ChangePersonFirstNameExecutor, PersonAggregate>())
         .WithAppliers(appliers => appliers
             .AddEventApplier<PersonAdded, PersonAddedApplier, PersonAggregate>()
-            .AddEventApplier<PersonFirstNameChanged, PersonFirstNameChangedApplier, PersonAggregate>())));
+            .AddEventApplier<PersonFirstNameChanged, PersonFirstNameChangedApplier, PersonAggregate>())
+        .WithPolicies(policies => policies
+            .AddPolicy<SendWelcomeEmailPolicy>())));
 ```
 
 ### Entry Point
@@ -147,6 +149,17 @@ write.WithAppliers(appliers => appliers
 ```
 
 Registers the specified event appliers for handling events during aggregate hydration.
+
+#### Register Policies
+
+```csharp
+write.WithPolicies(policies => policies
+    .AddPolicy<SendWelcomeEmailPolicy>()
+    .AddPoliciesFromAssembly<PersonAggregate>()
+    .AddPoliciesFromNamespace<SendWelcomeEmailPolicy>())
+```
+
+Registers reactive policies that execute in response to domain events. See the [Policies](#policies) section for implementation details.
 
 ### Validation
 
@@ -443,6 +456,89 @@ public record OrderPlaced(Guid OrderId, string Reference) : OrderEventBase(Order
 ```
 
 If you want derived records extracted, either keep `IDomainEvent` on each record, or flatten the hierarchy.
+
+---
+
+## Policies
+
+### Purpose
+
+Policies react to domain events after they have been persisted. A policy receives an `EventEnvelope`, decides whether it supports that event, and executes side-effects such as issuing further commands, sending notifications, or triggering integrations.
+
+A single event can activate zero or many policies. All supporting policies execute concurrently — successful policies complete even if others fail. If any policy fails, a `PolicyExecutionException` is thrown containing details of every failure.
+
+### Standards
+
+- Policies implement `IPolicy` from `CascadeEsdm.WriteModel.Policies`.
+- Policies are resolved from DI — constructor injection works as expected.
+- `Supports(EventEnvelope)` determines whether the policy handles a given event. Pattern-match on `envelope.Event`.
+- `ExecuteAsync(EventEnvelope, CancellationToken)` performs the side-effect.
+- Policies must not mutate aggregate state — they trigger further commands or external actions.
+- Policies are registered via `WithPolicies()` on the `WriteModelBuilder`.
+- Place policies in a `Policies` folder within the aggregate directory.
+
+### Implementation
+
+```csharp
+using CascadeEsdm.SharedKernel.Events;
+using CascadeEsdm.WriteModel.Policies;
+
+internal class SendWelcomeEmailPolicy : IPolicy
+{
+    private readonly IEmailService _emailService;
+
+    public SendWelcomeEmailPolicy(IEmailService emailService)
+    {
+        _emailService = emailService;
+    }
+
+    public bool Supports(EventEnvelope envelope) =>
+        envelope.Event is PersonAdded;
+
+    public async Task ExecuteAsync(EventEnvelope envelope, CancellationToken cancellationToken = default)
+    {
+        var @event = (PersonAdded)envelope.Event;
+        await _emailService.SendWelcomeAsync(@event.Email, cancellationToken);
+    }
+}
+```
+
+### Registration
+
+```csharp
+write.WithPolicies(policies => policies
+    .AddPolicy<SendWelcomeEmailPolicy>()
+    .AddPoliciesFromAssembly<PersonAggregate>()
+    .AddPoliciesFromNamespace<SendWelcomeEmailPolicy>())
+```
+
+| Method | Description |
+|---|---|
+| `AddPolicy<TPolicy>()` | Registers a single policy |
+| `AddPoliciesFromAssembly<TExampleType>()` | Discovers all `IPolicy` implementations in the assembly |
+| `AddPoliciesFromNamespace<TExampleType>()` | Discovers all `IPolicy` implementations in the namespace (and child namespaces) |
+
+### Dispatching
+
+Inject `IPolicyDispatcher` and call `DispatchAsync`:
+
+```csharp
+await _policyDispatcher.DispatchAsync(envelope);
+```
+
+### Error Handling
+
+If one or more policies throw, the dispatcher waits for all remaining policies to complete and then throws a `PolicyExecutionException`. Each failure is available via `PolicyExecutionException.Failures` — an `IReadOnlyList<PolicyFailure>` containing the policy class name and the thrown exception.
+
+### Folder Structure
+
+```
+Domain/
+  People/
+    Policies/
+      SendWelcomeEmailPolicy.cs
+      NotifyAdminPolicy.cs
+```
 
 ---
 

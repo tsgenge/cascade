@@ -2,6 +2,7 @@ using CascadeEsdm.SharedKernel.Composition;
 using CascadeEsdm.WriteModel.CommandHandling;
 using CascadeEsdm.WriteModel.EventStream;
 using CascadeEsdm.WriteModel.Hydration;
+using CascadeEsdm.WriteModel.Policies;
 using CascadeEsdm.WriteModel.Security;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -49,6 +50,19 @@ public static class WriteModelBuilderExtensions
 
         var applierBuilder = new EventApplierBuilder(services);
         eventAppliers(applierBuilder);
+
+        return builder;
+    }
+
+    public static WriteModelBuilder WithPolicies(this WriteModelBuilder builder,
+        Action<PolicyBuilder> policies)
+    {
+        var services = builder.Services;
+
+        var policyBuilder = new PolicyBuilder(services);
+        policies(policyBuilder);
+
+        services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
 
         return builder;
     }

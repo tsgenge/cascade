@@ -22,7 +22,9 @@ services.AddCascadeEsdm(cascade => cascade
             .AddCommandExecutor<ChangePersonFirstName, ChangePersonFirstNameExecutor, PersonAggregate>())
         .WithAppliers(appliers => appliers
             .AddEventApplier<PersonAdded, PersonAddedApplier, PersonAggregate>()
-            .AddEventApplier<PersonFirstNameChanged, PersonFirstNameChangedApplier, PersonAggregate>())));
+            .AddEventApplier<PersonFirstNameChanged, PersonFirstNameChangedApplier, PersonAggregate>())
+        .WithPolicies(policies => policies
+            .AddPolicy<SendWelcomeEmailPolicy>())));
 ```
 
 ## Step-by-Step Breakdown
@@ -122,6 +124,23 @@ write.WithAppliers(appliers => appliers
 
 Registers the specified event appliers for handling events during aggregate hydration.
 
+#### Register Policies
+
+```csharp
+write.WithPolicies(policies => policies
+    .AddPolicy<SendWelcomeEmailPolicy>()
+    .AddPoliciesFromAssembly<PersonAggregate>()
+    .AddPoliciesFromNamespace<SendWelcomeEmailPolicy>())
+```
+
+This registers reactive policies that execute in response to domain events. Policies are resolved from DI and execute concurrently. See [Policies.md](Policies.md) for full details on implementing and dispatching policies.
+
+| Method | Description |
+|---|---|
+| `AddPolicy<TPolicy>()` | Registers a single policy |
+| `AddPoliciesFromAssembly<TExampleType>()` | Discovers and registers all `IPolicy` implementations in the assembly containing `TExampleType` |
+| `AddPoliciesFromNamespace<TExampleType>()` | Discovers and registers all `IPolicy` implementations in the namespace of `TExampleType` (and child namespaces) |
+
 ## Container Definition Example
 
 ```csharp
@@ -217,7 +236,8 @@ ServiceCollectionExtensions.AddCascadeEsdm()
               └── ModelBuilder.WithWriteModel()
                     └── WriteModelBuilder
                           ├── WithExecutors() → CommandExecutorBuilder
-                          └── WithAppliers() → EventApplierBuilder
+                          ├── WithAppliers() → EventApplierBuilder
+                          └── WithPolicies() → PolicyBuilder
 ```
 
 ## Benefits
