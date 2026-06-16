@@ -9,11 +9,12 @@ public static class ExtractionReport
         IReadOnlyList<ScannedEventFile> scannedFiles,
         IReadOnlyList<ExternalEnumDependency> externalEnums,
         IReadOnlyList<WrittenFile> writtenFiles,
+        IReadOnlyList<string> removedFiles,
         string outputDir)
     {
         var totalEvents = scannedFiles.Sum(f => f.EventRecords.Count);
-        var eventFilesWritten = writtenFiles.Count(f => f.Kind == WrittenFileKind.EventRecord);
-        var enumFilesWritten = writtenFiles.Count(f => f.Kind == WrittenFileKind.Enum);
+        var eventFilesWritten = writtenFiles.Count(f => f.Kind == WrittenFileKind.EventRecord && f.WasModified);
+        var enumFilesWritten = writtenFiles.Count(f => f.Kind == WrittenFileKind.Enum && f.WasModified);
 
         Console.WriteLine($"cascade-extract-events: extraction complete");
         Console.WriteLine($"  Source files with events : {scannedFiles.Count}");
@@ -21,6 +22,7 @@ public static class ExtractionReport
         Console.WriteLine($"  External enum deps found : {externalEnums.Count}");
         Console.WriteLine($"  Event files written      : {eventFilesWritten}");
         Console.WriteLine($"  Enum files written       : {enumFilesWritten}");
+        Console.WriteLine($"  Orphaned files removed   : {removedFiles.Count}");
         Console.WriteLine($"  Output directory         : {outputDir}");
     }
 

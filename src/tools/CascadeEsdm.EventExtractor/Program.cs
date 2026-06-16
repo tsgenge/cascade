@@ -100,8 +100,10 @@ static void Run(ExtractorOptions options)
 
     var allWritten = writtenEventFiles
         .Concat(writtenEnumFiles)
-        .Concat(writtenPolyfill is not null ? [writtenPolyfill] : [])
+        .Append(writtenPolyfill)
         .ToList();
 
-    ExtractionReport.Print(eventFiles, externalEnums, allWritten, options.OutputDir);
+    var removedFiles = writer.RemoveOrphanedFiles(allWritten);
+
+    ExtractionReport.Print(eventFiles, externalEnums, allWritten, removedFiles, options.OutputDir);
 }

@@ -57,11 +57,11 @@ public sealed class EventsSourceWriter
 
             var extractedSource = EventSyntaxExtractor.Extract(file, targetNamespace, sourceRootNamespace);
 
-            if (ShouldWrite(outputPath, extractedSource))
-            {
+            var modified = ShouldWrite(outputPath, extractedSource);
+            if (modified)
                 File.WriteAllText(outputPath, extractedSource);
-                written.Add(new WrittenFile(outputPath, WrittenFileKind.EventRecord));
-            }
+
+            written.Add(new WrittenFile(outputPath, WrittenFileKind.EventRecord, modified));
         }
 
         return written;
@@ -110,17 +110,17 @@ public sealed class EventsSourceWriter
 
             var source = BuildEnumFile(dep, enumsNamespace);
 
-            if (ShouldWrite(outputPath, source))
-            {
+            var modified = ShouldWrite(outputPath, source);
+            if (modified)
                 File.WriteAllText(outputPath, source);
-                written.Add(new WrittenFile(outputPath, WrittenFileKind.Enum));
-            }
+
+            written.Add(new WrittenFile(outputPath, WrittenFileKind.Enum, modified));
         }
 
         return written;
     }
 
-    public WrittenFile? WriteIsExternalInitPolyfill()
+    public WrittenFile WriteIsExternalInitPolyfill()
     {
         var outputPath = Path.Combine(_outputDir, "IsExternalInit.cs");
 
@@ -136,13 +136,51 @@ public sealed class EventsSourceWriter
             internal static class IsExternalInit { }
             """;
 
-        if (ShouldWrite(outputPath, content))
-        {
+        var modified = ShouldWrite(outputPath, content);
+        if (modified)
             File.WriteAllText(outputPath, content);
-            return new WrittenFile(outputPath, WrittenFileKind.Polyfill);
+
+        return new WrittenFile(outputPath, WrittenFileKind.Polyfill, modified);
+    }
+
+    /// <summary>
+    /// Removes .cs files from the output directory that are not in the written files list.
+    /// This handles the case where an event is removed from the source assembly —
+    /// its previously generated file should be deleted from the target schema assembly.
+    /// Returns the list of deleted file paths.
+    /// </summary>
+    public IReadOnlyList<string> RemoveOrphanedFiles(IReadOnlyList<WrittenFile> writtenFiles)
+    {
+        var keepSet = new HashSet<string>(
+            writtenFiles.Select(f => Path.GetFullPath(f.Path)),
+            StringComparer.OrdinalIgnoreCase);
+
+        var removed = new List<string>();
+
+        foreach (var file in Directory.EnumerateFiles(_outputDir, "*.cs", SearchOption.AllDirectories))
+        {
+            var fullPath = Path.GetFullPath(file);
+            if (keepSet.Contains(fullPath))
+                continue;
+
+            File.Delete(fullPath);
+            removed.Add(fullPath);
         }
 
-        return null;
+        // Clean up empty directories left behind after deletion
+        RemoveEmptyDirectories(_outputDir);
+
+        return removed;
+    }
+
+    private void RemoveEmptyDirectories(string rootDir)
+    {
+        foreach (var dir in Directory.EnumerateDirectories(rootDir, "*", SearchOption.AllDirectories)
+            .OrderByDescending(d => d.Length)) // deepest first
+        {
+            if (!Directory.EnumerateFileSystemEntries(dir).Any())
+                Directory.Delete(dir);
+        }
     }
 
     private bool ShouldWrite(string outputPath, string newContent)
