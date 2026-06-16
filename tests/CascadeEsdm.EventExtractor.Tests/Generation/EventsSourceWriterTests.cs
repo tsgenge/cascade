@@ -88,7 +88,7 @@ public class EventsSourceWriterTests : IDisposable
 
         var writtenFiles = new List<WrittenFile>
         {
-            new(keptFile, WrittenFileKind.EventRecord)
+            new(keptFile, WrittenFileKind.EventRecord, WasModified: true)
         };
 
         var removed = writer.RemoveOrphanedFiles(writtenFiles);
