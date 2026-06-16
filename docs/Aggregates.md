@@ -54,6 +54,7 @@ Domain/
 
 ## Related Conventions
 
+- [Entities](Entities.md)
 - [Commands](Commands.md)
 - [Events](Events.md)
 - [Value Objects](ValueObjects.md)

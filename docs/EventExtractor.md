@@ -35,9 +35,9 @@ The result is a compilable events-only project your consumers can reference with
 dotnet tool install -g CascadeEsdm.EventExtractor
 ```
 
-### 2. Add `CascadeEsdm.WriteModel` to your write-model project
+### 2. Add `CascadeEsdm.WriteModel.Abstractions` to your write-model project
 
-The MSBuild targets are bundled in the `CascadeEsdm.WriteModel` NuGet package and activate automatically. No further configuration is required for a default setup.
+The MSBuild targets are bundled in the `CascadeEsdm.WriteModel.Abstractions` NuGet package and activate automatically. No further configuration is required for a default setup.
 
 ### 3. Build
 

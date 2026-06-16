@@ -9,14 +9,20 @@ The Cascade ESDM composition system uses a fluent builder pattern to provide a t
 ```csharp
 services.AddCascadeEsdm(cascade => cascade
     .WithInfrastructure(infra => infra
-        .UseCosmosDbStorage<MyAppConfiguration>(storage => storage
-            .EventStreamContainer<EventStreamContainer>()
-            .WithContainer<ReadModelContainer>())
-        .UseAzureDistributedLocks<MyAppConfiguration>(config => config.StorageConnectionString)
+        .UseCosmosDbStorage(storage => storage
+            .WithConnectionString(connectionString)
+            .WithDatabaseName("cascade")
+            .WithEventStreamContainer<EventStreamContainer>())
+        .UseAzureDistributedLocks(locks => locks
+            .WithConnectionString(azuriteConnectionString))
         .UseApplicationInsights())
     .WithWriteModel(write => write
-        .RegisterWriteModel()
-        .RegisterCommandsFromAssembly<MyAggregate>()));
+        .WithExecutors(executors => executors
+            .AddCommandExecutor<AddPerson, AddPersonExecutor, PersonAggregate>()
+            .AddCommandExecutor<ChangePersonFirstName, ChangePersonFirstNameExecutor, PersonAggregate>())
+        .WithAppliers(appliers => appliers
+            .AddEventApplier<PersonAdded, PersonAddedApplier, PersonAggregate>()
+            .AddEventApplier<PersonFirstNameChanged, PersonFirstNameChangedApplier, PersonAggregate>())));
 ```
 
 ## Step-by-Step Breakdown
@@ -43,25 +49,27 @@ The infrastructure builder requires three components:
 #### Storage Configuration
 
 ```csharp
-infra.UseCosmosDbStorage<TConfig>(storage => storage
-    .EventStreamContainer<TEventStreamContainer>()
-    .WithContainer<TReadModelContainer>())
+infra.UseCosmosDbStorage(storage => storage
+    .WithConnectionString(connectionString)
+    .WithDatabaseName("cascade")
+    .WithEventStreamContainer<EventStreamContainer>())
 ```
 
-- `TConfig`: Your application configuration class
-- `EventStreamContainer<T>()`: **Required** - Specifies the container for event streams
-- `WithContainer<T>()`: Optional - Register additional containers for read models
+- `WithConnectionString(string)`: **Required** - Cosmos DB connection string
+- `WithDatabaseName(string)`: **Required** - Database name (defaults to "cascade")
+- `WithEventStreamContainer<TContainer>()`: **Required** - Specifies the container for event streams
+- `WithOptions(CosmosClientOptions)`: Optional - Configure Cosmos client options
 
-The `TEventStreamContainer` type must implement `IDocumentContainerDefinition`.
+The `TContainer` type must implement `IDocumentContainerDefinition` and have a parameterless constructor.
 
 #### Distributed Locks Configuration
 
 ```csharp
-infra.UseAzureDistributedLocks<TConfig>(config => config.ConnectionString)
+infra.UseAzureDistributedLocks(locks => locks
+    .WithConnectionString(connectionString))
 ```
 
-- `TConfig`: Your application configuration class
-- The lambda extracts the Azure Storage connection string from your configuration
+- `WithConnectionString(string)`: **Required** - Azure Storage connection string for distributed locks
 
 #### Telemetry Configuration
 
@@ -71,6 +79,15 @@ infra.UseApplicationInsights()
 
 Registers OpenTelemetry-based logging with Application Insights.
 
+#### SignalR Configuration (Optional)
+
+```csharp
+infra.UseSignalR(signalR => signalR
+    .ConfigureSignalROptions(options => { ... }))
+```
+
+Configures SignalR for real-time view change notifications.
+
 ### 3. Write Model Configuration
 
 ```csharp
@@ -79,44 +96,31 @@ cascade.WithWriteModel(write => { ... })
 
 After infrastructure is configured, you can register the write model components.
 
-#### Register Core Write Model
+#### Register Command Executors
 
 ```csharp
-write.RegisterWriteModel()
+write.WithExecutors(executors => executors
+    .AddCommandExecutor<TCommand, TExecutor, TAggregate>()
+    .AddCommandExecutor<TCommand2, TExecutor2, TAggregate2>())
 ```
 
 This registers:
 - Command authorizers
-- Aggregate factories
+- Aggregate factories and hydrators
 - Event applier factories
 - Event stream readers/writers
 - Command handler decorators (logging, event writing, serialization)
+- The specified command executors
 
-#### Register Commands
-
-```csharp
-write.RegisterCommandsFromAssembly<TMarker>()
-// or
-write.RegisterCommandsFromAssembly(assembly)
-```
-
-Automatically discovers and registers:
-- All aggregates in the assembly
-- All commands for those aggregates
-- Command handlers
-- Command executors
-
-Throws `MissingExecutorException` if any command is missing its executor.
-
-## Configuration Class Example
+#### Register Event Appliers
 
 ```csharp
-public class MyAppConfiguration
-{
-    public string StorageConnectionString { get; set; }
-    public string DatabaseName { get; set; }
-}
+write.WithAppliers(appliers => appliers
+    .AddEventApplier<TEvent, TApplier, TAggregate>()
+    .AddEventApplier<TEvent2, TApplier2, TAggregate2>())
 ```
+
+Registers the specified event appliers for handling events during aggregate hydration.
 
 ## Container Definition Example
 
@@ -126,12 +130,6 @@ public class EventStreamContainer : IDocumentContainerDefinition
     public string Name => "eventstreams";
     public string PartitionKeyPath => "/partitionKey";
 }
-
-public class ReadModelContainer : IDocumentContainerDefinition
-{
-    public string Name => "readmodels";
-    public string PartitionKeyPath => "/partitionKey";
-}
 ```
 
 ## Validation
@@ -139,7 +137,36 @@ public class ReadModelContainer : IDocumentContainerDefinition
 The system validates that all required infrastructure components are registered before allowing write model configuration. If any component is missing, an `InvalidOperationException` is thrown with a clear message indicating what's missing:
 
 ```
-Missing required infrastructure components: Storage Provider, Distributed Lock Provider
+Missing required infrastructure components: Storage Provider, Distributed Lock Provider, Telemetry Logger, Event Stream Container. Ensure you have called the appropriate Use* methods on the infrastructure builder.
+```
+
+## Complete Example
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddCascadeEsdm(cascade => cascade
+        .WithInfrastructure(infra => infra
+            .UseCosmosDbStorage(storage => storage
+                .WithConnectionString(configuration.GetConnectionString("Cosmos"))
+                .WithDatabaseName("myapp")
+                .WithEventStreamContainer<EventStreamContainer>()
+                .WithOptions(new CosmosClientOptions
+                {
+                    ConnectionMode = ConnectionMode.Direct,
+                    ApplicationName = "MyApp"
+                }))
+            .UseAzureDistributedLocks(locks => locks
+                .WithConnectionString(configuration.GetConnectionString("AzureStorage")))
+            .UseApplicationInsights())
+        .WithWriteModel(write => write
+            .WithExecutors(executors => executors
+                .AddCommandExecutor<PlaceOrder, PlaceOrderExecutor, OrderAggregate>()
+                .AddCommandExecutor<CancelOrder, CancelOrderExecutor, OrderAggregate>())
+            .WithAppliers(appliers => appliers
+                .AddEventApplier<OrderPlaced, OrderPlacedApplier, OrderAggregate>()
+                .AddEventApplier<OrderCancelled, OrderCancelledApplier, OrderAggregate>())));
+}
 ```
 
 ## Extensibility
@@ -151,15 +178,14 @@ Create an extension method on `InfrastructureBuilder`:
 ```csharp
 public static class InfrastructureBuilderExtensions
 {
-    public static InfrastructureBuilder UseTableStorage<TConfig>(
+    public static InfrastructureBuilder UseTableStorage(
         this InfrastructureBuilder builder,
-        Action<TableStorageBuilder<TConfig>> configure)
-        where TConfig : class
+        Action<TableStorageBuilder> configure)
     {
-        var storageBuilder = new TableStorageBuilder<TConfig>(builder);
+        var storageBuilder = new TableStorageBuilder(builder);
         configure(storageBuilder);
         
-        builder.HasStorage = true;
+        storageBuilder.Build();
         
         return builder;
     }
@@ -169,23 +195,29 @@ public static class InfrastructureBuilderExtensions
 ### Adding New Lock Providers
 
 ```csharp
-public static InfrastructureBuilder UseRedisLocks<TConfig>(
+public static InfrastructureBuilder UseRedisLocks(
     this InfrastructureBuilder builder,
-    Func<TConfig, string> connectionResolver)
-    where TConfig : class
+    Action<RedisLockBuilder> configure)
 {
-    builder.Services.AddSingleton(sp =>
-    {
-        var config = sp.GetRequiredService<IOptions<TConfig>>();
-        var connectionString = connectionResolver(config.Value);
-        return new RedisLockProvider(connectionString);
-    });
+    var lockBuilder = new RedisLockBuilder(builder);
+    configure(lockBuilder);
     
-    builder.Services.AddTransient<IDistributedLockProvider, RedisDistributedLockProvider>();
-    builder.HasLocking = true;
+    lockBuilder.Build();
     
     return builder;
 }
+```
+
+## Builder Pattern Flow
+
+```
+ServiceCollectionExtensions.AddCascadeEsdm()
+  └── CascadeBuilder.WithInfrastructure()
+        └── InfrastructureBuilder (validates required components)
+              └── ModelBuilder.WithWriteModel()
+                    └── WriteModelBuilder
+                          ├── WithExecutors() → CommandExecutorBuilder
+                          └── WithAppliers() → EventApplierBuilder
 ```
 
 ## Benefits

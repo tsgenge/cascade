@@ -73,6 +73,13 @@ Add the generated file to source control so all team members and CI agents share
 
 ---
 
+## Example project
+We've put together an example project to show how to use Cascade in a real-world scenario. Well, real world ish.
+
+https://github.com/tsgenge/cascade-example
+
+---
+
 ## Design Principles
 
 **Opinionated by intent.** Cascade has opinions so your engineers don't need to. The right decisions are already made — concurrency strategy, hydration, command dispatch, event storage.
@@ -96,14 +103,16 @@ Packages are available on [NuGet](https://www.nuget.org/packages?q=cascadeesdm).
 ## Further Reading
 
 - [cascade-esdm.org](https://cascade-esdm.org) — the thinking behind the framework
+- [docs/BoundedContexts.md](docs/BoundedContexts.md) — bounded context conventions and what they are
+- [docs/Aggregates.md](docs/Aggregates.md) — aggregate conventions and folder structure
 - [docs/WriteModel.md](docs/WriteModel.md) — creating and configuring aggregates
 - [docs/ReadModel.md](docs/ReadModel.md) — creating and configuring views in the read model
-- [docs/CompositionUsage.md](docs/CompositionUsage.md) — composition and registration patterns
-- [docs/EventExtractor.md](docs/EventExtractor.md) — the event extractor in detail
-- [docs/Aggregates.md](docs/Aggregates.md) — aggregate conventions and folder structure
 - [docs/Commands.md](docs/Commands.md) — command and executor conventions
 - [docs/Events.md](docs/Events.md) — event and applier conventions
+- [docs/Entities.md](docs/Entities.md) — entity conventions and folder structure
 - [docs/ValueObjects.md](docs/ValueObjects.md) — value object conventions
+- [docs/CompositionUsage.md](docs/CompositionUsage.md) — composition and registration patterns
+- [docs/EventExtractor.md](docs/EventExtractor.md) — the event extractor in detail
 - [docs/Exceptions.md](docs/Exceptions.md) — exception handling conventions
 
 ---
