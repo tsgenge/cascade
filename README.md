@@ -111,6 +111,7 @@ Packages are available on [NuGet](https://www.nuget.org/packages?q=cascadeesdm).
 - [docs/Events.md](docs/Events.md) — event and applier conventions
 - [docs/Entities.md](docs/Entities.md) — entity conventions and folder structure
 - [docs/ValueObjects.md](docs/ValueObjects.md) — value object conventions
+- [docs/Policies.md](docs/Policies.md) — reactive policies triggered by domain events
 - [docs/CompositionUsage.md](docs/CompositionUsage.md) — composition and registration patterns
 - [docs/EventExtractor.md](docs/EventExtractor.md) — the event extractor in detail
 - [docs/Exceptions.md](docs/Exceptions.md) — exception handling conventions

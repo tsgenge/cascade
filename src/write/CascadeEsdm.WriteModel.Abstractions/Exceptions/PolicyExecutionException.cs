@@ -19,7 +19,7 @@ public class PolicyExecutionException : ExceptionBase
     }
 }
 
-public class PolicyFailure
+public record PolicyFailure
 {
     public PolicyFailure(string policyName, Exception exception)
     {

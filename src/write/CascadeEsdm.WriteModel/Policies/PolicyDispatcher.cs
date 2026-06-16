@@ -1,15 +1,18 @@
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.WriteModel.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace CascadeEsdm.WriteModel.Policies;
 
 internal class PolicyDispatcher : IPolicyDispatcher
 {
     private readonly IEnumerable<IPolicy> _policies;
+    private readonly ILogger<PolicyDispatcher> _logger;
 
-    public PolicyDispatcher(IEnumerable<IPolicy> policies)
+    public PolicyDispatcher(IEnumerable<IPolicy> policies, ILogger<PolicyDispatcher> logger)
     {
         _policies = policies ?? throw new ArgumentNullException(nameof(policies));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task DispatchAsync(EventEnvelope envelope, CancellationToken cancellationToken = default)
@@ -17,8 +20,11 @@ internal class PolicyDispatcher : IPolicyDispatcher
         if (envelope is null) throw new ArgumentNullException(nameof(envelope));
 
         var supportingPolicies = _policies.Where(p => p.Supports(envelope)).ToList();
-        if (supportingPolicies.Count == 0)
+        if (supportingPolicies.Count == 0) {
+            _logger.LogWarning("No supporting policies found for event {EventType} on subject {Subject}",
+                envelope.Type, envelope.Subject);
             return;
+        }
 
         var tasks = supportingPolicies
             .Select(policy => ExecutePolicySafeAsync(policy, envelope, cancellationToken))
