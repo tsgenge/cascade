@@ -11,7 +11,7 @@ public class CommandEnvelopeTests
     {
         var command = new TestCommand(Guid.NewGuid());
         var securityContext = new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid()));
-        var channel = new ClientChannel("test-channel");
+        var channel = ClientChannel.Empty;
 
         var envelope = new CommandEnvelope<TestCommand>(command, securityContext, channel);
 
@@ -25,7 +25,7 @@ public class CommandEnvelopeTests
     {
         var command = new TestCommand(Guid.NewGuid());
         var securityContext = new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid()));
-        var channel = new ClientChannel("test-channel");
+        var channel = ClientChannel.Empty;
 
         var envelope = new CommandEnvelope<TestCommand>(command, securityContext, channel);
 
@@ -37,7 +37,7 @@ public class CommandEnvelopeTests
     {
         var command = new TestCommand(Guid.NewGuid());
         var securityContext = new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid()));
-        var channel = new ClientChannel("test-channel");
+        var channel = ClientChannel.Empty;
 
         var envelope1 = new CommandEnvelope<TestCommand>(command, securityContext, channel);
         var envelope2 = new CommandEnvelope<TestCommand>(command, securityContext, channel);
@@ -53,7 +53,7 @@ public class CommandEnvelopeTests
         var before = DateTimeOffset.UtcNow.AddMilliseconds(-100);
         var command = new TestCommand(Guid.NewGuid());
         var securityContext = new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid()));
-        var channel = new ClientChannel("test-channel");
+        var channel = ClientChannel.Empty;
 
         var envelope = new CommandEnvelope<TestCommand>(command, securityContext, channel);
 
@@ -70,7 +70,7 @@ public class CommandEnvelopeTests
         var type = "TestCommand";
         var command = new TestCommand(Guid.NewGuid());
         var securityContext = new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid()));
-        var channel = new ClientChannel("test-channel");
+        var channel = ClientChannel.Empty;
         var time = DateTimeOffset.UtcNow.AddHours(-1);
 
         var envelope = new CommandEnvelope<TestCommand>(id, type, command, securityContext, channel, time);
@@ -88,7 +88,7 @@ public class CommandEnvelopeTests
     {
         var command = new TestCommand(Guid.NewGuid());
         var securityContext = new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid()));
-        var channel = new ClientChannel("test-channel");
+        var channel = ClientChannel.Empty;
 
         ICommandEnvelope envelope = new CommandEnvelope<TestCommand>(command, securityContext, channel);
 
@@ -101,7 +101,7 @@ public class CommandEnvelopeTests
     {
         var command = new TestCommand(Guid.NewGuid());
         var securityContext = new AuthenticatedContext(new UserIdentity(Guid.NewGuid()), new Tenant(Guid.NewGuid()));
-        var channel = new ClientChannel("test-channel");
+        var channel = ClientChannel.Empty;
 
         ICommandEnvelope<TestCommand> envelope = new CommandEnvelope<TestCommand>(command, securityContext, channel);
 
