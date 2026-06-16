@@ -96,8 +96,12 @@ static void Run(ExtractorOptions options)
 
     var writtenEventFiles = writer.WriteEventFiles(eventFiles, options.RootNamespace);
     var writtenEnumFiles = writer.WriteExternalEnumFiles(externalEnums, options.ResolvedEventsNamespace);
+    var writtenPolyfill = writer.WriteIsExternalInitPolyfill();
 
-    var allWritten = writtenEventFiles.Concat(writtenEnumFiles).ToList();
+    var allWritten = writtenEventFiles
+        .Concat(writtenEnumFiles)
+        .Concat(writtenPolyfill is not null ? [writtenPolyfill] : [])
+        .ToList();
 
     ExtractionReport.Print(eventFiles, externalEnums, allWritten, options.OutputDir);
 }

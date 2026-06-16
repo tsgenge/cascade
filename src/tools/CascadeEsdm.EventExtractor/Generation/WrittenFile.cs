@@ -6,4 +6,5 @@ public enum WrittenFileKind
 {
     EventRecord,
     Enum,
+    Polyfill,
 }
