@@ -9,6 +9,7 @@ public static class ExtractionReport
         IReadOnlyList<ScannedEventFile> scannedFiles,
         IReadOnlyList<ExternalEnumDependency> externalEnums,
         IReadOnlyList<WrittenFile> writtenFiles,
+        IReadOnlyList<string> removedFiles,
         string outputDir)
     {
         var totalEvents = scannedFiles.Sum(f => f.EventRecords.Count);
@@ -21,6 +22,7 @@ public static class ExtractionReport
         Console.WriteLine($"  External enum deps found : {externalEnums.Count}");
         Console.WriteLine($"  Event files written      : {eventFilesWritten}");
         Console.WriteLine($"  Enum files written       : {enumFilesWritten}");
+        Console.WriteLine($"  Orphaned files removed   : {removedFiles.Count}");
         Console.WriteLine($"  Output directory         : {outputDir}");
     }
 

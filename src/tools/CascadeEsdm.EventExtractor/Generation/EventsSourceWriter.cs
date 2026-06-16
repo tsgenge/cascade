@@ -145,6 +145,46 @@ public sealed class EventsSourceWriter
         return null;
     }
 
+    /// <summary>
+    /// Removes .cs files from the output directory that are not in the written files list.
+    /// This handles the case where an event is removed from the source assembly —
+    /// its previously generated file should be deleted from the target schema assembly.
+    /// Returns the list of deleted file paths.
+    /// </summary>
+    public IReadOnlyList<string> RemoveOrphanedFiles(IReadOnlyList<WrittenFile> writtenFiles)
+    {
+        var keepSet = new HashSet<string>(
+            writtenFiles.Select(f => Path.GetFullPath(f.Path)),
+            StringComparer.OrdinalIgnoreCase);
+
+        var removed = new List<string>();
+
+        foreach (var file in Directory.EnumerateFiles(_outputDir, "*.cs", SearchOption.AllDirectories))
+        {
+            var fullPath = Path.GetFullPath(file);
+            if (keepSet.Contains(fullPath))
+                continue;
+
+            File.Delete(fullPath);
+            removed.Add(fullPath);
+        }
+
+        // Clean up empty directories left behind after deletion
+        RemoveEmptyDirectories(_outputDir);
+
+        return removed;
+    }
+
+    private void RemoveEmptyDirectories(string rootDir)
+    {
+        foreach (var dir in Directory.EnumerateDirectories(rootDir, "*", SearchOption.AllDirectories)
+            .OrderByDescending(d => d.Length)) // deepest first
+        {
+            if (!Directory.EnumerateFileSystemEntries(dir).Any())
+                Directory.Delete(dir);
+        }
+    }
+
     private bool ShouldWrite(string outputPath, string newContent)
     {
         if (!File.Exists(outputPath))
