@@ -10,6 +10,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj"/>
+        <ProjectReference Include="..\..\tests\CascadeEsdm.TestDomain\CascadeEsdm.TestDomain.csproj"/>
     </ItemGroup>
 
 </Project>

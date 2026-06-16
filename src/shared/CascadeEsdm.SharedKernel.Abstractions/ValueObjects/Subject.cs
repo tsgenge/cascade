@@ -1,4 +1,5 @@
 ﻿using CascadeEsdm.SharedKernel.Aggregates;
+using CascadeEsdm.SharedKernel.Extensions;
 using CascadeEsdm.SharedKernel.Validation;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -25,6 +26,14 @@ public record Subject : IValueObject<string>
         Parent = parentId;
         Type = type;
         Value = FormatValue(Type, Id, Parent);
+    }
+
+    public Subject(string id, string type, string? parentId = null)
+    {
+        Id = id.ToGuid();
+        Parent = string.IsNullOrEmpty(parentId) ? null : parentId.ToGuid();
+        Type = type;
+        Value = FormatValue(Type, id, parentId);
     }
 
     public Guid Id { get; }
@@ -61,8 +70,18 @@ public record Subject : IValueObject<string>
 
     private string FormatValue(string type, Guid id, Guid? parentId = null)
     {
+        return FormatValue(
+            type,
+            id.ToString("n", CultureInfo.InvariantCulture),
+            parentId.HasValue && parentId.Value != Guid.Empty
+                ? $"/{parentId.Value.ToString("n", CultureInfo.InvariantCulture)}"
+                : "");
+    }
+
+    private string FormatValue(string type, string id, string? parentId = null)
+    {
         return
-            $"{type}{(parentId.HasValue && parentId.Value != Guid.Empty ? $"/{parentId.Value.ToString("n", CultureInfo.InvariantCulture)}" : "")}/{id.ToString("n", CultureInfo.InvariantCulture)}";
+            $"{type}{parentId}/{id}";
     }
 
     private void Parse(string value, out Guid id, out Guid? parentId, out string type)
