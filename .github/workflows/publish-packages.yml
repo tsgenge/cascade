@@ -36,7 +36,7 @@ jobs:
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
           BUILD_NUMBER=$(git rev-list --count develop)
-          VERSION="${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ env.VERSION_PATCH }}-alpha.$BUILD_NUMBER+$SHORT_SHA"
+          VERSION="${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.$BUILD_NUMBER-alpha+$SHORT_SHA"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Pre-release version: $VERSION"
 
