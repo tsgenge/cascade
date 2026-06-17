@@ -12,5 +12,5 @@ public record AuthenticatedContext
 
     public UserIdentity User { get; }
     public Tenant Tenant { get; }
-    public static AuthenticatedContext Empty => new(new UserIdentity(string.Empty), new Tenant(Guid.Empty));
+    public static AuthenticatedContext Empty => new(new UserIdentity(Guid.Empty), new Tenant(Guid.Empty));
 }
