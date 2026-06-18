@@ -9,9 +9,7 @@ public interface IQueryHandler<TView, in TFilter, in TQuery>
     : IPageQueryHandler<TView, TFilter>, ISingleQueryHandler<TView, TQuery>
     where TView : IView
     where TFilter : ScopedPageFilter
-    where TQuery : ScopedSingleQuery
-{
-}
+    where TQuery : ScopedSingleQuery { }
 
 /// <summary>
 ///     Serves a page of <typeparamref name="TView" /> rows matching <typeparamref name="TFilter" />.
@@ -20,7 +18,7 @@ public interface IPageQueryHandler<TView, in TFilter>
     where TView : IView
     where TFilter : ScopedPageFilter
 {
-    Task<NotifyingPageResult<TView>> GetPageAsync(TFilter filter);
+    Task<NotifyingPageResult<TView>> GetPageAsync(TFilter filter, CancellationToken token = default);
 }
 
 /// <summary>
@@ -30,5 +28,5 @@ public interface ISingleQueryHandler<TView, in TQuery>
     where TView : IView
     where TQuery : ScopedSingleQuery
 {
-    Task<NotifyingSingleResult<TView>> GetSingleAsync(TQuery query);
+    Task<NotifyingSingleResult<TView>> GetSingleAsync(TQuery query, CancellationToken token = default);
 }

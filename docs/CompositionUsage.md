@@ -18,13 +18,16 @@ services.AddCascadeEsdm(cascade => cascade
         .UseApplicationInsights())
     .WithWriteModel(write => write
         .WithExecutors(executors => executors
-            .AddCommandExecutor<AddPerson, AddPersonExecutor, PersonAggregate>()
-            .AddCommandExecutor<ChangePersonFirstName, ChangePersonFirstNameExecutor, PersonAggregate>())
+            .AddCommandExecutor<AddPersonExecutor>()
+            .AddCommandExecutor<ChangePersonFirstNameExecutor>())
         .WithAppliers(appliers => appliers
-            .AddEventApplier<PersonAdded, PersonAddedApplier, PersonAggregate>()
-            .AddEventApplier<PersonFirstNameChanged, PersonFirstNameChangedApplier, PersonAggregate>())
+            .AddEventApplier<PersonAddedApplier>()
+            .AddEventApplier<PersonFirstNameChangedApplier>())
         .WithPolicies(policies => policies
-            .AddPolicy<SendWelcomeEmailPolicy>())));
+            .AddPolicy<SendWelcomeEmailPolicy>()))
+    .WithReadModel(read => read
+        .WithViews(views => views
+            .AddView<PersonView, ViewsContainer>())));
 ```
 
 ## Step-by-Step Breakdown
@@ -102,8 +105,8 @@ After infrastructure is configured, you can register the write model components.
 
 ```csharp
 write.WithExecutors(executors => executors
-    .AddCommandExecutor<TCommand, TExecutor, TAggregate>()
-    .AddCommandExecutor<TCommand2, TExecutor2, TAggregate2>())
+    .AddCommandExecutor<TExecutor>()
+    .AddCommandExecutor<TExecutor2>())
 ```
 
 This registers:
@@ -118,11 +121,16 @@ This registers:
 
 ```csharp
 write.WithAppliers(appliers => appliers
-    .AddEventApplier<TEvent, TApplier, TAggregate>()
-    .AddEventApplier<TEvent2, TApplier2, TAggregate2>())
+    .AddEventApplier<TApplier>()
+    .AddEventApplier<TApplier2>())
 ```
 
-Registers the specified event appliers for handling events during aggregate hydration.
+Registers the specified event appliers for handling events during aggregate hydration. `TEvent` and `TAggregate` are inferred via reflection from the applier's `IEventApplier<,>` interface.
+
+| Method | Description |
+|---|---|
+| `AddEventApplier<TApplier>()` | Registers a single applier; `TEvent` and `TAggregate` are inferred via reflection |
+| `AddEventAppliersFromAssembly<TExampleType>()` | Discovers and registers all `IEventApplier<,>` implementations in the assembly containing `TExampleType` |
 
 #### Register Policies
 
@@ -140,6 +148,37 @@ This registers reactive policies that execute in response to domain events. Poli
 | `AddPolicy<TPolicy>()` | Registers a single policy |
 | `AddPoliciesFromAssembly<TExampleType>()` | Discovers and registers all `IPolicy` implementations in the assembly containing `TExampleType` |
 | `AddPoliciesFromNamespace<TExampleType>()` | Discovers and registers all `IPolicy` implementations in the namespace of `TExampleType` (and child namespaces) |
+
+### 4. Read Model Configuration
+
+```csharp
+cascade.WithReadModel(read => read
+    .WithViews(views => views
+        .AddView<OrderView, ViewsContainer>()))
+```
+
+Registers the read model projections. `WithViews` requires a notification service to have been registered in `WithInfrastructure()` (e.g. via `UseSignalR`).
+
+#### Register Views
+
+| Method | Description |
+|---|---|
+| `AddView<TView, TContainer>()` | Registers a single view backed by the specified container |
+| `AddViewsFromAssembly<TExampleType>(getContainer)` | Discovers all `IView` implementations in the assembly and resolves each container via the provided delegate; throws if any view has no container resolved |
+
+```csharp
+read.WithViews(views => views
+    .AddView<OrderView, ViewsContainer>()
+    .AddView<OrderSummaryView, ViewsContainer>())
+```
+
+Or using assembly scanning:
+
+```csharp
+read.WithViews(views => views
+    .AddViewsFromAssembly<OrderView>(viewType =>
+        typeof(ViewsContainer)))
+```
 
 ## Container Definition Example
 
@@ -180,11 +219,11 @@ public void ConfigureServices(IServiceCollection services)
             .UseApplicationInsights())
         .WithWriteModel(write => write
             .WithExecutors(executors => executors
-                .AddCommandExecutor<PlaceOrder, PlaceOrderExecutor, OrderAggregate>()
-                .AddCommandExecutor<CancelOrder, CancelOrderExecutor, OrderAggregate>())
+                .AddCommandExecutor<PlaceOrderExecutor>()
+                .AddCommandExecutor<CancelOrderExecutor>())
             .WithAppliers(appliers => appliers
-                .AddEventApplier<OrderPlaced, OrderPlacedApplier, OrderAggregate>()
-                .AddEventApplier<OrderCancelled, OrderCancelledApplier, OrderAggregate>())));
+                .AddEventApplier<OrderPlacedApplier>()
+                .AddEventApplier<OrderCancelledApplier>())));
 }
 ```
 
@@ -233,11 +272,16 @@ public static InfrastructureBuilder UseRedisLocks(
 ServiceCollectionExtensions.AddCascadeEsdm()
   └── CascadeBuilder.WithInfrastructure()
         └── InfrastructureBuilder (validates required components)
-              └── ModelBuilder.WithWriteModel()
-                    └── WriteModelBuilder
-                          ├── WithExecutors() → CommandExecutorBuilder
-                          ├── WithAppliers() → EventApplierBuilder
-                          └── WithPolicies() → PolicyBuilder
+              ├── ModelBuilder.WithWriteModel()
+              │     └── WriteModelBuilder
+              │           ├── WithExecutors() → CommandExecutorBuilder
+              │           ├── WithAppliers() → EventApplierBuilder
+              │           └── WithPolicies() → PolicyBuilder
+              └── ModelBuilder.WithReadModel()
+                    └── ReadModelBuilder
+                          └── WithViews() → ViewBuilder
+                                ├── AddView<TView, TContainer>()
+                                └── AddViewsFromAssembly<TExampleType>(getContainer)
 ```
 
 ## Benefits

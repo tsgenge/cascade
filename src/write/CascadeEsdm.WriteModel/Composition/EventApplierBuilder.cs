@@ -37,14 +37,20 @@ public class EventApplierBuilder
         return this;
     }
 
-    public EventApplierBuilder AddEventApplier<TEvent, TApplier, TAggregate>()
-        where TApplier : class, IEventApplier<TEvent, TAggregate>
-        where TEvent : IDomainEvent
-        where TAggregate : IAggregateRoot
+    public EventApplierBuilder AddEventApplier<TApplier>()
+        where TApplier : class
     {
-        _services.AddScoped<TApplier>();
-        _services.AddScoped<IEventApplier<TEvent, TAggregate>, TApplier>(sp => sp.GetRequiredService<TApplier>());
-        _services.AddScoped<IEventApplier<TAggregate>, TApplier>(sp => sp.GetRequiredService<TApplier>());
+        var applierType = typeof(TApplier);
+        var applierInterface = applierType.GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventApplier<,>))
+            ?? throw new InvalidOperationException($"{applierType.Name} does not implement IEventApplier<TEvent, TAggregate>.");
+
+        var aggregateType = applierInterface.GetGenericArguments()[1];
+        var aggregateApplierInterface = typeof(IEventApplier<>).MakeGenericType(aggregateType);
+
+        _services.AddScoped(applierType);
+        _services.AddScoped(applierInterface, sp => sp.GetRequiredService(applierType));
+        _services.AddScoped(aggregateApplierInterface, sp => sp.GetRequiredService(applierType));
         return this;
     }
 }

@@ -4,7 +4,6 @@ using Azure.Storage.Blobs;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Infrastructure.Storage;
 using CascadeEsdm.SharedKernel.Querying;
-using CascadeEsdm.TestDomain.People;
 using CascadeEsdm.TestDomain.People.Commands;
 using CascadeEsdm.TestDomain.People.Events;
 using CascadeEsdm.WriteModel.Composition;
@@ -76,14 +75,12 @@ public class WriteContext : IAsyncLifetime
                         .WithWriteModel(b1 =>
                             b1
                                 .WithExecutors(h => h
-                                    .AddCommandExecutor<AddPerson, AddPersonExecutor, PersonAggregate>()
-                                    .AddCommandExecutor<ChangePersonFirstName, ChangePersonFirstNameExecutor,
-                                        PersonAggregate>())
+                                    .AddCommandExecutor<AddPersonExecutor>()
+                                    .AddCommandExecutor<ChangePersonFirstNameExecutor>())
                                 .WithAppliers(h => h
-                                    .AddEventApplier<PersonAdded, PersonAddedApplier, PersonAggregate>()
-                                    .AddEventApplier<PersonFirstNameChanged, PersonFirstNameChangedApplier,
-                                        PersonAggregate>()
-                                    .AddEventApplier<SecurityDescriptorSet, SecurityDescriptorApplier, PersonAggregate>())
+                                    .AddEventApplier<PersonAddedApplier>()
+                                    .AddEventApplier<PersonFirstNameChangedApplier>()
+                                    .AddEventApplier<SecurityDescriptorApplier>())
                         );
                 });
             });

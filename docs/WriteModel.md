@@ -109,9 +109,9 @@ internal class PlaceOrderExecutor : ICommandExecutor<PlaceOrder, OrderAggregate>
             .WithWriteModel(b1 =>
                 b1
                     .WithExecutors(h => h
-                        .AddCommandExecutor<PlaceOrder, PlaceOrderExecutor, OrderAggregate>())
+                        .AddCommandExecutor<PlaceOrderExecutor>())
                     .WithAppliers(h => h
-                        .AddEventApplier<OrderPlaced, OrderPlacedApplier, OrderAggregate>())
+                        .AddEventApplier<OrderPlacedApplier>())
             );
     });
 ```

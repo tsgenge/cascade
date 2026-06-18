@@ -53,16 +53,25 @@ public class CommandExecutorBuilder
         return this;
     }
 
-    public CommandExecutorBuilder AddCommandExecutor<TCommand, TExecutor, TAggregate>()
-        where TExecutor : class, ICommandExecutor<TCommand, TAggregate>
-        where TCommand : ICommand
-        where TAggregate : IAggregateRoot
+    public CommandExecutorBuilder AddCommandExecutor<TExecutor>()
+        where TExecutor : class
     {
-        _services.AddScoped<ICommandExecutor<TCommand, TAggregate>, TExecutor>();
+        var executorType = typeof(TExecutor);
+        var executorInterface = executorType.GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommandExecutor<,>))
+            ?? throw new InvalidOperationException($"{executorType.Name} does not implement ICommandExecutor<TCommand, TAggregate>.");
 
-        _services.AddScoped<ICommandExecutor<TAggregate>>(sp =>
-            sp.GetRequiredService<ICommandExecutor<TCommand, TAggregate>>());
-        _services.AddScoped<ICommandHandler<TCommand>, CommandHandler<TCommand, TAggregate>>();
+        var typeArgs = executorInterface.GetGenericArguments();
+        var commandType = typeArgs[0];
+        var aggregateType = typeArgs[1];
+
+        var executorBaseInterface = typeof(ICommandExecutor<>).MakeGenericType(aggregateType);
+        var handlerInterface = typeof(ICommandHandler<>).MakeGenericType(commandType);
+        var handlerType = typeof(CommandHandler<,>).MakeGenericType(commandType, aggregateType);
+
+        _services.AddScoped(executorInterface, executorType);
+        _services.AddScoped(executorBaseInterface, sp => sp.GetRequiredService(executorInterface));
+        _services.AddScoped(handlerInterface, handlerType);
 
         return this;
     }

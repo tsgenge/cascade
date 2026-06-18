@@ -58,7 +58,7 @@ Use `EventSource.ForAggregate<TAggregate>(commandId, commandType)` to create an 
 
 ### Creating Events
 
-Events are created using the `CreateEvent` extension method on `ICommandEnvelope`:
+Events are created using the `CreateEvent` extension method on `ICommandEnvelope`. This is performed within [Command Executors](Commands.md), out of scope of this document.
 
 ```csharp
 public async IAsyncEnumerable<IEventEnvelope> ExecuteAsync(
@@ -94,31 +94,64 @@ The extension method automatically:
 
 - Implement `IEventApplier<TEvent, TAggregate>` in the **same file** as the event record. The applier mutates the aggregate directly using its public properties.
 - The `IEventApplier` should be implemented as an `internal class`.
-- When setting ValueObject properties of an entity during applier execution, use `new()` to reduce `using` statements:
+- Event appliers do not need to validate the event — it is a historical fact.
+- When setting ValueObject properties of an entity during applier execution, use `new()` to reduce `using` statements.
+- The `IEventApplier` does not need (and should not) change the `LastSequence` property of the aggregate.
+- Event appliers are registered in the composition root via `WithAppliers`.
+- Event appliers should be **optimistic** in approach — since they are replaying historical events, they do not need to verify or validate using if statements.
 
 ```csharp
-aggregate.Person.FirstName = new(@event.FirstName);
+using CascadeEsdm.SharedKernel.Events;
+using CascadeEsdm.WriteModel.Hydration;
 
-// Rather than:
-aggregate.Person.FirstName = new FirstName(@event.FirstName);
+public record PersonFirstNameChanged(Guid PersonId, string FirstName) : IDomainEvent;
+
+internal class PersonFirstNameChangedApplier : IEventApplier<PersonFirstNameChanged, PersonAggregate>
+{
+    public void Apply(PersonAggregate aggregate, PersonFirstNameChanged @event, EventEnvelope envelope)
+    {
+        aggregate.Person.FirstName = new(@event.FirstName);
+    }
+}
 ```
 
-- The `IEventApplier` does not need (and should not) change the `LastSequence` property of the aggregate.
-- Event appliers are discovered and registered automatically in the Composition Root.
-- Event appliers should be **optimistic** in approach — since they are replaying historical events, they do not need to verify or validate using if statements. For example, this guard is unnecessary:
+The following guard is unnecessary — the event is a historical fact and optimistic application is correct:
 
 ```csharp
-// ❌ Unnecessary — the event is a historical fact, no need to check
+// ❌ Unnecessary
 if (aggregate.Person != null)
 {
     aggregate.Person.FirstName = new(@event.FirstName);
 }
 
-// ✅ Correct — optimistic application
+// ✅ Correct
 aggregate.Person.FirstName = new(@event.FirstName);
 ```
 
----
+### Composition Root Registration
+
+Event appliers are registered in the composition root via `WithAppliers`. See [CompositionUsage.md](CompositionUsage.md) for full infrastructure setup.
+
+| Method | Description |
+|---|---|
+| `AddEventApplier<TApplier>()` | Registers a single applier; `TEvent` and `TAggregate` are inferred via reflection from the applier's `IEventApplier<,>` interface |
+| `AddEventAppliersFromAssembly<TExampleType>()` | Discovers and registers all `IEventApplier<,>` implementations in the assembly containing `TExampleType` |
+
+```csharp
+services.AddCascadeEsdm(cascade => cascade
+    .WithInfrastructure(infra => /* ... */)
+    .WithWriteModel(write => write
+        .WithAppliers(appliers => appliers
+            .AddEventApplier<OrderPlacedApplier>()
+            .AddEventApplier<OrderCancelledApplier>())));
+```
+
+Or to register all appliers in an assembly at once:
+
+```csharp
+write.WithAppliers(appliers => appliers
+    .AddEventAppliersFromAssembly<OrderAggregate>())
+```
 
 ## Inheritance Constraint
 
