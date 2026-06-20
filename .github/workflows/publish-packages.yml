@@ -87,6 +87,7 @@ jobs:
             "src/infrastructure/CascadeEsdm.SignalR/CascadeEsdm.SignalR.csproj"
             "src/infrastructure/CascadeEsdm.Storage.Azure/CascadeEsdm.Storage.Azure.csproj"
             "src/infrastructure/CascadeEsdm.Storage.CosmosDb/CascadeEsdm.Storage.CosmosDb.csproj"
+            "src/infrastructure/CascadeEsdm.DistributedLocks/CascadeEsdm.DistributedLocks.csproj"
             "src/tools/CascadeEsdm.EventExtractor/CascadeEsdm.EventExtractor.csproj"
             "src/tools/CascadeEsdm.AIContext/CascadeEsdm.AIContext.csproj"
           )
