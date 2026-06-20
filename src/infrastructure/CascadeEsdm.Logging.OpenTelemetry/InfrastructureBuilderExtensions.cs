@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class InfrastructureBuilderExtensions
 {
-    public static InfrastructureBuilder UseApplicationInsights(this InfrastructureBuilder builder)
+    public static InfrastructureBuilder UsingApplicationInsights(this InfrastructureBuilder builder)
     {
         builder.Services.AddScoped<ITelemetryLogger, OpenTelemetryLogger>();
         

@@ -4,7 +4,7 @@ namespace CascadeEsdm.SignalR;
 
 public static class InfrastructureBuilderExtensions
 {
-    public static InfrastructureBuilder UseCosmosDbStorage(
+    public static InfrastructureBuilder UsingSignalRNotifications(
         this InfrastructureBuilder builder,
         Action<SignalRBuilder> configure)
     {

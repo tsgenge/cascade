@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class AzureTableStorageBuilderExtensions
 {
-    public static InfrastructureBuilder UseAzureTableStorage(
+    public static InfrastructureBuilder UsingAzureTableStorage(
         this InfrastructureBuilder builder,
         Action<AzureTableStorageBuilder> configure)
     {

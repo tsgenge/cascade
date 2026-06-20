@@ -9,13 +9,15 @@ The Cascade ESDM composition system uses a fluent builder pattern to provide a t
 ```csharp
 services.AddCascadeEsdm(cascade => cascade
     .WithInfrastructure(infra => infra
-        .UseCosmosDbStorage(storage => storage
+        .UsingCosmosDbStorage(storage => storage
             .WithConnectionString(connectionString)
             .WithDatabaseName("cascade")
             .WithEventStreamContainer<EventStreamContainer>())
-        .UseAzureDistributedLocks(locks => locks
-            .WithConnectionString(azuriteConnectionString))
-        .UseApplicationInsights())
+        .UsingAzureDistributedLocks(locks => locks
+            .WithConnectionString(storageConnection))
+        .UsingAzureTableStorage(s => s
+            .WithConnectionString(storageConnection))            
+        .UsingApplicationInsights())
     .WithWriteModel(write => write
         .WithExecutors(executors => executors
             .AddCommandExecutor<AddPersonExecutor>()
@@ -54,7 +56,7 @@ The infrastructure builder requires three components:
 #### Storage Configuration
 
 ```csharp
-infra.UseCosmosDbStorage(storage => storage
+infra.UsingCosmosDbStorage(storage => storage
     .WithConnectionString(connectionString)
     .WithDatabaseName("cascade")
     .WithEventStreamContainer<EventStreamContainer>())
@@ -70,7 +72,7 @@ The `TContainer` type must implement `IDocumentContainerDefinition` and have a p
 #### Distributed Locks Configuration
 
 ```csharp
-infra.UseAzureDistributedLocks(locks => locks
+infra.UsingAzureDistributedLocks(locks => locks
     .WithConnectionString(connectionString))
 ```
 
@@ -79,7 +81,7 @@ infra.UseAzureDistributedLocks(locks => locks
 #### Telemetry Configuration
 
 ```csharp
-infra.UseApplicationInsights()
+infra.UsingApplicationInsights()
 ```
 
 Registers OpenTelemetry-based logging with Application Insights.
@@ -205,7 +207,7 @@ public void ConfigureServices(IServiceCollection services)
 {
     services.AddCascadeEsdm(cascade => cascade
         .WithInfrastructure(infra => infra
-            .UseCosmosDbStorage(storage => storage
+            .UsingCosmosDbStorage(storage => storage
                 .WithConnectionString(configuration.GetConnectionString("Cosmos"))
                 .WithDatabaseName("myapp")
                 .WithEventStreamContainer<EventStreamContainer>()
@@ -214,9 +216,9 @@ public void ConfigureServices(IServiceCollection services)
                     ConnectionMode = ConnectionMode.Direct,
                     ApplicationName = "MyApp"
                 }))
-            .UseAzureDistributedLocks(locks => locks
+            .UsingAzureDistributedLocks(locks => locks
                 .WithConnectionString(configuration.GetConnectionString("AzureStorage")))
-            .UseApplicationInsights())
+            .UsingApplicationInsights())
         .WithWriteModel(write => write
             .WithExecutors(executors => executors
                 .AddCommandExecutor<PlaceOrderExecutor>()

@@ -51,13 +51,13 @@ Register policies using `WithPolicies` on the `WriteModelBuilder`:
 ```csharp
 services.AddCascadeEsdm(cascade => cascade
     .WithInfrastructure(infra => infra
-        .UseCosmosDbStorage(storage => storage
+        .UsingCosmosDbStorage(storage => storage
             .WithConnectionString(connectionString)
             .WithDatabaseName("cascade")
             .WithEventStreamContainer<EventStreamContainer>())
-        .UseAzureDistributedLocks(locks => locks
+        .UsingAzureDistributedLocks(locks => locks
             .WithConnectionString(azuriteConnectionString))
-        .UseApplicationInsights())
+        .UsingApplicationInsights())
     .WithWriteModel(write => write
         .WithExecutors(executors => executors
             .AddCommandsFromAssembly<PersonAggregate>())

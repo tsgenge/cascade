@@ -37,13 +37,13 @@ Register Cascade in your DI host using the fluent builder. All three infrastruct
 ```csharp
 services.AddCascadeEsdm(cascade => cascade
     .WithInfrastructure(infra => infra
-        .UseCosmosDbStorage(storage => storage
+        .UsingCosmosDbStorage(storage => storage
             .WithConnectionString(connectionString)
             .WithDatabaseName("cascade")
             .WithEventStreamContainer<EventStreamContainer>())
-        .UseAzureDistributedLocks(locks => locks
+        .UsingAzureDistributedLocks(locks => locks
             .WithConnectionString(azuriteConnectionString))
-        .UseApplicationInsights())
+        .UsingApplicationInsights())
     .WithWriteModel(write => write
         .WithExecutors(executors => executors
             .AddCommandExecutor<AddPersonExecutor>()
@@ -69,7 +69,7 @@ The infrastructure builder requires three components:
 #### Storage Configuration
 
 ```csharp
-infra.UseCosmosDbStorage(storage => storage
+infra.UsingCosmosDbStorage(storage => storage
     .WithConnectionString(connectionString)
     .WithDatabaseName("cascade")
     .WithEventStreamContainer<EventStreamContainer>())
@@ -93,7 +93,7 @@ public class EventStreamContainer : IDocumentContainerDefinition
 #### Distributed Locks Configuration
 
 ```csharp
-infra.UseAzureDistributedLocks(locks => locks
+infra.UsingAzureDistributedLocks(locks => locks
     .WithConnectionString(connectionString))
 ```
 
@@ -102,7 +102,7 @@ infra.UseAzureDistributedLocks(locks => locks
 #### Telemetry Configuration
 
 ```csharp
-infra.UseApplicationInsights()
+infra.UsingApplicationInsights()
 ```
 
 Registers OpenTelemetry-based logging with Application Insights.

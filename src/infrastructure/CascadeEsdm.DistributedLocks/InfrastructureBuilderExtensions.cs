@@ -12,7 +12,7 @@ public static class InfrastructureBuilderExtensions
 {
     private const string ContainerName = "distributedlocks";
     
-    public static InfrastructureBuilder UseAzureDistributedLocks(
+    public static InfrastructureBuilder UsingAzureDistributedLocks(
         this InfrastructureBuilder builder,
         Action<DistributedLockBuilder> configure)
     {

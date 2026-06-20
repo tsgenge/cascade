@@ -92,7 +92,7 @@ internal class PlaceOrderExecutor : ICommandExecutor<PlaceOrder, OrderAggregate>
     {
         o.WithInfrastructure(i =>
             {
-                i.UseCosmosDbStorage(cosmosConfig =>
+                i.UsingCosmosDbStorage(cosmosConfig =>
                     {
                         cosmosConfig
                             .WithConnectionString(cosmosConnectionString)
@@ -100,8 +100,8 @@ internal class PlaceOrderExecutor : ICommandExecutor<PlaceOrder, OrderAggregate>
                             .WithDatabaseName("cascade")
                             .WithEventStreamContainer<EventStreamContainer>();
                     })
-                    .UseApplicationInsights()
-                    .UseAzureDistributedLocks(lb =>
+                    .UsingApplicationInsights()
+                    .UsingAzureDistributedLocks(lb =>
                     {
                         lb.WithConnectionString(azuriteConnectionString);
                     });

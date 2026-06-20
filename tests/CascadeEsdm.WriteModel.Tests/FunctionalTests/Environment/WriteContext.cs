@@ -58,7 +58,7 @@ public class WriteContext : IAsyncLifetime
                 {
                     o.WithInfrastructure(i =>
                         {
-                            i.UseCosmosDbStorage(cosmosConfig =>
+                            i.UsingCosmosStorage(cosmosConfig =>
                                 {
                                     cosmosConfig
                                         .WithConnectionString(cosmosConnectionString)
@@ -66,8 +66,8 @@ public class WriteContext : IAsyncLifetime
                                         .WithDatabaseName("cascade")
                                         .WithEventStreamContainer<EventStreamContainer>();
                                 })
-                                .UseApplicationInsights()
-                                .UseAzureDistributedLocks(lb =>
+                                .UsingApplicationInsights()
+                                .UsingAzureDistributedLocks(lb =>
                                 {
                                     lb.WithConnectionString(azuriteConnectionString);
                                 });
