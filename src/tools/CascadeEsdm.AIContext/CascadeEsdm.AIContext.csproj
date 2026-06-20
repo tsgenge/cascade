@@ -21,7 +21,7 @@
 
     <ItemGroup>
         <None Include="build\CascadeEsdm.AIContext.props" Pack="true" PackagePath="build\" />
-        <None Include="ai-context\cascade-esdm.md" Pack="true" PackagePath="ai-context\cascade-esdm.md" />
+        <None Include="ai-context\**\*" Pack="true" PackagePath="ai-context\%(RecursiveDir)%(Filename)%(Extension)" />
         <None Include="docs\README.md" Pack="true" PackagePath="\" />
         <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
     </ItemGroup>
