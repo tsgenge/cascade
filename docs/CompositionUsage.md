@@ -17,7 +17,7 @@ services.AddCascadeEsdm(cascade => cascade
             .WithConnectionString(storageConnection))
         .UsingAzureTableStorage(s => s
             .WithConnectionString(storageConnection))            
-        .UsingApplicationInsights())
+        .UsingOpenTelemetry())
     .WithWriteModel(write => write
         .WithExecutors(executors => executors
             .AddCommandExecutor<AddPersonExecutor>()

@@ -15,7 +15,7 @@ public class ModelBuilder
 
     public IServiceCollection WithWriteModel(Action<WriteModelBuilder> configure)
     {
-        var builder = new WriteModelBuilder(_services, _infraBuilder.EventStreamContainerType!);
+        var builder = new WriteModelBuilder(_services);
         configure(builder);
 
         return _services;

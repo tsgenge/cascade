@@ -66,7 +66,7 @@ public class WriteContext : IAsyncLifetime
                                         .WithDatabaseName("cascade")
                                         .WithEventStreamContainer<EventStreamContainer>();
                                 })
-                                .UsingApplicationInsights()
+                                .UsingOpenTelemetry()
                                 .UsingAzureDistributedLocks(lb =>
                                 {
                                     lb.WithConnectionString(azuriteConnectionString);

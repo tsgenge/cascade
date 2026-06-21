@@ -1,4 +1,5 @@
 using CascadeEsdm.SharedKernel.Composition;
+using CascadeEsdm.SharedKernel.Infrastructure.Storage;
 using CascadeEsdm.WriteModel.CommandHandling;
 using CascadeEsdm.WriteModel.EventStream;
 using CascadeEsdm.WriteModel.Hydration;
@@ -14,7 +15,10 @@ public static class WriteModelBuilderExtensions
         Action<CommandExecutorBuilder> commandExecutors)
     {
         var services = builder.Services;
-        var eventStreamContainerType = builder.EventStreamContainerType;
+
+        // We can't get here without calling WithInfrastructure.
+        var eventStreamContainerType =
+            services.First(s => s.ServiceType == typeof(IEventStreamContainer)).ImplementationType!;
 
         var executorBuilder = new CommandExecutorBuilder(services);
         commandExecutors(executorBuilder);

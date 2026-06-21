@@ -30,9 +30,7 @@ public class CommandExecutorFactoryTests
     [Fact]
     public void Constructor_WithValidExecutors_CreatesInstance()
     {
-        var executors = Array.Empty<ICommandExecutor<TestAggregate>>();
-
-        var act = () => new CommandExecutorFactory<TestAggregate>(executors);
+        var act = () => new CommandExecutorFactory<TestAggregate>([]);
 
         act.Should().NotThrow();
     }
@@ -52,8 +50,7 @@ public class CommandExecutorFactoryTests
     [Fact]
     public void GetFor_WithNoMatchingExecutor_ThrowsUnknownCommandException()
     {
-        var executors = Array.Empty<ICommandExecutor<TestAggregate>>();
-        var factory = new CommandExecutorFactory<TestAggregate>(executors);
+        var factory = new CommandExecutorFactory<TestAggregate>([]);
 
         var act = () => factory.GetFor<TestCommand>();
 
@@ -64,8 +61,7 @@ public class CommandExecutorFactoryTests
     [Fact]
     public void GetFor_WithNoMatchingExecutor_ThrowsExceptionWithCorrectAggregateSource()
     {
-        var executors = Array.Empty<ICommandExecutor<TestAggregate>>();
-        var factory = new CommandExecutorFactory<TestAggregate>(executors);
+        var factory = new CommandExecutorFactory<TestAggregate>([]);
 
         var act = () => factory.GetFor<TestCommand>();
 

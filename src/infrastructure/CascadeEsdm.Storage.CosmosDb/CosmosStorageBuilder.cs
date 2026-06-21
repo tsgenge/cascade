@@ -10,6 +10,7 @@ public class CosmosStorageBuilder
     private readonly InfrastructureBuilder _infraBuilder;
     private string _connectionString = string.Empty;
     private string _databaseName = "cascade";
+    private Type? _eventStreamContainerType;
     private CosmosClientOptions? _options;
 
     internal CosmosStorageBuilder(InfrastructureBuilder infraBuilder)
@@ -18,9 +19,9 @@ public class CosmosStorageBuilder
     }
 
     public CosmosStorageBuilder WithEventStreamContainer<TContainer>()
-        where TContainer : IDocumentContainerDefinition, new()
+        where TContainer : IEventStreamContainer, new()
     {
-        _infraBuilder.EventStreamContainerType = typeof(TContainer);
+        _eventStreamContainerType = typeof(TContainer);
 
         return this;
     }
@@ -49,7 +50,7 @@ public class CosmosStorageBuilder
             throw new InvalidOperationException("CosmosDB connection string is required, use WithConnectionString()");
         if (string.IsNullOrWhiteSpace(_databaseName))
             throw new InvalidOperationException("CosmosDB database name is required, use WithDatabaseName()");
-        if (_infraBuilder.EventStreamContainerType == null)
+        if (_eventStreamContainerType == null)
             throw new InvalidOperationException("Set the Event Stream Container using WithEventStreamContainer()");
 
         _infraBuilder.Services.AddSingleton<CosmosOptions>(_ => new CosmosOptions { DatabaseName = _databaseName });
@@ -66,5 +67,6 @@ public class CosmosStorageBuilder
         _infraBuilder.Services.AddSingleton(_ => new CosmosClient(_connectionString, _options));
         _infraBuilder.Services.AddGeneric(typeof(IPartitionedContainer<>), typeof(CosmosDbContainer<>));
         _infraBuilder.Services.AddGeneric(typeof(IPagedContainer<>), typeof(CosmosDbContainer<>));
+        _infraBuilder.Services.AddTransient(typeof(IEventStreamContainer), _eventStreamContainerType);
     }
 }
