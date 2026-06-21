@@ -59,9 +59,9 @@ services.AddCascadeEsdm(cascade => cascade
             .WithConnectionString(azuriteConnectionString))
         .UsingApplicationInsights())
     .WithWriteModel(write => write
-        .WithExecutors(executors => executors
+        .UsingExecutors(executors => executors
             .AddCommandsFromAssembly<PersonAggregate>())
-        .WithAppliers(appliers => appliers
+        .UsingAppliers(appliers => appliers
             .AddEventAppliersFromAssembly<PersonAggregate>())
         .WithPolicies(policies => policies
             .AddPolicy<SendWelcomeEmailPolicy>()

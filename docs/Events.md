@@ -97,7 +97,7 @@ The extension method automatically:
 - Event appliers do not need to validate the event — it is a historical fact.
 - When setting ValueObject properties of an entity during applier execution, use `new()` to reduce `using` statements.
 - The `IEventApplier` does not need (and should not) change the `LastSequence` property of the aggregate.
-- Event appliers are registered in the composition root via `WithAppliers`.
+- Event appliers are registered in the composition root via `UsingAppliers`.
 - Event appliers should be **optimistic** in approach — since they are replaying historical events, they do not need to verify or validate using if statements.
 
 ```csharp
@@ -130,7 +130,7 @@ aggregate.Person.FirstName = new(@event.FirstName);
 
 ### Composition Root Registration
 
-Event appliers are registered in the composition root via `WithAppliers`. See [CompositionUsage.md](CompositionUsage.md) for full infrastructure setup.
+Event appliers are registered in the composition root via `UsingAppliers`. See [CompositionUsage.md](CompositionUsage.md) for full infrastructure setup.
 
 | Method | Description |
 |---|---|
@@ -141,7 +141,7 @@ Event appliers are registered in the composition root via `WithAppliers`. See [C
 services.AddCascadeEsdm(cascade => cascade
     .WithInfrastructure(infra => /* ... */)
     .WithWriteModel(write => write
-        .WithAppliers(appliers => appliers
+        .UsingAppliers(appliers => appliers
             .AddEventApplier<OrderPlacedApplier>()
             .AddEventApplier<OrderCancelledApplier>())));
 ```
@@ -149,7 +149,7 @@ services.AddCascadeEsdm(cascade => cascade
 Or to register all appliers in an assembly at once:
 
 ```csharp
-write.WithAppliers(appliers => appliers
+write.UsingAppliers(appliers => appliers
     .AddEventAppliersFromAssembly<OrderAggregate>())
 ```
 

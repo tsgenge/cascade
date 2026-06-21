@@ -11,7 +11,7 @@ namespace CascadeEsdm.WriteModel.Composition;
 
 public static class WriteModelBuilderExtensions
 {
-    public static WriteModelBuilder WithExecutors(this WriteModelBuilder builder,
+    public static WriteModelBuilder UsingExecutors(this WriteModelBuilder builder,
         Action<CommandExecutorBuilder> commandExecutors)
     {
         var services = builder.Services;
@@ -47,7 +47,7 @@ public static class WriteModelBuilderExtensions
         return builder;
     }
 
-    public static WriteModelBuilder WithAppliers(this WriteModelBuilder builder,
+    public static WriteModelBuilder UsingAppliers(this WriteModelBuilder builder,
         Action<EventApplierBuilder> eventAppliers)
     {
         var services = builder.Services;

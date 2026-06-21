@@ -74,10 +74,10 @@ public class WriteContext : IAsyncLifetime
                         })
                         .WithWriteModel(b1 =>
                             b1
-                                .WithExecutors(h => h
+                                .UsingExecutors(h => h
                                     .AddCommandExecutor<AddPersonExecutor>()
                                     .AddCommandExecutor<ChangePersonFirstNameExecutor>())
-                                .WithAppliers(h => h
+                                .UsingAppliers(h => h
                                     .AddEventApplier<PersonAddedApplier>()
                                     .AddEventApplier<PersonFirstNameChangedApplier>()
                                     .AddEventApplier<SecurityDescriptorApplier>())

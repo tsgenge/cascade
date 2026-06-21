@@ -19,10 +19,10 @@ services.AddCascadeEsdm(cascade => cascade
             .WithConnectionString(storageConnection))            
         .UsingOpenTelemetry())
     .WithWriteModel(write => write
-        .WithExecutors(executors => executors
+        .UsingExecutors(executors => executors
             .AddCommandExecutor<AddPersonExecutor>()
             .AddCommandExecutor<ChangePersonFirstNameExecutor>())
-        .WithAppliers(appliers => appliers
+        .UsingAppliers(appliers => appliers
             .AddEventApplier<PersonAddedApplier>()
             .AddEventApplier<PersonFirstNameChangedApplier>())
         .WithPolicies(policies => policies
@@ -106,7 +106,7 @@ After infrastructure is configured, you can register the write model components.
 #### Register Command Executors
 
 ```csharp
-write.WithExecutors(executors => executors
+write.UsingExecutors(executors => executors
     .AddCommandExecutor<TExecutor>()
     .AddCommandExecutor<TExecutor2>())
 ```
@@ -122,7 +122,7 @@ This registers:
 #### Register Event Appliers
 
 ```csharp
-write.WithAppliers(appliers => appliers
+write.UsingAppliers(appliers => appliers
     .AddEventApplier<TApplier>()
     .AddEventApplier<TApplier2>())
 ```
@@ -220,10 +220,10 @@ public void ConfigureServices(IServiceCollection services)
                 .WithConnectionString(configuration.GetConnectionString("AzureStorage")))
             .UsingApplicationInsights())
         .WithWriteModel(write => write
-            .WithExecutors(executors => executors
+            .UsingExecutors(executors => executors
                 .AddCommandExecutor<PlaceOrderExecutor>()
                 .AddCommandExecutor<CancelOrderExecutor>())
-            .WithAppliers(appliers => appliers
+            .UsingAppliers(appliers => appliers
                 .AddEventApplier<OrderPlacedApplier>()
                 .AddEventApplier<OrderCancelledApplier>())));
 }
@@ -276,8 +276,8 @@ ServiceCollectionExtensions.AddCascadeEsdm()
         └── InfrastructureBuilder (validates required components)
               ├── ModelBuilder.WithWriteModel()
               │     └── WriteModelBuilder
-              │           ├── WithExecutors() → CommandExecutorBuilder
-              │           ├── WithAppliers() → EventApplierBuilder
+              │           ├── UsingExecutors() → CommandExecutorBuilder
+              │           ├── UsingAppliers() → EventApplierBuilder
               │           └── WithPolicies() → PolicyBuilder
               └── ModelBuilder.WithReadModel()
                     └── ReadModelBuilder

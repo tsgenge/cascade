@@ -45,10 +45,10 @@ services.AddCascadeEsdm(cascade => cascade
             .WithConnectionString(azuriteConnectionString))
         .UsingApplicationInsights())
     .WithWriteModel(write => write
-        .WithExecutors(executors => executors
+        .UsingExecutors(executors => executors
             .AddCommandExecutor<AddPersonExecutor>()
             .AddCommandExecutor<ChangePersonFirstNameExecutor>())
-        .WithAppliers(appliers => appliers
+        .UsingAppliers(appliers => appliers
             .AddEventApplier<PersonAddedApplier>()
             .AddEventApplier<PersonFirstNameChangedApplier>())
         .WithPolicies(policies => policies
@@ -127,7 +127,7 @@ After infrastructure is configured, you can register the write model components.
 #### Register Command Executors
 
 ```csharp
-write.WithExecutors(executors => executors
+write.UsingExecutors(executors => executors
     .AddCommandExecutor<TExecutor>()
     .AddCommandExecutor<TExecutor2>())
 ```
@@ -147,14 +147,14 @@ This registers:
 
 ```csharp
 // Or register all commands in an assembly at once:
-write.WithExecutors(executors => executors
+write.UsingExecutors(executors => executors
     .AddCommandsFromAssembly<OrderAggregate>())
 ```
 
 #### Register Event Appliers
 
 ```csharp
-write.WithAppliers(appliers => appliers
+write.UsingAppliers(appliers => appliers
     .AddEventApplier<TApplier>()
     .AddEventApplier<TApplier2>())
 ```
@@ -505,7 +505,7 @@ The extension method automatically:
 - Event appliers do not need to validate the event — it is a historical fact.
 - When setting ValueObject properties of an entity during applier execution, use `new()` to reduce `using` statements.
 - The `IEventApplier` does not need (and should not) change the `LastSequence` property of the aggregate.
-- Event appliers are registered in the composition root via `WithAppliers`.
+- Event appliers are registered in the composition root via `UsingAppliers`.
 - Event appliers should be **optimistic** in approach — since they are replaying historical events, they do not need to verify or validate using if statements.
 
 ```csharp
@@ -544,12 +544,12 @@ aggregate.Person.FirstName = new(@event.FirstName);
 | `AddEventAppliersFromAssembly<TExampleType>()` | Discovers and registers all `IEventApplier<,>` implementations in the assembly containing `TExampleType` |
 
 ```csharp
-write.WithAppliers(appliers => appliers
+write.UsingAppliers(appliers => appliers
     .AddEventApplier<OrderPlacedApplier>()
     .AddEventApplier<OrderCancelledApplier>())
 
 // Or register all appliers in an assembly at once:
-write.WithAppliers(appliers => appliers
+write.UsingAppliers(appliers => appliers
     .AddEventAppliersFromAssembly<OrderAggregate>())
 ```
 

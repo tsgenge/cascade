@@ -117,7 +117,7 @@ The client channel is used during the asynchronous eventual consistency. When an
 
 ### Composition Root Registration
 
-Command executors are registered in the composition root via `WithExecutors`. See [CompositionUsage.md](CompositionUsage.md) for full infrastructure setup.
+Command executors are registered in the composition root via `UsingExecutors`. See [CompositionUsage.md](CompositionUsage.md) for full infrastructure setup.
 
 | Method | Description |
 |---|---|
@@ -128,7 +128,7 @@ Command executors are registered in the composition root via `WithExecutors`. Se
 services.AddCascadeEsdm(cascade => cascade
     .WithInfrastructure(infra => /* ... */)
     .WithWriteModel(write => write
-        .WithExecutors(executors => executors
+        .UsingExecutors(executors => executors
             .AddCommandExecutor<PlaceOrderExecutor>()
             .AddCommandExecutor<CancelOrderExecutor>())));
 ```
@@ -136,7 +136,7 @@ services.AddCascadeEsdm(cascade => cascade
 Or to register all commands in an assembly at once:
 
 ```csharp
-write.WithExecutors(executors => executors
+write.UsingExecutors(executors => executors
     .AddCommandsFromAssembly<OrderAggregate>())
 ```
 
