@@ -58,7 +58,7 @@ public class WriteContext : IAsyncLifetime
                 {
                     o.WithInfrastructure(i =>
                         {
-                            i.UsingCosmosStorage(cosmosConfig =>
+                            i.UsingCosmosDbStorage(cosmosConfig =>
                                 {
                                     cosmosConfig
                                         .WithConnectionString(cosmosConnectionString)

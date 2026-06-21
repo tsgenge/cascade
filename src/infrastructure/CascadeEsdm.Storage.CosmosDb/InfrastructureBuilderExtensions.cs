@@ -6,7 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class InfrastructureBuilderExtensions
 {
-    public static InfrastructureBuilder UsingCosmosStorage(
+    public static InfrastructureBuilder UsingCosmosDbStorage(
         this InfrastructureBuilder builder,
         Action<CosmosStorageBuilder> configure)
     {
