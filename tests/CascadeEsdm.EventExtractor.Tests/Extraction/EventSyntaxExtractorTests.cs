@@ -101,4 +101,34 @@ public class EventSyntaxExtractorTests : IDisposable
 
         output.Should().Contain("enum OrderStatus");
     }
+
+    [Fact]
+    public void Extract_AlwaysIncludesUsingSystem_WhenNotInSource()
+    {
+        var file = ScanSingle("""
+            using CascadeEsdm.SharedKernel.Events;
+            namespace Acme.Orders.Events;
+            public record OrderPlaced(string Reference) : IDomainEvent;
+            """);
+
+        var output = EventSyntaxExtractor.Extract(file, "Acme.Orders.Events", "Acme.Orders.WriteModel");
+
+        output.Should().Contain("using System;");
+    }
+
+    [Fact]
+    public void Extract_DoesNotDuplicateUsingSystem_WhenAlreadyInSource()
+    {
+        var file = ScanSingle("""
+            using System;
+            using CascadeEsdm.SharedKernel.Events;
+            namespace Acme.Orders.Events;
+            public record OrderPlaced(Guid Id) : IDomainEvent;
+            """);
+
+        var output = EventSyntaxExtractor.Extract(file, "Acme.Orders.Events", "Acme.Orders.WriteModel");
+
+        var count = output.Split("using System;").Length - 1;
+        count.Should().Be(1);
+    }
 }

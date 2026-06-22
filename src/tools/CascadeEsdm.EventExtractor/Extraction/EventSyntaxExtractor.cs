@@ -25,6 +25,10 @@ public static class EventSyntaxExtractor
             .Filter(root.Usings, targetNamespace)
             .ToList();
 
+        // Always ensure "using System;" is present in generated output
+        if (!filteredUsings.Any(u => u.Name?.ToString() == "System"))
+            filteredUsings.Insert(0, SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")));
+
         var members = root.Members
             .SelectMany(ExpandNamespaceMembers)
             .Where(m => !IsApplierClass(m))
