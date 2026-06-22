@@ -946,6 +946,10 @@ If a non-primitive type is genuinely part of the public event contract, add a re
   - `CascadeEsdm.WriteModel.Composition`
   - `CascadeEsdm.WriteModel.EventStream`
 
+#### What is always added
+
+- `using System;` — guaranteed present in every generated file regardless of whether the source includes it
+
 ### Cohesion vs Abstraction
 
 The core tension this tool resolves is between two legitimate pressures:
