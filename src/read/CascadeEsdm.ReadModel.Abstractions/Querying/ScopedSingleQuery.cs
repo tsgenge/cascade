@@ -5,15 +5,16 @@ namespace CascadeEsdm.ReadModel.Querying;
 /// <summary>
 ///     A request for a single view row by id, scoped to an authenticated context and a parent partition.
 /// </summary>
-public abstract record ScopedSingleQuery
+public abstract record ScopedSingleQuery<TKey>
+    where TKey : IEquatable<TKey>
 {
-    protected ScopedSingleQuery(Guid id, AuthenticatedContext securityContext)
+    protected ScopedSingleQuery(TKey id, AuthenticatedContext securityContext)
     {
         Id = id;
         SecurityContext = securityContext;
     }
 
-    public Guid Id { get; }
+    public TKey Id { get; }
     public AuthenticatedContext SecurityContext { get; }
 
     /// <summary>

@@ -12,5 +12,5 @@ internal interface IQueryPartitionLocator<TView>
     Partition GetPartition<TFilter>(TFilter filter)
         where TFilter : ScopedPageFilter;
 
-    Partition GetPartition(ScopedSingleQuery query);
+    Partition GetPartition(ScopedSingleQuery<Guid> query);
 }
