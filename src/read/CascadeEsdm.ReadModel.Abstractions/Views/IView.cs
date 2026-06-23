@@ -4,15 +4,11 @@ namespace CascadeEsdm.ReadModel.Views;
 ///     The base contract for a read-model row (a "view"). A view is the materialised,
 ///     query-optimised projection of one or more domain events.
 /// </summary>
-public interface IView : IView<Guid>
+public interface IView
 {
-    Guid? ParentId { get; set; }
-}
-
-public interface IView<TKey> where TKey : notnull
-{
-    TKey Id { get; set; }
+    Guid Id { get; set; }
     DateTimeOffset Created { get; set; }
     DateTimeOffset Modified { get; set; }
     IList<string> ClientPermissions { get; set; }
+    Guid? ParentId { get; set; }
 }

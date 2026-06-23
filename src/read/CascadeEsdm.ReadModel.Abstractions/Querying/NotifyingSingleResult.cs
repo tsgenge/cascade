@@ -8,7 +8,6 @@ namespace CascadeEsdm.ReadModel.Querying;
 ///     order to receive live updates for the row.
 /// </summary>
 public record NotifyingSingleResult<TView>
-    where TView : IView
 {
     public NotifyingSingleResult(TView result, NotificationGroup notificationGroup)
     {
