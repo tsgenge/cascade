@@ -1,5 +1,4 @@
 using CascadeEsdm.ReadModel.ValueObjects;
-using CascadeEsdm.ReadModel.Views;
 
 namespace CascadeEsdm.ReadModel.Querying;
 
@@ -9,12 +8,12 @@ namespace CascadeEsdm.ReadModel.Querying;
 /// </summary>
 public record NotifyingSingleResult<TView>
 {
-    public NotifyingSingleResult(TView result, NotificationGroup notificationGroup)
+    public NotifyingSingleResult(TView result, NotificationGroup? notificationGroup = null)
     {
         Result = result;
         NotificationGroup = notificationGroup;
     }
 
     public TView Result { get; }
-    public NotificationGroup NotificationGroup { get; }
+    public NotificationGroup? NotificationGroup { get; }
 }
