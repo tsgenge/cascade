@@ -56,15 +56,15 @@ public class EventStreamReaderTests
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns(partition);
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
 
         await reader.ReadAllAsync<TestAggregate>(aggregateId);
 
-        _mockPartitionLocator.Received(1).GetPartition(Arg.Is<Subject>(
-            s => s.Id == aggregateId && s.Type == typeof(TestAggregate).Name));
+        _mockPartitionLocator.Received(1)
+            .GetPartition(Arg.Is<Subject>(s => s.Id == aggregateId && s.Type == typeof(TestAggregate).Name));
     }
 
     [Fact]
@@ -76,15 +76,15 @@ public class EventStreamReaderTests
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns(partition);
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
 
         await reader.ReadAllAsync<TestAggregate>(aggregateId);
 
-        await _mockContainer.Received(1).GetPageAsync<EventDocument>(Arg.Is<PartitionedPageQuery>(
-            q => q.PartitionKey == partition));
+        await _mockContainer.Received(1)
+            .GetPageAsync<EventDocument>(Arg.Is<PartitionedPageQuery>(q => q.PartitionKey == partition));
     }
 
     [Fact]
@@ -92,16 +92,12 @@ public class EventStreamReaderTests
     {
         var reader = new EventStreamReader<TestContainerDefinition>(_mockContainer, _mockPartitionLocator);
         var aggregateId = Guid.NewGuid();
-        var events = new List<EventEnvelope>
-        {
-            TestTools.CreateEventEnvelope(),
-            TestTools.CreateEventEnvelope()
-        };
+        var events = new List<EventEnvelope> { TestTools.CreateEventEnvelope(), TestTools.CreateEventEnvelope() };
         var documents = events.Select(e => new EventDocument(e.Id, "partition", e)).ToList();
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns("partition");
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 documents,
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
@@ -124,12 +120,12 @@ public class EventStreamReaderTests
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns("partition");
         _mockContainer.GetPageAsync<EventDocument>(Arg.Is<PartitionedPageQuery>(q => q.ContinuationToken == null))
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 page1Docs,
                 new PageContinuationToken("token1"),
                 new PagedResultContainer("test")));
         _mockContainer.GetPageAsync<EventDocument>(Arg.Is<PartitionedPageQuery>(q => q.ContinuationToken == "token1"))
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 page2Docs,
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
@@ -148,7 +144,7 @@ public class EventStreamReaderTests
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns("partition");
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
@@ -167,15 +163,15 @@ public class EventStreamReaderTests
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns(partition);
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
 
         await reader.ReadSingleAsync<TestAggregate>(aggregateId);
 
-        _mockPartitionLocator.Received(1).GetPartition(Arg.Is<Subject>(
-            s => s.Id == aggregateId && s.Type == typeof(TestAggregate).Name));
+        _mockPartitionLocator.Received(1)
+            .GetPartition(Arg.Is<Subject>(s => s.Id == aggregateId && s.Type == typeof(TestAggregate).Name));
     }
 
     [Fact]
@@ -186,15 +182,14 @@ public class EventStreamReaderTests
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns("partition");
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
 
         await reader.ReadSingleAsync<TestAggregate>(aggregateId);
 
-        await _mockContainer.Received(1).GetPageAsync<EventDocument>(Arg.Is<PartitionedPageQuery>(
-            q => q.Size == 1));
+        await _mockContainer.Received(1).GetPageAsync<EventDocument>(Arg.Is<PartitionedPageQuery>(q => q.Size == 1));
     }
 
     [Fact]
@@ -207,7 +202,7 @@ public class EventStreamReaderTests
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns("partition");
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 new List<EventDocument> { document },
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
@@ -225,7 +220,7 @@ public class EventStreamReaderTests
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns("partition");
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
@@ -244,13 +239,12 @@ public class EventStreamReaderTests
         var event2 = TestTools.CreateEventEnvelope();
         var documents = new List<EventDocument>
         {
-            new(event1.Id, "partition", event1),
-            new(event2.Id, "partition", event2)
+            new(event1.Id, "partition", event1), new(event2.Id, "partition", event2)
         };
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns("partition");
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 documents,
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
@@ -268,15 +262,15 @@ public class EventStreamReaderTests
 
         _mockPartitionLocator.GetPartition(Arg.Any<Subject>()).Returns("partition");
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
                 new PageContinuationToken(null),
                 new PagedResultContainer("test")));
 
         await reader.ReadAllAsync<AnotherTestAggregate>(aggregateId);
 
-        _mockPartitionLocator.Received(1).GetPartition(Arg.Is<Subject>(
-            s => s.Type == typeof(AnotherTestAggregate).Name));
+        _mockPartitionLocator.Received(1)
+            .GetPartition(Arg.Is<Subject>(s => s.Type == typeof(AnotherTestAggregate).Name));
     }
 
     public class TestContainerDefinition : IDocumentContainerDefinition

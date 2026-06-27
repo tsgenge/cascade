@@ -99,7 +99,7 @@ public class WriteContext : IAsyncLifetime
         IEnumerable<EventEnvelope> events)
     {
         docContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PagedResult<EventDocument>(
+            .Returns(new PageResult<EventDocument>(
                 events.Select(e => new EventDocument(e.Id, "fake-partition", e)).ToList(),
                 new PageContinuationToken(null), new PagedResultContainer("fake-partition")));
     }

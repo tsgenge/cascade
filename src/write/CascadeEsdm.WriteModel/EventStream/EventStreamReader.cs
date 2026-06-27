@@ -35,7 +35,7 @@ internal class EventStreamReader<TContainer> : IEventStreamReader
 
         do {
             var events = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(
-                new PageFilter(string.Empty, 100, continuationToken), partitionKey, new Dictionary<string, string>()));
+                new PageQuery(string.Empty, 100, continuationToken), partitionKey, new Dictionary<string, string>()));
 
             foreach (var doc in events.Page) {
                 var evt = ConvertToEvent(doc);
@@ -52,7 +52,7 @@ internal class EventStreamReader<TContainer> : IEventStreamReader
     public async Task<EventEnvelope?> ReadSingleAsync<TAggregate>(Guid id)
     {
         var partitionKey = _partitionLocator.GetPartition(new Subject(id, typeof(TAggregate).Name));
-        var any = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(new PageFilter(string.Empty, 1),
+        var any = await _container.GetPageAsync<EventDocument>(new PartitionedPageQuery(new PageQuery(string.Empty, 1),
             partitionKey, new Dictionary<string, string>()));
         var rawEvent = any.Page.FirstOrDefault();
         return ConvertToEvent(rawEvent);

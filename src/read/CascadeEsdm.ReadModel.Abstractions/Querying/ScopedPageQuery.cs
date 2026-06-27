@@ -4,12 +4,12 @@ using CascadeEsdm.SharedKernel.Security;
 namespace CascadeEsdm.ReadModel.Querying;
 
 /// <summary>
-///     A <see cref="PageFilter" /> scoped to an authenticated context and a parent partition. Consumers derive a
+///     A <see cref="PageQuery" /> scoped to an authenticated context and a parent partition. Consumers derive a
 ///     concrete filter per view to express the page query for a list of rows.
 /// </summary>
-public abstract record ScopedPageFilter : PageFilter
+public abstract record ScopedPageQuery : PageQuery, IScopedQuery
 {
-    protected ScopedPageFilter(AuthenticatedContext securityContext, string? query, int size,
+    protected ScopedPageQuery(AuthenticatedContext securityContext, string? query, int size,
         string? continuationToken = null, string? orderBy = null, bool descending = false, bool deleted = false)
         : base(query, size, continuationToken, orderBy, descending, deleted)
     {

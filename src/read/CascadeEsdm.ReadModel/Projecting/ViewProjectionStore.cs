@@ -45,7 +45,7 @@ internal class ViewProjectionStore<TView, TContainer> : IViewProjectionStore<TVi
         var partition = _partitionLocator.GetPartition(@event);
 
         var page = await _store.GetPageAsync<ViewDocument>(new PartitionedPageQuery(
-            new PageFilter(queryInfo.Query, 1000),
+            new PageQuery(queryInfo.Query, 1000),
             partition.Value,
             queryInfo.Parameters));
 
@@ -62,7 +62,7 @@ internal class ViewProjectionStore<TView, TContainer> : IViewProjectionStore<TVi
         var partition = _partitionLocator.GetPartition(@event);
 
         var page = await _store.GetPageAsync<ViewDocument>(new PartitionedPageQuery(
-            new PageFilter(queryInfo.Query, 1000),
+            new PageQuery(queryInfo.Query, 1000),
             partition.Value,
             queryInfo.Parameters));
 

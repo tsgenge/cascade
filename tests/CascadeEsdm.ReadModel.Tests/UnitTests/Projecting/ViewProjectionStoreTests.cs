@@ -23,23 +23,33 @@ public class ViewProjectionStoreTests
     private readonly IProjectionPartitionLocator<TestView> _partitionLocator =
         Substitute.For<IProjectionPartitionLocator<TestView>>();
 
-    private ViewProjectionStore<TestView, TestContainerDefinition> CreateSut() =>
-        new(_container, _mapper, _partitionLocator);
+    private ViewProjectionStore<TestView, TestContainerDefinition> CreateSut()
+    {
+        return new ViewProjectionStore<TestView, TestContainerDefinition>(_container, _mapper, _partitionLocator);
+    }
 
-    private static Subject CreateSubject() => new(Guid.NewGuid(), "TestAggregate");
+    private static Subject CreateSubject()
+    {
+        return new Subject(Guid.NewGuid(), "TestAggregate");
+    }
 
-    private static EventEnvelope CreateEnvelope(Subject? subject = null, int sequence = 1) =>
-        new(
-            source: new EventSource("TestAssembly/TestAggregate", Guid.NewGuid(), "TestCommand"),
-            subject: subject ?? CreateSubject(),
-            securityContext: new AuthenticatedContext(
+    private static EventEnvelope CreateEnvelope(Subject? subject = null, int sequence = 1)
+    {
+        return new EventEnvelope(
+            new EventSource("TestAssembly/TestAggregate", Guid.NewGuid(), "TestCommand"),
+            subject ?? CreateSubject(),
+            new AuthenticatedContext(
                 new UserIdentity(Guid.NewGuid()),
                 new Tenant(Guid.NewGuid())),
-            channel: ClientChannel.Empty,
-            @event: new TestEvent(),
-            sequence: sequence);
+            ClientChannel.Empty,
+            new TestEvent(),
+            sequence);
+    }
 
-    private static Partition DefaultPartition() => new("test-partition");
+    private static Partition DefaultPartition()
+    {
+        return new Partition("test-partition");
+    }
 
     private void SetupPartition(EventEnvelope envelope, Partition? partition = null)
     {
@@ -48,7 +58,7 @@ public class ViewProjectionStoreTests
 
     private void SetupPageResult(params ViewDocument[] docs)
     {
-        var result = new PagedResult<ViewDocument>(
+        var result = new PageResult<ViewDocument>(
             docs.ToList(),
             new PageContinuationToken(null),
             new PagedResultContainer(string.Empty));
@@ -58,14 +68,14 @@ public class ViewProjectionStoreTests
 
     private void SetupRowLocator(RowLocator<TestView>? locator)
     {
-        if (locator != null)
-        {
-            _mapper.Map<RowLocator<TestView>>(Arg.Any<IDomainEvent>(), Arg.Any<Action<IMappingOperationOptions<object, RowLocator<TestView>>>>())
+        if (locator != null) {
+            _mapper.Map<RowLocator<TestView>>(Arg.Any<IDomainEvent>(),
+                    Arg.Any<Action<IMappingOperationOptions<object, RowLocator<TestView>>>>())
                 .Returns(locator);
         }
-        else
-        {
-            _mapper.Map<RowLocator<TestView>>(Arg.Any<IDomainEvent>(), Arg.Any<Action<IMappingOperationOptions<object, RowLocator<TestView>>>>())
+        else {
+            _mapper.Map<RowLocator<TestView>>(Arg.Any<IDomainEvent>(),
+                    Arg.Any<Action<IMappingOperationOptions<object, RowLocator<TestView>>>>())
                 .Returns(x => throw new AutoMapperMappingException("No mapping"));
         }
     }
@@ -82,7 +92,8 @@ public class ViewProjectionStoreTests
     [Fact]
     public void Constructor_WhenMapperIsNull_ThrowsArgumentNullException()
     {
-        var act = () => new ViewProjectionStore<TestView, TestContainerDefinition>(_container, null!, _partitionLocator);
+        var act = () =>
+            new ViewProjectionStore<TestView, TestContainerDefinition>(_container, null!, _partitionLocator);
         act.Should().Throw<ArgumentNullException>().WithParameterName("mapper");
     }
 
@@ -239,8 +250,14 @@ public class ViewProjectionStoreTests
     {
         var envelope = CreateEnvelope();
         var locatorId = Guid.NewGuid();
-        var doc1 = new ViewDocument { Id = Guid.NewGuid(), PartitionKey = "p1", View = new TestView { Id = Guid.NewGuid() } };
-        var doc2 = new ViewDocument { Id = Guid.NewGuid(), PartitionKey = "p2", View = new TestView { Id = Guid.NewGuid() } };
+        var doc1 = new ViewDocument
+        {
+            Id = Guid.NewGuid(), PartitionKey = "p1", View = new TestView { Id = Guid.NewGuid() }
+        };
+        var doc2 = new ViewDocument
+        {
+            Id = Guid.NewGuid(), PartitionKey = "p2", View = new TestView { Id = Guid.NewGuid() }
+        };
 
         SetupPartition(envelope);
         SetupRowLocator(new RowLocator<TestView>(

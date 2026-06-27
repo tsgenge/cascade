@@ -4,5 +4,5 @@ namespace CascadeEsdm.SharedKernel.Infrastructure.Storage;
 
 public interface IPagedContainer<TCollection> where TCollection : IDocumentContainerDefinition
 {
-    Task<PagedResult<TDoc>> GetPageAsync<TDoc>(PartitionedPageQuery pageQuery) where TDoc : IDocument;
+    Task<PageResult<TDoc>> GetPageAsync<TDoc>(PartitionedPageQuery pageQuery) where TDoc : IDocument;
 }

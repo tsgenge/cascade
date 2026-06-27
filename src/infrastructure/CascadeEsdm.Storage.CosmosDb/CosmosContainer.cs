@@ -8,14 +8,16 @@ using System.Net;
 
 namespace CascadeEsdm.Storage.CosmosDb;
 
-internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer> where TContainer : IDocumentContainerDefinition
+internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer>
+    where TContainer : IDocumentContainerDefinition
 {
     private const string RruKey = "TotalCosmosDbRequestCharge = {0}";
-    private readonly ILogger _logger;
     private readonly Container _container;
     private readonly IDocumentContainerDefinition _containerDefinition;
+    private readonly ILogger _logger;
 
-    public CosmosDbContainer(CosmosClient client, IOptions<CosmosOptions> cosmosOptions, ILogger<CosmosDbContainer<TContainer>> logger)
+    public CosmosDbContainer(CosmosClient client, IOptions<CosmosOptions> cosmosOptions,
+        ILogger<CosmosDbContainer<TContainer>> logger)
     {
         _logger = logger;
         var db = client.GetDatabase(cosmosOptions.Value.DatabaseName);
@@ -23,14 +25,12 @@ internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer>
         _container = db.GetContainer(_containerDefinition.Name);
     }
 
-    public async Task<PagedResult<TDoc>> GetPageAsync<TDoc>(PartitionedPageQuery pageQuery) where TDoc : IDocument
+    public async Task<PageResult<TDoc>> GetPageAsync<TDoc>(PartitionedPageQuery pageQuery) where TDoc : IDocument
     {
         var query = string.IsNullOrWhiteSpace(pageQuery.Query) ? "select * from c" : pageQuery.Query;
         var queryDefinition = new QueryDefinition(query);
-        if (pageQuery.QueryParameters.Keys.Count > 0)
-        {
-            foreach (var p in pageQuery.QueryParameters)
-            {
+        if (pageQuery.QueryParameters.Keys.Count > 0) {
+            foreach (var p in pageQuery.QueryParameters) {
                 queryDefinition.WithParameter(p.Key, p.Value);
             }
         }
@@ -40,13 +40,11 @@ internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer>
 
     public async Task AddAsync<TDoc>(TDoc document) where TDoc : IDocument
     {
-        try
-        {
+        try {
             var response = await _container.CreateItemAsync(document);
             _logger.LogInformation(RruKey, response.RequestCharge);
         }
-        catch (CosmosException ex)
-        {
+        catch (CosmosException ex) {
             if (ex.StatusCode == HttpStatusCode.Conflict)
                 throw new ConflictException("The entity already exists.");
             throw;
@@ -59,8 +57,7 @@ internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer>
             return;
 
         var batch = _container.CreateTransactionalBatch(new PartitionKey(documents.First().PartitionKey));
-        foreach (var doc in documents)
-        {
+        foreach (var doc in documents) {
             batch.CreateItem(doc, new TransactionalBatchItemRequestOptions());
         }
 
@@ -74,8 +71,7 @@ internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer>
             return;
 
         var batch = _container.CreateTransactionalBatch(new PartitionKey(documents.First().PartitionKey));
-        foreach (var doc in documents)
-        {
+        foreach (var doc in documents) {
             batch.UpsertItem(doc, new TransactionalBatchItemRequestOptions());
         }
 
@@ -91,14 +87,12 @@ internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer>
 
     public async Task<TDoc?> GetAsync<TDoc>(Guid key, string partitionKey) where TDoc : IDocument
     {
-        try
-        {
+        try {
             var response = await _container.ReadItemAsync<TDoc>(key.ToString(), new PartitionKey(partitionKey));
             _logger.LogInformation(RruKey, response.RequestCharge);
             return response.Resource;
         }
-        catch (CosmosException ex)
-        {
+        catch (CosmosException ex) {
             if (ex.StatusCode == HttpStatusCode.NotFound)
                 return default;
             throw;
@@ -116,19 +110,21 @@ internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer>
         return Activator.CreateInstance<TContainer>();
     }
 
-    private async Task<PagedResult<TDoc>> GetPageResultsAsync<TDoc>(QueryDefinition queryDefinition, PartitionedPageQuery pageQuery) where TDoc : IDocument
+    private async Task<PageResult<TDoc>> GetPageResultsAsync<TDoc>(QueryDefinition queryDefinition,
+        PartitionedPageQuery pageQuery) where TDoc : IDocument
     {
         var results = new List<TDoc>();
         var continuationToken = string.Empty;
 
-        try
-        {
+        try {
             using (var resultSetIterator = _container.GetItemQueryIterator<TDoc>(
                        queryDefinition, pageQuery.ContinuationToken,
-                       new QueryRequestOptions { MaxItemCount = Math.Max(pageQuery.Size, 50), PartitionKey = new PartitionKey(pageQuery.PartitionKey) }))
-            {
-                while (resultSetIterator.HasMoreResults)
-                {
+                       new QueryRequestOptions
+                       {
+                           MaxItemCount = Math.Max(pageQuery.Size, 50),
+                           PartitionKey = new PartitionKey(pageQuery.PartitionKey)
+                       })) {
+                while (resultSetIterator.HasMoreResults) {
                     var response = await resultSetIterator.ReadNextAsync();
                     _logger.LogInformation(RruKey, response.RequestCharge);
                     results.AddRange(response);
@@ -136,11 +132,11 @@ internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer>
                 }
             }
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             throw new Exception("Unable to load from CosmosDb.", ex);
         }
 
-        return new PagedResult<TDoc>(results, new PageContinuationToken(continuationToken), new PagedResultContainer(_containerDefinition.Name));
+        return new PageResult<TDoc>(results, new PageContinuationToken(continuationToken),
+            new PagedResultContainer(_containerDefinition.Name));
     }
 }

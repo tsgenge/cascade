@@ -6,14 +6,14 @@ namespace CascadeEsdm.ReadModel.Querying;
 ///     A single view row together with the <see cref="NotificationGroup" /> a client should subscribe to in
 ///     order to receive live updates for the row.
 /// </summary>
-public record NotifyingSingleResult<TView>
+public record NotifyingSingleResult<TView> : INotifyingResult, ISingleResult<TView>
 {
-    public NotifyingSingleResult(TView result, NotificationGroup? notificationGroup = null)
+    public NotifyingSingleResult(TView result, NotificationGroup notificationGroup)
     {
         Result = result;
         NotificationGroup = notificationGroup;
     }
 
     public TView Result { get; }
-    public NotificationGroup? NotificationGroup { get; }
+    public NotificationGroup NotificationGroup { get; }
 }
