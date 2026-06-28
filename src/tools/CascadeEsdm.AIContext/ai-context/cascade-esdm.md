@@ -52,7 +52,7 @@ services.AddCascadeEsdm(cascade => cascade
         .UsingAppliers(appliers => appliers
             .AddEventApplier<PersonAddedApplier>()
             .AddEventApplier<PersonFirstNameChangedApplier>())
-        .WithPolicies(policies => policies
+        .UsingPolicies(policies => policies
             .AddPolicy<SendWelcomeEmailPolicy>())));
 ```
 
@@ -170,7 +170,7 @@ Registers the specified event appliers for handling events during aggregate hydr
 #### Register Policies
 
 ```csharp
-write.WithPolicies(policies => policies
+write.UsingPolicies(policies => policies
     .AddPolicy<SendWelcomeEmailPolicy>()
     .AddPoliciesFromAssembly<PersonAggregate>()
     .AddPoliciesFromNamespace<SendWelcomeEmailPolicy>())
@@ -590,7 +590,7 @@ A single event can activate zero or many policies. All supporting policies execu
 - `Supports(EventEnvelope)` determines whether the policy handles a given event. Pattern-match on `envelope.Event`.
 - `ExecuteAsync(EventEnvelope, CancellationToken)` performs the side-effect.
 - Policies must not mutate aggregate state — they trigger further commands or external actions.
-- Policies are registered via `WithPolicies()` on the `WriteModelBuilder`.
+- Policies are registered via `UsingPolicies()` on the `WriteModelBuilder`.
 - Place policies in a `Policies` folder within the aggregate directory.
 
 ### Implementation
@@ -622,7 +622,7 @@ internal class SendWelcomeEmailPolicy : IPolicy
 ### Registration
 
 ```csharp
-write.WithPolicies(policies => policies
+write.UsingPolicies(policies => policies
     .AddPolicy<SendWelcomeEmailPolicy>()
     .AddPoliciesFromAssembly<PersonAggregate>()
     .AddPoliciesFromNamespace<SendWelcomeEmailPolicy>())
@@ -678,7 +678,7 @@ All abstractions are in `CascadeEsdm.SharedKernel.Infrastructure.Messaging`.
 
 ### Composition
 
-Wire up the policy listener after `WithPolicies` and an `IMessageReceiver` registration:
+Wire up the policy listener after `UsingPolicies` and an `IMessageReceiver` registration:
 
 ```csharp
 services.AddCascadeEsdm(cascade => cascade
@@ -699,15 +699,15 @@ services.AddCascadeEsdm(cascade => cascade
             .AddCommandsFromAssembly<OrderAggregate>())
         .UsingAppliers(appliers => appliers
             .AddEventAppliersFromAssembly<OrderAggregate>())
-        .WithPolicies(policies => policies
+        .UsingPolicies(policies => policies
             .AddPoliciesFromAssembly<OrderAggregate>())
-        .WithPolicyListener()));
+        .UsingPolicyListener()));
 ```
 
 ### Validation
 
-`WithPolicyListener` validates at startup:
-- `IPolicyDispatcher` is registered (call `WithPolicies` first) — throws `InvalidOperationException` if missing
+`UsingPolicyListener` validates at startup:
+- `IPolicyDispatcher` is registered (call `UsingPolicies` first) — throws `InvalidOperationException` if missing
 - `IMessageReceiver` is registered — throws `InvalidOperationException` if missing
 - If no `IMessageExceptionHandler` is registered, `DefaultMessageExceptionHandler` is added automatically
 
@@ -716,7 +716,7 @@ services.AddCascadeEsdm(cascade => cascade
 Override the default `ForMessageBus()` serialisation settings:
 
 ```csharp
-.WithPolicyListener(listener => listener
+.UsingPolicyListener(listener => listener
     .WithSerialisationSettings(myCustomOptions))
 ```
 
@@ -735,7 +735,7 @@ All three settings are required — `InvalidOperationException` if any is missin
 
 ### Custom Transport
 
-Implement `IMessageReceiver` for a different message bus and register it before `WithPolicyListener`:
+Implement `IMessageReceiver` for a different message bus and register it before `UsingPolicyListener`:
 
 ```csharp
 services.AddSingleton<IMessageReceiver, RabbitMqReceiver>();

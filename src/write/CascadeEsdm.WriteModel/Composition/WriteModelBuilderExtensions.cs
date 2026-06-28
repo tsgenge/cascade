@@ -58,7 +58,7 @@ public static class WriteModelBuilderExtensions
         return builder;
     }
 
-    public static WriteModelBuilder WithPolicies(this WriteModelBuilder builder,
+    public static WriteModelBuilder UsingPolicies(this WriteModelBuilder builder,
         Action<PolicyBuilder> policies)
     {
         var services = builder.Services;
@@ -71,7 +71,7 @@ public static class WriteModelBuilderExtensions
         return builder;
     }
 
-    public static WriteModelBuilder WithPolicyListener(this WriteModelBuilder builder,
+    public static WriteModelBuilder UsingPolicyListener(this WriteModelBuilder builder,
         Action<PolicyListenerBuilder>? configure = null)
     {
         var services = builder.Services;

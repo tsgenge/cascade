@@ -25,7 +25,7 @@ services.AddCascadeEsdm(cascade => cascade
         .UsingAppliers(appliers => appliers
             .AddEventApplier<PersonAddedApplier>()
             .AddEventApplier<PersonFirstNameChangedApplier>())
-        .WithPolicies(policies => policies
+        .UsingPolicies(policies => policies
             .AddPolicy<SendWelcomeEmailPolicy>()))
     .WithReadModel(read => read
         .WithViews(views => views
@@ -137,7 +137,7 @@ Registers the specified event appliers for handling events during aggregate hydr
 #### Register Policies
 
 ```csharp
-write.WithPolicies(policies => policies
+write.UsingPolicies(policies => policies
     .AddPolicy<SendWelcomeEmailPolicy>()
     .AddPoliciesFromAssembly<PersonAggregate>()
     .AddPoliciesFromNamespace<SendWelcomeEmailPolicy>())
@@ -147,16 +147,16 @@ This registers reactive policies that execute in response to domain events. Poli
 
 #### Register Policy Listener
 
-To bridge an external message bus to the policy dispatcher, call `WithPolicyListener` after `WithPolicies`. This requires an `IMessageReceiver` to be registered (e.g. via `UsingAzureServiceBusPolicyListener` on the infrastructure builder):
+To bridge an external message bus to the policy dispatcher, call `UsingPolicyListener` after `UsingPolicies`. This requires an `IMessageReceiver` to be registered (e.g. via `UsingAzureServiceBusPolicyListener` on the infrastructure builder):
 
 ```csharp
-write.WithPolicyListener()
+write.UsingPolicyListener()
 ```
 
 Optionally override the serialisation settings:
 
 ```csharp
-write.WithPolicyListener(listener => listener
+write.UsingPolicyListener(listener => listener
     .WithSerialisationSettings(myCustomOptions))
 ```
 
@@ -296,8 +296,8 @@ ServiceCollectionExtensions.AddCascadeEsdm()
               │     └── WriteModelBuilder
               │           ├── UsingExecutors() → CommandExecutorBuilder
               │           ├── UsingAppliers() → EventApplierBuilder
-              │           ├── WithPolicies() → PolicyBuilder
-              │           └── WithPolicyListener() → PolicyListenerBuilder
+              │           ├── UsingPolicies() → PolicyBuilder
+              │           └── UsingPolicyListener() → PolicyListenerBuilder
               └── ModelBuilder.WithReadModel()
                     └── ReadModelBuilder
                           └── WithViews() → ViewBuilder

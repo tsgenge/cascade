@@ -11,7 +11,7 @@ namespace CascadeEsdm.WriteModel.Tests.UnitTests.Composition;
 public class PolicyListenerBuilderTests
 {
     [Fact]
-    public void WithPolicyListener_WhenPolicyDispatcherNotRegistered_ThrowsInvalidOperationException()
+    public void UsingPolicyListener_WhenPolicyDispatcherNotRegistered_ThrowsInvalidOperationException()
     {
         var services = new ServiceCollection();
         services.AddSingleton(Substitute.For<IMessageReceiver>());
@@ -24,7 +24,7 @@ public class PolicyListenerBuilderTests
     }
 
     [Fact]
-    public void WithPolicyListener_WhenMessageReceiverNotRegistered_ThrowsInvalidOperationException()
+    public void UsingPolicyListener_WhenMessageReceiverNotRegistered_ThrowsInvalidOperationException()
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
@@ -37,7 +37,7 @@ public class PolicyListenerBuilderTests
     }
 
     [Fact]
-    public void WithPolicyListener_WhenAllDependenciesPresent_RegistersPolicyListenerAsHostedService()
+    public void UsingPolicyListener_WhenAllDependenciesPresent_RegistersPolicyListenerAsHostedService()
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
@@ -52,7 +52,7 @@ public class PolicyListenerBuilderTests
     }
 
     [Fact]
-    public void WithPolicyListener_WhenNoExceptionHandlerRegistered_RegistersDefaultMessageExceptionHandler()
+    public void UsingPolicyListener_WhenNoExceptionHandlerRegistered_RegistersDefaultMessageExceptionHandler()
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
@@ -67,7 +67,7 @@ public class PolicyListenerBuilderTests
     }
 
     [Fact]
-    public void WithPolicyListener_WhenCustomExceptionHandlerRegistered_DoesNotOverrideIt()
+    public void UsingPolicyListener_WhenCustomExceptionHandlerRegistered_DoesNotOverrideIt()
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();

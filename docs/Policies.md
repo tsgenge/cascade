@@ -46,7 +46,7 @@ Policies are resolved from DI, so constructor injection works as expected.
 
 ## Composition
 
-Register policies using `WithPolicies` on the `WriteModelBuilder`:
+Register policies using `UsingPolicies` on the `WriteModelBuilder`:
 
 ```csharp
 services.AddCascadeEsdm(cascade => cascade
@@ -63,7 +63,7 @@ services.AddCascadeEsdm(cascade => cascade
             .AddCommandsFromAssembly<PersonAggregate>())
         .UsingAppliers(appliers => appliers
             .AddEventAppliersFromAssembly<PersonAggregate>())
-        .WithPolicies(policies => policies
+        .UsingPolicies(policies => policies
             .AddPolicy<SendWelcomeEmailPolicy>()
             .AddPolicy<NotifyAdminPolicy>())));
 ```
@@ -79,14 +79,14 @@ services.AddCascadeEsdm(cascade => cascade
 ### Assembly Discovery
 
 ```csharp
-.WithPolicies(policies => policies
+.UsingPolicies(policies => policies
     .AddPoliciesFromAssembly<PersonAggregate>())
 ```
 
 ### Namespace Discovery
 
 ```csharp
-.WithPolicies(policies => policies
+.UsingPolicies(policies => policies
     .AddPoliciesFromNamespace<SendWelcomeEmailPolicy>())
 ```
 
