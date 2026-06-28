@@ -26,6 +26,7 @@ Engineers **do not** wire up command handlers manually, manage event streams dir
 | `CascadeEsdm.Storage.Azure` | Azure Table Storage implementation of `ITableStore<TEntity>` |
 | `CascadeEsdm.DistributedLocks` | Azure Storage distributed lock provider |
 | `CascadeEsdm.Logging.OpenTelemetry` | OpenTelemetry structured logging / Application Insights |
+| `CascadeEsdm.Messaging.AzureServiceBus` | Azure Service Bus message receiver for the policy listener |
 | `CascadeEsdm.EventExtractor` | Pre-build tool — extracts `IDomainEvent` records into a publishable events assembly |
 
 ---
@@ -653,6 +654,91 @@ Domain/
     Policies/
       SendWelcomeEmailPolicy.cs
       NotifyAdminPolicy.cs
+```
+
+---
+
+## Policy Listener
+
+### Purpose
+
+The policy listener bridges an external message bus to the policy dispatcher. It runs as an `IHostedService`, receiving serialised `EventEnvelope` messages from an `IMessageReceiver`, deserialising them, and dispatching them to registered policies via `IPolicyDispatcher`.
+
+### Abstractions
+
+| Type | Purpose |
+|---|---|
+| `Message` | Transport-agnostic envelope: `Body` (string) + `ApplicationProperties` (`IReadOnlyDictionary<string, object>`) |
+| `MessageAction` | Action after processing: `Complete`, `Abandon`, `DeadLetter`, `Schedule` |
+| `IMessageReceiver` | Transport-agnostic interface: `StartAsync`, `StopAsync`, `ApplyActionAsync` |
+| `IMessageExceptionHandler` | Returns the `MessageAction` to apply when processing fails |
+| `DefaultMessageExceptionHandler` | Built-in handler — always returns `MessageAction.DeadLetter` |
+
+All abstractions are in `CascadeEsdm.SharedKernel.Infrastructure.Messaging`.
+
+### Composition
+
+Wire up the policy listener after `WithPolicies` and an `IMessageReceiver` registration:
+
+```csharp
+services.AddCascadeEsdm(cascade => cascade
+    .WithInfrastructure(infra => infra
+        .UsingCosmosDbStorage(storage => storage
+            .WithConnectionString(cosmosConnection)
+            .WithDatabaseName("cascade")
+            .WithEventStreamContainer<EventStreamContainer>())
+        .UsingAzureDistributedLocks(locks => locks
+            .WithConnectionString(storageConnection))
+        .UsingApplicationInsights()
+        .UsingAzureServiceBusPolicyListener(asb => asb
+            .WithConnectionString(serviceBusConnection)
+            .WithTopic("domain-events")
+            .WithSubscription("policy-handler")))
+    .WithWriteModel(write => write
+        .UsingExecutors(executors => executors
+            .AddCommandsFromAssembly<OrderAggregate>())
+        .UsingAppliers(appliers => appliers
+            .AddEventAppliersFromAssembly<OrderAggregate>())
+        .WithPolicies(policies => policies
+            .AddPoliciesFromAssembly<OrderAggregate>())
+        .WithPolicyListener()));
+```
+
+### Validation
+
+`WithPolicyListener` validates at startup:
+- `IPolicyDispatcher` is registered (call `WithPolicies` first) — throws `InvalidOperationException` if missing
+- `IMessageReceiver` is registered — throws `InvalidOperationException` if missing
+- If no `IMessageExceptionHandler` is registered, `DefaultMessageExceptionHandler` is added automatically
+
+### Custom Serialisation
+
+Override the default `ForMessageBus()` serialisation settings:
+
+```csharp
+.WithPolicyListener(listener => listener
+    .WithSerialisationSettings(myCustomOptions))
+```
+
+### Azure Service Bus
+
+The `CascadeEsdm.Messaging.AzureServiceBus` package provides `AzureServiceBusReceiver : IMessageReceiver`, configured via `UsingAzureServiceBusPolicyListener` on the infrastructure builder:
+
+```csharp
+infra.UsingAzureServiceBusPolicyListener(asb => asb
+    .WithConnectionString(connectionString)  // required
+    .WithTopic(topicName)                    // required
+    .WithSubscription(subscriptionName))     // required
+```
+
+All three settings are required — `InvalidOperationException` if any is missing.
+
+### Custom Transport
+
+Implement `IMessageReceiver` for a different message bus and register it before `WithPolicyListener`:
+
+```csharp
+services.AddSingleton<IMessageReceiver, RabbitMqReceiver>();
 ```
 
 ---

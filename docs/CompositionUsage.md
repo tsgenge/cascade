@@ -145,6 +145,23 @@ write.WithPolicies(policies => policies
 
 This registers reactive policies that execute in response to domain events. Policies are resolved from DI and execute concurrently. See [Policies.md](Policies.md) for full details on implementing and dispatching policies.
 
+#### Register Policy Listener
+
+To bridge an external message bus to the policy dispatcher, call `WithPolicyListener` after `WithPolicies`. This requires an `IMessageReceiver` to be registered (e.g. via `UsingAzureServiceBusPolicyListener` on the infrastructure builder):
+
+```csharp
+write.WithPolicyListener()
+```
+
+Optionally override the serialisation settings:
+
+```csharp
+write.WithPolicyListener(listener => listener
+    .WithSerialisationSettings(myCustomOptions))
+```
+
+See [PolicyListener.md](PolicyListener.md) for full details on the policy listener, messaging abstractions, and the Azure Service Bus infrastructure package.
+
 | Method | Description |
 |---|---|
 | `AddPolicy<TPolicy>()` | Registers a single policy |
@@ -274,11 +291,13 @@ public static InfrastructureBuilder UseRedisLocks(
 ServiceCollectionExtensions.AddCascadeEsdm()
   └── CascadeBuilder.WithInfrastructure()
         └── InfrastructureBuilder (validates required components)
+              ├── UsingAzureServiceBusPolicyListener() → ServiceBusReceiverBuilder
               ├── ModelBuilder.WithWriteModel()
               │     └── WriteModelBuilder
               │           ├── UsingExecutors() → CommandExecutorBuilder
               │           ├── UsingAppliers() → EventApplierBuilder
-              │           └── WithPolicies() → PolicyBuilder
+              │           ├── WithPolicies() → PolicyBuilder
+              │           └── WithPolicyListener() → PolicyListenerBuilder
               └── ModelBuilder.WithReadModel()
                     └── ReadModelBuilder
                           └── WithViews() → ViewBuilder
