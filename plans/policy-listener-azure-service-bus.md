@@ -97,38 +97,44 @@ Created new `CascadeEsdm.Messaging.AzureServiceBus` infrastructure project targe
 ---
 
 ## Phase 4: Tests
-Status: Not started
+Status: Complete
 
 ### CascadeEsdm.WriteModel.Tests — PolicyListener
-- [ ] `PolicyListener_WhenMessageReceived_DeserialisesAndDispatchesToPolicyDispatcher`
-- [ ] `PolicyListener_WhenDispatchSucceeds_CompletesMessage`
-- [ ] `PolicyListener_WhenDispatchThrows_CallsExceptionHandler`
-- [ ] `PolicyListener_WhenExceptionHandlerReturnsDeadLetter_DeadLettersMessage`
-- [ ] `PolicyListener_WhenExceptionHandlerReturnsAbandon_AbandonsMessage`
-- [ ] `PolicyListener_WhenCancelled_StopsReceiver`
+- [x] `PolicyListener_WhenMessageReceived_DeserialisesAndDispatchesToPolicyDispatcher`
+- [x] `PolicyListener_WhenDispatchSucceeds_CompletesMessage`
+- [x] `PolicyListener_WhenDispatchThrows_CallsExceptionHandler`
+- [x] `PolicyListener_WhenExceptionHandlerReturnsDeadLetter_DeadLettersMessage`
+- [x] `PolicyListener_WhenExceptionHandlerReturnsAbandon_AbandonsMessage`
+- [x] `PolicyListener_WhenCancelled_StopsReceiver`
 
 ### CascadeEsdm.WriteModel.Tests — DefaultMessageExceptionHandler
-- [ ] `DefaultMessageExceptionHandler_Always_ReturnsDeadLetter`
+- [x] `DefaultMessageExceptionHandler_Always_ReturnsDeadLetter`
 
 ### CascadeEsdm.WriteModel.Tests — PolicyListenerBuilder (composition validation)
-- [ ] `WithPolicyListener_WhenPolicyDispatcherNotRegistered_ThrowsInvalidOperationException`
-- [ ] `WithPolicyListener_WhenMessageReceiverNotRegistered_ThrowsInvalidOperationException`
-- [ ] `WithPolicyListener_WhenAllDependenciesPresent_RegistersPolicyListenerAsHostedService`
-- [ ] `WithPolicyListener_WhenNoExceptionHandlerRegistered_RegistersDefaultMessageExceptionHandler`
-- [ ] `WithPolicyListener_WhenCustomExceptionHandlerRegistered_DoesNotOverrideIt`
+- [x] `WithPolicyListener_WhenPolicyDispatcherNotRegistered_ThrowsInvalidOperationException`
+- [x] `WithPolicyListener_WhenMessageReceiverNotRegistered_ThrowsInvalidOperationException`
+- [x] `WithPolicyListener_WhenAllDependenciesPresent_RegistersPolicyListenerAsHostedService`
+- [x] `WithPolicyListener_WhenNoExceptionHandlerRegistered_RegistersDefaultMessageExceptionHandler`
+- [x] `WithPolicyListener_WhenCustomExceptionHandlerRegistered_DoesNotOverrideIt`
 
-### CascadeEsdm.Messaging.AzureServiceBus (new test project or inline builder tests)
-- [ ] `ServiceBusReceiverBuilder_WhenConnectionStringMissing_ThrowsInvalidOperationException`
-- [ ] `ServiceBusReceiverBuilder_WhenTopicMissing_ThrowsInvalidOperationException`
-- [ ] `ServiceBusReceiverBuilder_WhenSubscriptionMissing_ThrowsInvalidOperationException`
-- [ ] `ServiceBusReceiverBuilder_WhenAllSet_RegistersAzureServiceBusReceiverAsIMessageReceiver`
+### CascadeEsdm.WriteModel.Tests — ServiceBusReceiverBuilder (inline builder tests via UsingAzureServiceBusPolicyListener extension)
+- [x] `ServiceBusReceiverBuilder_WhenConnectionStringMissing_ThrowsInvalidOperationException`
+- [x] `ServiceBusReceiverBuilder_WhenTopicMissing_ThrowsInvalidOperationException`
+- [x] `ServiceBusReceiverBuilder_WhenSubscriptionMissing_ThrowsInvalidOperationException`
+- [x] `ServiceBusReceiverBuilder_WhenAllSet_RegistersAzureServiceBusReceiverAsIMessageReceiver`
 
 ### Verification Plan
 - `dotnet test tests/CascadeEsdm.WriteModel.Tests/CascadeEsdm.WriteModel.Tests.csproj` — all tests pass, including new ones
 - `dotnet test Cascade.Esdm.slnx` (or equivalent full test run) — all tests pass across solution
 
 ### Phase Summary
-_(write when phase completes)_
+Added 16 unit tests across 4 test classes in `CascadeEsdm.WriteModel.Tests`:
+- `PolicyListenerTests` (6 tests) — validates message deserialisation, dispatch, completion, exception handling (deadletter + abandon), and stop behaviour using handler-capture pattern with NSubstitute
+- `DefaultMessageExceptionHandlerTests` (1 test) — confirms always-deadletter behaviour
+- `PolicyListenerBuilderTests` (5 tests) — validates composition guard clauses (missing IPolicyDispatcher/IMessageReceiver), hosted service registration, default/custom exception handler registration
+- `ServiceBusReceiverBuilderTests` (4 tests) — validates builder guard clauses (missing connection string/topic/subscription) and IMessageReceiver registration, tested through the public `UsingAzureServiceBusPolicyListener` extension method
+- Added `CascadeEsdm.Messaging.AzureServiceBus` project reference to WriteModel.Tests.csproj for ServiceBusReceiverBuilder tests
+- All 219 WriteModel tests pass, all 67 SharedKernel unit tests pass, full solution builds
 
 ---
 
