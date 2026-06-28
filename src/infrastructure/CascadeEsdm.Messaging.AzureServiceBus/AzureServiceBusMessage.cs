@@ -10,7 +10,7 @@ internal record AzureServiceBusMessage : Message
 
     public AzureServiceBusMessage(
         string body,
-        IReadOnlyDictionary<string, string> applicationProperties,
+        IReadOnlyDictionary<string, object> applicationProperties,
         ServiceBusReceivedMessage receivedMessage,
         ProcessMessageEventArgs eventArgs)
         : base(body, applicationProperties)

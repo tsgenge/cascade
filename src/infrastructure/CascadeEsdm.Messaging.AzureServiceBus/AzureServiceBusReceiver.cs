@@ -44,8 +44,7 @@ internal class AzureServiceBusReceiver : IMessageReceiver
     private async Task OnProcessMessageAsync(ProcessMessageEventArgs args)
     {
         var applicationProperties = args.Message.ApplicationProperties
-            .Where(kvp => kvp.Value is string)
-            .ToDictionary(kvp => kvp.Key, kvp => (string)kvp.Value);
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
         var message = new AzureServiceBusMessage(
             args.Message.Body.ToString(),
