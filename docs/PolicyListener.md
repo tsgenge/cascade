@@ -73,7 +73,33 @@ If either is missing, an `InvalidOperationException` is thrown with a clear mess
 
 ### Default Exception Handler
 
-If no `IMessageExceptionHandler` is registered, `WithPolicyListener` registers `DefaultMessageExceptionHandler`, which always returns `MessageAction.DeadLetter`. To override, register a custom implementation before calling `WithPolicyListener`:
+If no `IMessageExceptionHandler` is registered, `WithPolicyListener` registers `DefaultMessageExceptionHandler`, which always returns `MessageAction.DeadLetter`. To override, implement `IMessageExceptionHandler` and register it before calling `WithPolicyListener`:
+
+```csharp
+using CascadeEsdm.SharedKernel.Infrastructure.Messaging;
+
+internal class RetryableExceptionHandler : IMessageExceptionHandler
+{
+    private readonly ILogger<RetryableExceptionHandler> _logger;
+
+    public RetryableExceptionHandler(ILogger<RetryableExceptionHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public Task<MessageAction> HandleAsync(Message message, Exception exception, CancellationToken cancellationToken)
+    {
+        _logger.LogError(exception, "Failed to process message");
+
+        if (exception is TransientException)
+            return Task.FromResult(MessageAction.Abandon);
+
+        return Task.FromResult(MessageAction.DeadLetter);
+    }
+}
+```
+
+Register the custom handler in the DI container:
 
 ```csharp
 services.AddSingleton<IMessageExceptionHandler, RetryableExceptionHandler>();
