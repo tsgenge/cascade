@@ -70,4 +70,16 @@ public static class WriteModelBuilderExtensions
 
         return builder;
     }
+
+    public static WriteModelBuilder WithPolicyListener(this WriteModelBuilder builder,
+        Action<PolicyListenerBuilder>? configure = null)
+    {
+        var services = builder.Services;
+
+        var listenerBuilder = new PolicyListenerBuilder(services);
+        configure?.Invoke(listenerBuilder);
+        listenerBuilder.Build();
+
+        return builder;
+    }
 }
