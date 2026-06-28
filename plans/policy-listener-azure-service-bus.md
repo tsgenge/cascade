@@ -36,13 +36,13 @@ Added four new types under `SharedKernel.Abstractions/Infrastructure/Messaging/`
 ---
 
 ## Phase 2: WriteModel — PolicyListener and DefaultMessageExceptionHandler
-Status: Not started
+Status: Complete
 
 ### What to build
 New types in `src/write/CascadeEsdm.WriteModel/`:
 
-- [ ] `DefaultMessageExceptionHandler : IMessageExceptionHandler` (in `Policies/`) — always returns `MessageAction.DeadLetter`
-- [ ] `PolicyListener : IHostedService` (in `Policies/`):
+- [x] `DefaultMessageExceptionHandler : IMessageExceptionHandler` (in `Policies/`) — always returns `MessageAction.DeadLetter`
+- [x] `PolicyListener : IHostedService` (in `Policies/`):
   - Constructor: `IPolicyDispatcher`, `IMessageReceiver`, `IMessageExceptionHandler`, `ILogger<PolicyListener>`, `JsonSerializerOptions`
   - `StartAsync`: calls `IMessageReceiver.StartAsync(HandleMessageAsync, ct)`
   - `StopAsync`: calls `IMessageReceiver.StopAsync(ct)`
@@ -53,8 +53,8 @@ New types in `src/write/CascadeEsdm.WriteModel/`:
     - On success: call `IMessageReceiver.ApplyActionAsync(message, MessageAction.Complete, ct)`
 
 ### Extend WriteModelBuilderExtensions
-- [ ] Add `WithPolicyListener(Action<PolicyListenerBuilder> configure)` extension on `WriteModelBuilder` in `src/write/CascadeEsdm.WriteModel/Composition/WriteModelBuilderExtensions.cs`
-- [ ] Add `PolicyListenerBuilder` in `src/write/CascadeEsdm.WriteModel/Composition/`:
+- [x] Add `WithPolicyListener(Action<PolicyListenerBuilder> configure)` extension on `WriteModelBuilder` in `src/write/CascadeEsdm.WriteModel/Composition/WriteModelBuilderExtensions.cs`
+- [x] Add `PolicyListenerBuilder` in `src/write/CascadeEsdm.WriteModel/Composition/`:
   - `WithSerialisationSettings(JsonSerializerOptions options)` — overrides default `DefaultSerialisationSettings.ForMessageBus()`
   - `Build(IServiceCollection services)` — validates `IPolicyDispatcher` is registered (throws `InvalidOperationException` if not); validates `IMessageReceiver` is registered (throws if not); registers `PolicyListener` via `AddHostedService`; registers `DefaultMessageExceptionHandler` as `IMessageExceptionHandler` if not already registered
 
@@ -63,7 +63,7 @@ New types in `src/write/CascadeEsdm.WriteModel/`:
 - `dotnet build Cascade.Esdm.slnx` — full solution builds clean
 
 ### Phase Summary
-_(write when phase completes)_
+Added `DefaultMessageExceptionHandler` (always returns `DeadLetter`) and `PolicyListener : IHostedService` to `WriteModel/Policies/`. The listener deserialises `Message.Body` → `EventEnvelope`, dispatches via `IPolicyDispatcher`, completes on success, and delegates to `IMessageExceptionHandler` on failure. Added `PolicyListenerBuilder` with `WithSerialisationSettings` override and validation that `IPolicyDispatcher` and `IMessageReceiver` are registered. Added `WithPolicyListener` extension on `WriteModelBuilder`. Added `Microsoft.Extensions.Hosting.Abstractions` (10.0.3) package reference. Both WriteModel project and full solution build cleanly.
 
 ---
 
