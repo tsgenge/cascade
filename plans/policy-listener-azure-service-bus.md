@@ -139,24 +139,39 @@ Added 16 unit tests across 4 test classes in `CascadeEsdm.WriteModel.Tests`:
 ---
 
 ## Phase 5: Documentation
-Status: Not started
+Status: Complete
 
-- [ ] **Root README** — add `CascadeEsdm.Messaging.AzureServiceBus` to the packages table with a one-liner description
-- [ ] **`/docs/policy-listener.md`** — new file covering: what the policy listener is, composition API (`WithPolicies` + `WithPolicyListener`), `IMessageReceiver` abstraction, `IMessageExceptionHandler` contract, `MessageAction` values, `DefaultMessageExceptionHandler`, the ASB infrastructure package (`UsingAzureServiceBusPolicyListener`), and a complete composition example
-- [ ] **`AIContext/ai-context/`** — update the context file to cover the policy listener pattern: how to wire it up, the abstractions, and the default exception handler behaviour
+- [x] **Root README** — add `CascadeEsdm.Messaging.AzureServiceBus` to the packages table with a one-liner description
+- [x] **`/docs/PolicyListener.md`** — new file covering: what the policy listener is, composition API (`WithPolicies` + `WithPolicyListener`), `IMessageReceiver` abstraction, `IMessageExceptionHandler` contract, `MessageAction` values, `DefaultMessageExceptionHandler`, the ASB infrastructure package (`UsingAzureServiceBusPolicyListener`), and a complete composition example
+- [x] **`AIContext/ai-context/`** — update the context file to cover the policy listener pattern: how to wire it up, the abstractions, and the default exception handler behaviour
 
 ### Verification Plan
-- Open `/docs/policy-listener.md` and confirm it renders correctly (headings, code blocks, no broken links)
+- Open `/docs/PolicyListener.md` and confirm it renders correctly (headings, code blocks, no broken links)
 - Verify the root README package table includes `CascadeEsdm.Messaging.AzureServiceBus`
 - Verify the AIContext file references `IMessageReceiver`, `IMessageExceptionHandler`, `MessageAction`, and `PolicyListener`
 
 ### Phase Summary
-_(write when phase completes)_
+Updated three documentation locations per the documentation-organization rule:
+- **Root README** — added `CascadeEsdm.Messaging.AzureServiceBus` to the infrastructure packages table and `PolicyListener.md` to the Further Reading links
+- **`/docs/PolicyListener.md`** — new file covering the policy listener pattern end-to-end: flow diagram, composition API, validation, default/custom exception handling, serialisation override, Azure Service Bus infrastructure, and custom transport implementation guide
+- **`/docs/CompositionUsage.md`** — added `WithPolicyListener` to the builder pattern flow diagram and a new "Register Policy Listener" section
+- **`AIContext/ai-context/cascade-esdm.md`** — added `CascadeEsdm.Messaging.AzureServiceBus` to the package table and a full "Policy Listener" section covering abstractions, composition, validation, serialisation, Azure Service Bus configuration, and custom transport
 
 ---
 
 ## Final Recap
-_(write when all phases complete)_
+
+All five phases completed across PRs #20–#24:
+- **Phase 1** (PR #20): Messaging abstractions (`Message`, `MessageAction`, `IMessageReceiver`, `IMessageExceptionHandler`) in SharedKernel.Abstractions; renamed `ForServiceBusPublishing` → `ForMessageBus`
+- **Phase 2** (PR #21): `PolicyListener` hosted service, `DefaultMessageExceptionHandler`, `PolicyListenerBuilder`, `WithPolicyListener` extension on WriteModelBuilder
+- **Phase 3** (PR #22): `CascadeEsdm.Messaging.AzureServiceBus` infrastructure project with `AzureServiceBusReceiver`, `ServiceBusReceiverBuilder`, `UsingAzureServiceBusPolicyListener` extension
+- **Phase 4** (PR #23): 16 unit tests covering PolicyListener, DefaultMessageExceptionHandler, PolicyListenerBuilder, and ServiceBusReceiverBuilder
+- **Phase 5** (PR #24): Documentation across README, `/docs/PolicyListener.md`, `/docs/CompositionUsage.md`, and `AIContext/ai-context/cascade-esdm.md`
 
 ## Deployment Plan
-_(write when all phases complete)_
+
+1. Merge PR #24 to develop
+2. Bump package versions for `CascadeEsdm.SharedKernel.Abstractions`, `CascadeEsdm.SharedKernel`, `CascadeEsdm.WriteModel`, and publish the new `CascadeEsdm.Messaging.AzureServiceBus` package to NuGet
+3. Update consumer projects to reference the new packages and wire up `UsingAzureServiceBusPolicyListener` + `WithPolicyListener` in their composition roots
+4. Create Azure Service Bus topic and subscription for each environment (dev, staging, production)
+5. Configure connection strings via environment-specific configuration (e.g. Azure Key Vault, app settings)

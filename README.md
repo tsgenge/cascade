@@ -45,6 +45,7 @@ Cascade removes those decisions. Engineers implement commands, emit events, add 
 | `CascadeEsdm.DistributedLocks` | Azure Storage distributed lock provider for aggregate-level concurrency |
 | `CascadeEsdm.Logging.OpenTelemetry` | OpenTelemetry-based structured logging and Application Insights integration |
 | `CascadeEsdm.SignalR` | Azure SignalR real-time view change notifications |
+| `CascadeEsdm.Messaging.AzureServiceBus` | Azure Service Bus message receiver for the policy listener |
 
 ### Tools
 
@@ -112,6 +113,7 @@ Packages are available on [NuGet](https://www.nuget.org/packages?q=cascadeesdm).
 - [docs/Entities.md](docs/Entities.md) — entity conventions and folder structure
 - [docs/ValueObjects.md](docs/ValueObjects.md) — value object conventions
 - [docs/Policies.md](docs/Policies.md) — reactive policies triggered by domain events
+- [docs/PolicyListener.md](docs/PolicyListener.md) — bridging a message bus to the policy dispatcher
 - [docs/CompositionUsage.md](docs/CompositionUsage.md) — composition and registration patterns
 - [docs/EventExtractor.md](docs/EventExtractor.md) — the event extractor in detail
 - [docs/Exceptions.md](docs/Exceptions.md) — exception handling conventions
