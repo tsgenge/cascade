@@ -26,11 +26,11 @@ public class PolicyListenerBuilder
     {
         if (!_services.Any(s => s.ServiceType == typeof(IPolicyDispatcher)))
             throw new InvalidOperationException(
-                "IPolicyDispatcher is not registered. Call WithPolicies before WithPolicyListener.");
+                "IPolicyDispatcher is not registered. Call UsingPolicies before UsingPolicyListener.");
 
         if (!_services.Any(s => s.ServiceType == typeof(IMessageReceiver)))
             throw new InvalidOperationException(
-                "IMessageReceiver is not registered. Register an IMessageReceiver implementation before calling WithPolicyListener.");
+                "IMessageReceiver is not registered. Register an IMessageReceiver implementation before calling UsingPolicyListener.");
 
         var options = _serializerOptions ?? DefaultSerialisationSettings.ForMessageBus();
         _services.AddSingleton(options);

@@ -37,7 +37,7 @@ PolicyListener.HandleMessageAsync(message)
 
 ## Composition
 
-Wire up the policy listener using `WithPolicyListener` on the `WriteModelBuilder`, after `WithPolicies`:
+Wire up the policy listener using `UsingPolicyListener` on the `WriteModelBuilder`, after `UsingPolicies`:
 
 ```csharp
 services.AddCascadeEsdm(cascade => cascade
@@ -58,22 +58,22 @@ services.AddCascadeEsdm(cascade => cascade
             .AddCommandsFromAssembly<OrderAggregate>())
         .UsingAppliers(appliers => appliers
             .AddEventAppliersFromAssembly<OrderAggregate>())
-        .WithPolicies(policies => policies
+        .UsingPolicies(policies => policies
             .AddPoliciesFromAssembly<OrderAggregate>())
-        .WithPolicyListener()));
+        .UsingPolicyListener()));
 ```
 
 ### Validation
 
-`WithPolicyListener` validates at startup that:
-- `IPolicyDispatcher` is registered (call `WithPolicies` first)
+`UsingPolicyListener` validates at startup that:
+- `IPolicyDispatcher` is registered (call `UsingPolicies` first)
 - `IMessageReceiver` is registered (call `UsingAzureServiceBusPolicyListener` or register a custom implementation first)
 
 If either is missing, an `InvalidOperationException` is thrown with a clear message.
 
 ### Default Exception Handler
 
-If no `IMessageExceptionHandler` is registered, `WithPolicyListener` registers `DefaultMessageExceptionHandler`, which always returns `MessageAction.DeadLetter`. To override, implement `IMessageExceptionHandler` and register it before calling `WithPolicyListener`:
+If no `IMessageExceptionHandler` is registered, `UsingPolicyListener` registers `DefaultMessageExceptionHandler`, which always returns `MessageAction.DeadLetter`. To override, implement `IMessageExceptionHandler` and register it before calling `UsingPolicyListener`:
 
 ```csharp
 using CascadeEsdm.SharedKernel.Infrastructure.Messaging;
@@ -110,7 +110,7 @@ services.AddSingleton<IMessageExceptionHandler, RetryableExceptionHandler>();
 By default, `PolicyListener` uses `DefaultSerialisationSettings.ForMessageBus()` for deserialisation. Override via the builder:
 
 ```csharp
-.WithPolicyListener(listener => listener
+.UsingPolicyListener(listener => listener
     .WithSerialisationSettings(myCustomOptions))
 ```
 
@@ -220,7 +220,7 @@ internal class RabbitMqReceiver : IMessageReceiver
 }
 ```
 
-Register it in the DI container before calling `WithPolicyListener`:
+Register it in the DI container before calling `UsingPolicyListener`:
 
 ```csharp
 services.AddSingleton<IMessageReceiver, RabbitMqReceiver>();

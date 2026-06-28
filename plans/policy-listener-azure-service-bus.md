@@ -172,6 +172,6 @@ All five phases completed across PRs #20–#24:
 
 1. Merge PR #24 to develop
 2. Bump package versions for `CascadeEsdm.SharedKernel.Abstractions`, `CascadeEsdm.SharedKernel`, `CascadeEsdm.WriteModel`, and publish the new `CascadeEsdm.Messaging.AzureServiceBus` package to NuGet
-3. Update consumer projects to reference the new packages and wire up `UsingAzureServiceBusPolicyListener` + `WithPolicyListener` in their composition roots
+3. Update consumer projects to reference the new packages and wire up `UsingAzureServiceBusPolicyListener` + `UsingPolicyListener` in their composition roots
 4. Create Azure Service Bus topic and subscription for each environment (dev, staging, production)
 5. Configure connection strings via environment-specific configuration (e.g. Azure Key Vault, app settings)
