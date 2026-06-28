@@ -39,7 +39,7 @@ public static class DefaultSerialisationSettings
     }
 
     /// <summary>
-    /// Serialisation settings for publishing <see cref="Events.EventEnvelope"/> messages to a service bus.
+    /// Serialisation settings for publishing <see cref="Events.EventEnvelope"/> messages to a message bus.
     ///
     /// The <c>$type</c> discriminator written for each <see cref="Events.IDomainEvent"/> is rewritten
     /// from the write-model assembly-qualified name to its schema assembly equivalent using the same
@@ -49,7 +49,7 @@ public static class DefaultSerialisationSettings
     /// Consumers that hold the generated schema assembly as a dependency can deserialise the envelope
     /// without any knowledge of the write-model project structure.
     /// </summary>
-    public static JsonSerializerOptions ForServiceBusPublishing()
+    public static JsonSerializerOptions ForMessageBus()
     {
         var options = new JsonSerializerOptions
         {
