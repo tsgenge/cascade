@@ -843,10 +843,10 @@ If `CascadeEventsAssemblyName` is not set, the tool strips a recognised write-mo
 
 When publishing an `EventEnvelope` to a service bus topic, the `IDomainEvent` stored in `Event` must carry a `$type` discriminator that consumers can resolve without access to the write-model assembly.
 
-`DefaultSerialisationSettings.ForServiceBusPublishing()` provides serialiser options that rewrite the `$type` from the write-model identity to the schema assembly identity automatically — no configuration required:
+`DefaultSerialisationSettings.ForMessageBus()` provides serialiser options that rewrite the `$type` from the write-model identity to the schema assembly identity automatically — no configuration required:
 
 ```csharp
-var options = DefaultSerialisationSettings.ForServiceBusPublishing();
+var options = DefaultSerialisationSettings.ForMessageBus();
 var json = JsonSerializer.Serialize(envelope, options);
 ```
 
@@ -856,7 +856,7 @@ Given a write-model event `Acme.Orders.WriteModel.Orders.Events.OrderPlaced` in 
 Acme.Orders.Schema.Orders.Events.OrderPlaced, Acme.Orders.Schema
 ```
 
-This is exactly what the schema assembly contains. A consumer that references `Acme.Orders.Schema` and uses the same `ForServiceBusPublishing()` options (or `UsingTypeQualifiedName()` with the schema assembly loaded) can deserialise the envelope without any additional wiring.
+This is exactly what the schema assembly contains. A consumer that references `Acme.Orders.Schema` and uses the same `ForMessageBus()` options (or `UsingTypeQualifiedName()` with the schema assembly loaded) can deserialise the envelope without any additional wiring.
 
 #### How the mapping works
 

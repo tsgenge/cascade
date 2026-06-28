@@ -8,22 +8,22 @@ As work proceeds: mark checkboxes `- [x]` as items complete; when a phase is don
 ---
 
 ## Phase 1: SharedKernel.Abstractions — messaging abstractions
-Status: Not started
+Status: Complete
 
 ### What to build
 New types under `src/shared/CascadeEsdm.SharedKernel.Abstractions/Infrastructure/Messaging/`:
 
-- [ ] `Message` record — `Body (string)`, `ApplicationProperties (IReadOnlyDictionary<string, string>)`
-- [ ] `MessageAction` enum — `Complete`, `Abandon`, `DeadLetter`, `Schedule`
-- [ ] `IMessageReceiver` interface:
+- [x] `Message` record — `Body (string)`, `ApplicationProperties (IReadOnlyDictionary<string, string>)`
+- [x] `MessageAction` enum — `Complete`, `Abandon`, `DeadLetter`, `Schedule`
+- [x] `IMessageReceiver` interface:
   - `Task StartAsync(Func<Message, CancellationToken, Task> handler, CancellationToken cancellationToken)`
   - `Task StopAsync(CancellationToken cancellationToken)`
   - `Task ApplyActionAsync(Message message, MessageAction action, CancellationToken cancellationToken)`
-- [ ] `IMessageExceptionHandler` interface:
+- [x] `IMessageExceptionHandler` interface:
   - `Task<MessageAction> HandleAsync(Message message, Exception exception, CancellationToken cancellationToken)`
 
 ### Rename
-- [ ] Rename `DefaultSerialisationSettings.ForServiceBusPublishing()` → `ForMessageBus()` in `src/shared/CascadeEsdm.SharedKernel/Infrastructure/Serialisation/DefaultSerialisationSettings.cs` (update all callers)
+- [x] Rename `DefaultSerialisationSettings.ForServiceBusPublishing()` → `ForMessageBus()` in `src/shared/CascadeEsdm.SharedKernel/Infrastructure/Serialisation/DefaultSerialisationSettings.cs` (update all callers)
 
 ### Verification Plan
 - `dotnet build src/shared/CascadeEsdm.SharedKernel.Abstractions/CascadeEsdm.SharedKernel.Abstractions.csproj` — expect **Build succeeded, 0 error(s)**
@@ -31,7 +31,7 @@ New types under `src/shared/CascadeEsdm.SharedKernel.Abstractions/Infrastructure
 - `dotnet test tests/CascadeEsdm.SharedKernel.UnitTests/CascadeEsdm.SharedKernel.UnitTests.csproj --no-build` — all tests pass
 
 ### Phase Summary
-_(write when phase completes)_
+Added four new types under `SharedKernel.Abstractions/Infrastructure/Messaging/`: `Message` record (using class-style syntax for `netstandard2.1` compatibility), `MessageAction` enum, `IMessageReceiver` interface, and `IMessageExceptionHandler` interface. Renamed `DefaultSerialisationSettings.ForServiceBusPublishing()` to `ForMessageBus()` across the source, docs, and AIContext files. All builds pass; all 67 SharedKernel unit tests pass.
 
 ---
 
