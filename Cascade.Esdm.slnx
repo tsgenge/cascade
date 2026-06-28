@@ -17,6 +17,7 @@
     <Project Path="src/infrastructure/CascadeEsdm.Storage.CosmosDb/CascadeEsdm.Storage.CosmosDb.csproj" />
     <Project Path="src/infrastructure/CascadeEsdm.SignalR/CascadeEsdm.SignalR.csproj" />
     <Project Path="src/infrastructure/CascadeEsdm.Storage.Azure/CascadeEsdm.Storage.Azure.csproj" />
+    <Project Path="src/infrastructure/CascadeEsdm.Messaging.AzureServiceBus/CascadeEsdm.Messaging.AzureServiceBus.csproj" />
   </Folder>
   <Folder Name="/5. Tools/">
     <Project Path="src/tools/CascadeEsdm.EventExtractor/CascadeEsdm.EventExtractor.csproj" />

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <PackageId>CascadeEsdm.Messaging.AzureServiceBus</PackageId>
+        <Description>Azure Service Bus message receiver for the Cascade Event Sourcing framework policy listener</Description>
+        <PackageIcon>icon.jpg</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="docs\README.md" Pack="true" PackagePath="\" />
+        <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.18.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />
+        <ProjectReference Include="..\..\write\CascadeEsdm.WriteModel\CascadeEsdm.WriteModel.csproj" />
+    </ItemGroup>
+</Project>

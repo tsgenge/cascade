@@ -68,31 +68,31 @@ Added `DefaultMessageExceptionHandler` (always returns `DeadLetter`) and `Policy
 ---
 
 ## Phase 3: Infrastructure — CascadeEsdm.Messaging.AzureServiceBus
-Status: Not started
+Status: Complete
 
 ### What to build
 New project at `src/infrastructure/CascadeEsdm.Messaging.AzureServiceBus/`:
 
-- [ ] `CascadeEsdm.Messaging.AzureServiceBus.csproj`:
+- [x] `CascadeEsdm.Messaging.AzureServiceBus.csproj`:
   - `PackageId`: `CascadeEsdm.Messaging.AzureServiceBus`
   - NuGet reference: `Azure.Messaging.ServiceBus` (latest stable)
   - Project references: `CascadeEsdm.SharedKernel`, `CascadeEsdm.WriteModel`
   - `docs/README.md` and `docs/icon.jpg` (copy icon from another infra project)
-- [ ] `AzureServiceBusReceiver : IMessageReceiver` — wraps `ServiceBusProcessor`; maps `ServiceBusReceivedMessage` → `Message` (body as string, `ApplicationProperties` filtered to `string` values); routes `ApplyActionAsync` switch to the appropriate `ServiceBusMessageActions` call
-- [ ] `ServiceBusReceiverBuilder`:
+- [x] `AzureServiceBusReceiver : IMessageReceiver` — wraps `ServiceBusProcessor`; maps `ServiceBusReceivedMessage` → `Message` (body as string, `ApplicationProperties` filtered to `string` values); routes `ApplyActionAsync` switch to the appropriate `ServiceBusMessageActions` call
+- [x] `ServiceBusReceiverBuilder`:
   - `WithConnectionString(string)`
   - `WithTopic(string)`
   - `WithSubscription(string)`
   - `Build(IServiceCollection)` — validates all three are set; registers `AzureServiceBusReceiver` as `IMessageReceiver` (singleton or scoped — decide: singleton, because `ServiceBusProcessor` is long-lived)
-- [ ] `InfrastructureBuilderExtensions.UsingAzureServiceBusPolicyListener(this InfrastructureBuilder, Action<ServiceBusReceiverBuilder>)` — creates builder, calls configure, calls `Build`
-- [ ] Add project to `Cascade.Esdm.slnx`
+- [x] `InfrastructureBuilderExtensions.UsingAzureServiceBusPolicyListener(this InfrastructureBuilder, Action<ServiceBusReceiverBuilder>)` — creates builder, calls configure, calls `Build`
+- [x] Add project to `Cascade.Esdm.slnx`
 
 ### Verification Plan
 - `dotnet build src/infrastructure/CascadeEsdm.Messaging.AzureServiceBus/CascadeEsdm.Messaging.AzureServiceBus.csproj` — expect **Build succeeded, 0 error(s)**
 - `dotnet build Cascade.Esdm.slnx` — full solution builds clean
 
 ### Phase Summary
-_(write when phase completes)_
+Created new `CascadeEsdm.Messaging.AzureServiceBus` infrastructure project targeting `net10.0` with `Azure.Messaging.ServiceBus` (7.18.2). `AzureServiceBusReceiver` wraps `ServiceBusProcessor`, maps `ServiceBusReceivedMessage` → `Message` (body as string, `ApplicationProperties` filtered to string values), and routes `ApplyActionAsync` to the appropriate `ProcessMessageEventArgs` method. Introduced `AzureServiceBusMessage` (a record subclass of `Message`) to carry the original `ServiceBusReceivedMessage` and `ProcessMessageEventArgs` for action dispatch. `ServiceBusReceiverBuilder` validates connection string, topic, and subscription, then registers `ServiceBusProcessor` and `AzureServiceBusReceiver` as singletons. `InfrastructureBuilderExtensions.UsingAzureServiceBusPolicyListener` follows the existing infrastructure builder pattern. Project added to `Cascade.Esdm.slnx`. Both project and full solution build cleanly.
 
 ---
 
