@@ -14,6 +14,7 @@ public record NotifyingSingleResult<TView> : INotifyingResult, ISingleResult<TVi
         NotificationGroup = notificationGroup;
     }
 
-    public TView Result { get; }
     public NotificationGroup NotificationGroup { get; }
+
+    public TView Result { get; }
 }

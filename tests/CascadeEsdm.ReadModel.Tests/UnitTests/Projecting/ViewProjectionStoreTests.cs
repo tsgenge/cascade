@@ -60,8 +60,7 @@ public class ViewProjectionStoreTests
     {
         var result = new PageResult<ViewDocument>(
             docs.ToList(),
-            new PageContinuationToken(null),
-            new PagedResultContainer(string.Empty));
+            new PageContinuationToken(null));
 
         _container.GetPageAsync<ViewDocument>(Arg.Any<PartitionedPageQuery>()).Returns(result);
     }

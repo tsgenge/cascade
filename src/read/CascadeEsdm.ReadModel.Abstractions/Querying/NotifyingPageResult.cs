@@ -10,8 +10,8 @@ namespace CascadeEsdm.ReadModel.Querying;
 public record NotifyingPageResult<TItem> : PageResult<TItem>, INotifyingResult
 {
     public NotifyingPageResult(IReadOnlyList<TItem> page, PageContinuationToken continuationToken,
-        PagedResultContainer container, NotificationGroup notificationGroup)
-        : base(page, continuationToken, container)
+        NotificationGroup notificationGroup)
+        : base(page, continuationToken)
     {
         NotificationGroup = notificationGroup;
     }

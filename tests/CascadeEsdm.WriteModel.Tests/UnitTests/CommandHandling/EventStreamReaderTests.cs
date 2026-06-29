@@ -58,8 +58,7 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
             .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         await reader.ReadAllAsync<TestAggregate>(aggregateId);
 
@@ -78,8 +77,7 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
             .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         await reader.ReadAllAsync<TestAggregate>(aggregateId);
 
@@ -99,8 +97,7 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
             .Returns(new PageResult<EventDocument>(
                 documents,
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         var result = await reader.ReadAllAsync<TestAggregate>(aggregateId);
 
@@ -122,13 +119,11 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Is<PartitionedPageQuery>(q => q.ContinuationToken == null))
             .Returns(new PageResult<EventDocument>(
                 page1Docs,
-                new PageContinuationToken("token1"),
-                new PagedResultContainer("test")));
+                new PageContinuationToken("token1")));
         _mockContainer.GetPageAsync<EventDocument>(Arg.Is<PartitionedPageQuery>(q => q.ContinuationToken == "token1"))
             .Returns(new PageResult<EventDocument>(
                 page2Docs,
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         var result = await reader.ReadAllAsync<TestAggregate>(aggregateId);
 
@@ -146,8 +141,7 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
             .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         var result = await reader.ReadAllAsync<TestAggregate>(aggregateId);
 
@@ -165,8 +159,7 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
             .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         await reader.ReadSingleAsync<TestAggregate>(aggregateId);
 
@@ -184,8 +177,7 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
             .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         await reader.ReadSingleAsync<TestAggregate>(aggregateId);
 
@@ -204,8 +196,7 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
             .Returns(new PageResult<EventDocument>(
                 new List<EventDocument> { document },
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         var result = await reader.ReadSingleAsync<TestAggregate>(aggregateId);
 
@@ -222,8 +213,7 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
             .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         var result = await reader.ReadSingleAsync<TestAggregate>(aggregateId);
 
@@ -246,8 +236,7 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
             .Returns(new PageResult<EventDocument>(
                 documents,
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         var result = await reader.ReadSingleAsync<TestAggregate>(aggregateId);
 
@@ -264,8 +253,7 @@ public class EventStreamReaderTests
         _mockContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
             .Returns(new PageResult<EventDocument>(
                 new List<EventDocument>(),
-                new PageContinuationToken(null),
-                new PagedResultContainer("test")));
+                new PageContinuationToken(null)));
 
         await reader.ReadAllAsync<AnotherTestAggregate>(aggregateId);
 

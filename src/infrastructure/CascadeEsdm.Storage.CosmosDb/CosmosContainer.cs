@@ -136,7 +136,6 @@ internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer>
             throw new Exception("Unable to load from CosmosDb.", ex);
         }
 
-        return new PageResult<TDoc>(results, new PageContinuationToken(continuationToken),
-            new PagedResultContainer(_containerDefinition.Name));
+        return new PageResult<TDoc>(results, new PageContinuationToken(continuationToken));
     }
 }

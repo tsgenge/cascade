@@ -27,7 +27,7 @@ public interface IQueryHandler<TView, in TFilter, in TQuery, TKey>
 public interface IPageQueryHandler<TView, in TFilter>
     where TFilter : IPageQuery
 {
-    Task<NotifyingPageResult<TView>> GetPageAsync(TFilter filter, CancellationToken token = default);
+    Task<IPageResult<TView>> GetPageAsync(TFilter filter, CancellationToken token = default);
 }
 
 /// <summary>
@@ -37,5 +37,5 @@ public interface ISingleQueryHandler<TView, in TQuery, TKey>
     where TQuery : ISingleQuery<TKey>
     where TKey : IEquatable<TKey>
 {
-    Task<NotifyingSingleResult<TView>> GetSingleAsync(TQuery query, CancellationToken token = default);
+    Task<ISingleResult<TView>> GetSingleAsync(TQuery query, CancellationToken token = default);
 }
