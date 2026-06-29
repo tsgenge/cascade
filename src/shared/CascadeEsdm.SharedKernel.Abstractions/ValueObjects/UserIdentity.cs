@@ -4,18 +4,22 @@ namespace CascadeEsdm.SharedKernel.ValueObjects;
 
 public record UserIdentity : IValueObject<Guid>
 {
-    public UserIdentity(string value)
+    public UserIdentity(string value, EmailAddress? email = null)
     {
         if (!Guid.TryParse(value, out var id))
             throw new ArgumentOutOfRangeException("The value must be a valid Guid.");
 
         Value = id;
+        Email = email;
     }
 
-    public UserIdentity(Guid id)
+    public UserIdentity(Guid id, EmailAddress? email = null)
     {
         Value = id;
+        Email = email;
     }
+
+    public EmailAddress? Email { get; }
 
     public Guid Value { get; }
 
