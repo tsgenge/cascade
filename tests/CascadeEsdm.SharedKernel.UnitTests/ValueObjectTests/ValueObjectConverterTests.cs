@@ -61,24 +61,33 @@ public class ValueObjectConverterTests
     }
 
     [Fact]
-    public void Deserialize_UserIdentity_ReadsFromGuidString()
+    public void Serialize_EmailAddress_WritesStringValue()
     {
-        var id = Guid.NewGuid();
-        var json = $"\"{id}\"";
+        var email = new EmailAddress("user@example.com");
 
-        var identity = JsonSerializer.Deserialize<UserIdentity>(json, _options);
+        var json = JsonSerializer.Serialize(email, _options);
 
-        identity.Should().NotBeNull();
-        identity!.Value.Should().Be(id);
+        json.Should().Be("\"user@example.com\"");
     }
 
     [Fact]
-    public void RoundTrip_UserIdentity_PreservesValue()
+    public void Deserialize_EmailAddress_ReadsFromString()
     {
-        var original = new UserIdentity(Guid.NewGuid());
+        var json = "\"user@example.com\"";
+
+        var email = JsonSerializer.Deserialize<EmailAddress>(json, _options);
+
+        email.Should().NotBeNull();
+        email!.Value.Should().Be("user@example.com");
+    }
+
+    [Fact]
+    public void RoundTrip_EmailAddress_PreservesValue()
+    {
+        var original = new EmailAddress("user@example.com");
 
         var json = JsonSerializer.Serialize(original, _options);
-        var deserialized = JsonSerializer.Deserialize<UserIdentity>(json, _options);
+        var deserialized = JsonSerializer.Deserialize<EmailAddress>(json, _options);
 
         deserialized.Should().Be(original);
     }
@@ -196,6 +205,7 @@ public class ValueObjectConverterTests
         converter.CanConvert(typeof(ClientChannel)).Should().BeTrue();
         converter.CanConvert(typeof(Subject)).Should().BeTrue();
         converter.CanConvert(typeof(EventSource)).Should().BeTrue();
+        converter.CanConvert(typeof(EmailAddress)).Should().BeTrue();
     }
 
     [Fact]

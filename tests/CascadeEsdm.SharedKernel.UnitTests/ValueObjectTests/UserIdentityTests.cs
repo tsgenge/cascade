@@ -98,4 +98,36 @@ public class UserIdentityTests
 
         result.Should().Be(id);
     }
+
+    [Fact]
+    public void Constructor_FromGuid_WithEmail_SetsBoth()
+    {
+        var id = Guid.NewGuid();
+        var email = new EmailAddress("user@example.com");
+
+        var identity = new UserIdentity(id, email);
+
+        identity.Value.Should().Be(id);
+        identity.Email.Should().Be(email);
+    }
+
+    [Fact]
+    public void Constructor_FromString_WithEmail_SetsBoth()
+    {
+        var id = Guid.NewGuid();
+        var email = new EmailAddress("user@example.com");
+
+        var identity = new UserIdentity(id.ToString(), email);
+
+        identity.Value.Should().Be(id);
+        identity.Email.Should().Be(email);
+    }
+
+    [Fact]
+    public void Constructor_WithoutEmail_EmailIsNull()
+    {
+        var identity = new UserIdentity(Guid.NewGuid());
+
+        identity.Email.Should().BeNull();
+    }
 }
