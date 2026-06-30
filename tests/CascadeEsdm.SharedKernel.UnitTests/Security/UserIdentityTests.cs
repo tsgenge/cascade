@@ -1,8 +1,9 @@
-using CascadeEsdm.SharedKernel.ValueObjects;
+using CascadeEsdm.SharedKernel.Security;
 using FluentAssertions;
 using System.Security.Claims;
+using Claim = CascadeEsdm.SharedKernel.Security.Claim;
 
-namespace CascadeEsdm.SharedKernel.UnitTests.ValueObjectTests;
+namespace CascadeEsdm.SharedKernel.UnitTests.Security;
 
 public class UserIdentityTests
 {
@@ -13,7 +14,7 @@ public class UserIdentityTests
 
         var identity = new UserIdentity(id.ToString());
 
-        identity.Value.Should().Be(id);
+        identity.Id.Should().Be(id);
     }
 
     [Fact]
@@ -23,7 +24,7 @@ public class UserIdentityTests
 
         var identity = new UserIdentity(id.ToString("B"));
 
-        identity.Value.Should().Be(id);
+        identity.Id.Should().Be(id);
     }
 
     [Fact]
@@ -41,7 +42,7 @@ public class UserIdentityTests
 
         var identity = new UserIdentity(id);
 
-        identity.Value.Should().Be(id);
+        identity.Id.Should().Be(id);
     }
 
     [Fact]
@@ -97,5 +98,49 @@ public class UserIdentityTests
         Guid result = identity;
 
         result.Should().Be(id);
+    }
+
+    [Fact]
+    public void Constructor_WithClaims_SetsClaims()
+    {
+        var id = Guid.NewGuid();
+        var claims = new[] { new Claim(ClaimTypes.Role, "admin") };
+
+        var identity = new UserIdentity(id, claims);
+
+        identity.Claims.Should().HaveCount(1);
+        identity.Claims.Single().Type.Should().Be(ClaimTypes.Role);
+        identity.Claims.Single().Value.Should().Be("admin");
+    }
+
+    [Fact]
+    public void Constructor_WithoutClaims_SetsEmptyCollection()
+    {
+        var id = Guid.NewGuid();
+
+        var identity = new UserIdentity(id);
+
+        identity.Claims.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Claims_AreReadOnly()
+    {
+        var id = Guid.NewGuid();
+        var identity = new UserIdentity(id, new[] { new Claim(ClaimTypes.Role, "admin") });
+
+        identity.Claims.Should().BeAssignableTo<IReadOnlyCollection<Claim>>();
+    }
+
+    [Fact]
+    public void ToClaimsIdentity_IncludesSidAndAllClaims()
+    {
+        var id = Guid.NewGuid();
+        var identity = new UserIdentity(id, new[] { new Claim(ClaimTypes.Role, "admin") });
+
+        var claimsIdentity = identity.ToClaimsIdentity();
+
+        claimsIdentity.Claims.Should().Contain(c => c.Type == ClaimTypes.Sid && c.Value == id.ToString("n"));
+        claimsIdentity.Claims.Should().Contain(c => c.Type == ClaimTypes.Role && c.Value == "admin");
     }
 }

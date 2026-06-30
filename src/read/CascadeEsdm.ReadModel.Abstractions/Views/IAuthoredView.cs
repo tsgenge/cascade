@@ -1,3 +1,4 @@
+using CascadeEsdm.SharedKernel.Security;
 using CascadeEsdm.SharedKernel.ValueObjects;
 
 namespace CascadeEsdm.ReadModel.Views;

@@ -22,7 +22,7 @@ internal abstract class LoggingCommandHandlerDecoratorBase<TCommand>
             command.Type,
             subject.Type,
             subject.Id,
-            command.SecurityContext.User.Value,
+            command.SecurityContext.User.Id,
             command.SecurityContext.Tenant.Value);
     }
 

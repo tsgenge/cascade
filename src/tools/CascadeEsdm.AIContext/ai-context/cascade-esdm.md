@@ -392,7 +392,7 @@ Command envelopes wrap commands with metadata required for processing. The frame
 | `Id` | `Guid` | Unique identifier for this command invocation |
 | `Type` | `string` | The command type name (typeof(TCommand).Name) |
 | `Command` | `ICommand` / `TCommand` | The wrapped command instance |
-| `SecurityContext` | `AuthenticatedContext` | User identity and tenant information |
+| `SecurityContext` | `AuthenticatedContext` | User identity (`UserIdentity`) with a read-only claim collection, and tenant information |
 | `Channel` | `ClientChannel` | Originating channel (e.g., API, WebSocket) |
 | `Time` | `DateTimeOffset` | When the command was created (UTC) |
 
@@ -795,20 +795,45 @@ For ValueObjects that represent domain values (names, descriptions, etc.):
 - If validation is required, use a constant `Pattern` property and check using regex (for strings). Throw a `System.ComponentModel.DataAnnotations.ValidationException` on failure, or a suitable exception inheriting from `ExceptionBase`.
 
 ```csharp
-public record EmailAddress(string Value) : IValueObject<string>
+public record PostalCode(string Value) : IValueObject<string>
 {
-    private const string Pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+    private const string Pattern = @"^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$";
 
-    public EmailAddress(string value) : this(value)
+    public PostalCode(string value) : this(value)
     {
         if (!Regex.IsMatch(value, Pattern))
-            throw new ValidationException($"Invalid email address: {value}");
+            throw new ValidationException($"Invalid postal code: {value}");
     }
 
-    public static implicit operator EmailAddress(string value) => new(value);
-    public static implicit operator string(EmailAddress vo) => vo.Value;
+    public static implicit operator PostalCode(string value) => new(value);
+    public static implicit operator string(PostalCode vo) => vo.Value;
 }
 ```
+
+### User Identity
+
+`UserIdentity` is an `IValueObject<Guid>` that represents the authenticated user. It carries the user's identifier plus a read-only `IReadOnlyCollection<Claim>` for authorisation decisions later in the pipeline.
+
+```csharp
+using CascadeEsdm.SharedKernel.Security;
+using CascadeEsdm.SharedKernel.ValueObjects;
+using Claim = CascadeEsdm.SharedKernel.Security.Claim;
+using System.Security.Claims;
+
+var identity = new UserIdentity(
+    Guid.NewGuid(),
+    new[] { new Claim(ClaimTypes.Role, "admin") });
+
+ClaimsIdentity claimsIdentity = identity.ToClaimsIdentity();
+```
+
+`Claim` is a serialisable local record that mirrors `System.Security.Claims.Claim`:
+
+```csharp
+public record Claim(string Type, string Value, string? ValueType = null, string? Issuer = null, string? OriginalIssuer = null);
+```
+
+Default values are `http://www.w3.org/2001/XMLSchema#string` for `ValueType` and `LOCAL AUTHORITY` for `Issuer`. The claim collection is immutable. `Claim` provides `ToSystemClaim()` and `FromSystemClaim()` for conversion to and from the ASP.NET claim type.
 
 ---
 
