@@ -147,7 +147,7 @@ This registers reactive policies that execute in response to domain events. Poli
 
 #### Register Policy Listener
 
-To bridge an external message bus to the policy dispatcher, call `AddPolicyListener` after `UsingPolicies`. This requires an `IMessageReceiver` to be registered (e.g. via `UsingAzureServiceBusPolicyListener` on the infrastructure builder). `UsingPolicyListener` remains as a backwards-compatible alias for `AddPolicyListener`:
+To bridge an external message bus to the policy dispatcher, call `AddPolicyListener` after `UsingPolicies`. This requires an `IMessageReceiver` to be registered (e.g. via `UsingAzureServiceBusReceiver` on the infrastructure builder). `UsingPolicyListener` remains as a backwards-compatible alias for `AddPolicyListener`:
 
 ```csharp
 write.AddPolicyListener()
@@ -301,8 +301,8 @@ public static InfrastructureBuilder UseRedisLocks(
 ServiceCollectionExtensions.AddCascadeEsdm()
   └── CascadeBuilder.WithInfrastructure()
         └── InfrastructureBuilder (validates required components)
-              ├── UsingAzureServiceBusPolicyListener() → ServiceBusReceiverBuilder
-              ├── UsingAzureServiceBusPolicyListener(name) → ServiceBusReceiverBuilder (named)
+              ├── UsingAzureServiceBusReceiver() → ServiceBusReceiverBuilder
+              ├── UsingAzureServiceBusReceiver(name) → ServiceBusReceiverBuilder (named)
               ├── ModelBuilder.WithWriteModel()
               │     └── WriteModelBuilder
               │           ├── UsingExecutors() → CommandExecutorBuilder

@@ -49,7 +49,7 @@ services.AddCascadeEsdm(cascade => cascade
         .UsingAzureDistributedLocks(locks => locks
             .WithConnectionString(storageConnection))
         .UsingApplicationInsights()
-        .UsingAzureServiceBusPolicyListener(asb => asb
+        .UsingAzureServiceBusReceiver(asb => asb
             .WithConnectionString(serviceBusConnection)
             .WithTopic("domain-events")
             .WithSubscription("policy-handler")))
@@ -67,7 +67,7 @@ services.AddCascadeEsdm(cascade => cascade
 
 `AddPolicyListener` validates at startup that:
 - `IPolicyDispatcher` is registered (call `UsingPolicies` first)
-- An `IMessageReceiver` is registered with the matching key (call `UsingAzureServiceBusPolicyListener` with the same name, or register a custom implementation)
+- An `IMessageReceiver` is registered with the matching key (call `UsingAzureServiceBusReceiver` with the same name, or register a custom implementation)
 
 For named listeners, it checks for a keyed `IMessageReceiver` registration matching the listener name. For unnamed listeners, it checks for a standard (non-keyed) `IMessageReceiver` registration. A mismatch throws an `InvalidOperationException` at startup with a clear message.
 
@@ -122,7 +122,7 @@ By default, `PolicyListener` uses `DefaultSerialisationSettings.ForMessageBus()`
 
 ## Multiple Listeners
 
-To listen to multiple Service Bus topics/subscriptions, call `AddPolicyListener` and `UsingAzureServiceBusPolicyListener` multiple times with matching name keys. Each call produces an independent `IHostedService` with its own `IMessageReceiver`, `JsonSerializerOptions`, and `IMessageExceptionHandler`. All listeners share the same registered `IPolicyDispatcher` and therefore the same set of policies.
+To listen to multiple Service Bus topics/subscriptions, call `AddPolicyListener` and `UsingAzureServiceBusReceiver` multiple times with matching name keys. Each call produces an independent `IHostedService` with its own `IMessageReceiver`, `JsonSerializerOptions`, and `IMessageExceptionHandler`. All listeners share the same registered `IPolicyDispatcher` and therefore the same set of policies.
 
 ### Named Key Pattern
 
@@ -142,15 +142,15 @@ public static class PolicyListeners
 services.AddCascadeEsdm(cascade => cascade
     .WithInfrastructure(infra => infra
         // ... storage, locks, telemetry ...
-        .UsingAzureServiceBusPolicyListener(asb => asb              // default — no name
+        .UsingAzureServiceBusReceiver(asb => asb              // default — no name
             .WithConnectionString(conn1)
             .WithTopic("domain-events")
             .WithSubscription("policy-handler"))
-        .UsingAzureServiceBusPolicyListener(PolicyListeners.Orders, asb => asb
+        .UsingAzureServiceBusReceiver(PolicyListeners.Orders, asb => asb
             .WithConnectionString(conn2)
             .WithTopic("orders")
             .WithSubscription("policy-handler"))
-        .UsingAzureServiceBusPolicyListener(PolicyListeners.Payments, asb => asb
+        .UsingAzureServiceBusReceiver(PolicyListeners.Payments, asb => asb
             .WithConnectionString(conn3)
             .WithTopic("payments")
             .WithSubscription("policy-handler")))
@@ -229,13 +229,13 @@ dotnet add package CascadeEsdm.Messaging.AzureServiceBus
 
 ```csharp
 // Unnamed (default) listener
-infra.UsingAzureServiceBusPolicyListener(asb => asb
+infra.UsingAzureServiceBusReceiver(asb => asb
     .WithConnectionString(connectionString)  // required
     .WithTopic(topicName)                    // required
     .WithSubscription(subscriptionName))     // required
 
 // Named listener
-infra.UsingAzureServiceBusPolicyListener("orders", asb => asb
+infra.UsingAzureServiceBusReceiver("orders", asb => asb
     .WithConnectionString(connectionString)
     .WithTopic("orders")
     .WithSubscription("policy-handler"))

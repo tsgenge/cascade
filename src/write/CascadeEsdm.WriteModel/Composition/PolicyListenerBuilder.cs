@@ -47,8 +47,8 @@ public class PolicyListenerBuilder
         if (!receiverRegistered)
             throw new InvalidOperationException(
                 _name == null
-                    ? "IMessageReceiver is not registered. Call UsingAzureServiceBusPolicyListener before UsingPolicyListener."
-                    : $"No IMessageReceiver registered with key '{_name}'. Call UsingAzureServiceBusPolicyListener with the matching name.");
+                    ? "IMessageReceiver is not registered. Call UsingAzureServiceBusReceiver before UsingPolicyListener."
+                    : $"No IMessageReceiver registered with key '{_name}'. Call UsingAzureServiceBusReceiver with the matching name.");
 
         var options = _serializerOptions ?? DefaultSerialisationSettings.ForMessageBus();
 

@@ -1,6 +1,6 @@
 # Multi-Source Policy Listener
 
-Allow multiple `AddPolicyListener` calls (write model) paired with multiple `UsingAzureServiceBusPolicyListener` calls (infra), each producing an independent `IHostedService` that listens to a distinct Service Bus topic/subscription. All listeners share the same registered `IPolicyDispatcher` and therefore the same set of policies, but each listener gets its own `IMessageReceiver`, `JsonSerializerOptions`, and `IMessageExceptionHandler`.
+Allow multiple `AddPolicyListener` calls (write model) paired with multiple `UsingAzureServiceBusReceiver` calls (infra), each producing an independent `IHostedService` that listens to a distinct Service Bus topic/subscription. All listeners share the same registered `IPolicyDispatcher` and therefore the same set of policies, but each listener gets its own `IMessageReceiver`, `JsonSerializerOptions`, and `IMessageExceptionHandler`.
 
 ## For Future Agents
 As work proceeds: mark checkboxes `- [x]` as items complete; when a phase is done, set its status to `Complete` and write its **Phase Summary** (what was done, key decisions, anything needed to continue with zero context); run the phase's **Verification Plan** and record the result before moving on. When all phases are done, fill in **Final Recap** and **Deployment Plan**.
@@ -15,7 +15,7 @@ As work proceeds: mark checkboxes `- [x]` as items complete; when a phase is don
 ### Chosen solution: named keyed services
 `Microsoft.Extensions.DependencyInjection.Abstractions` 8.0+ (package-provided on `netstandard2.1`, already referenced at 10.0.3) supports `AddKeyedSingleton` / `IKeyedServiceProvider`. Both the infra registration and the write model listener registration share a string key — the default (unnamed) listener uses `null` as the key.
 
-- `UsingAzureServiceBusPolicyListener(string? name, Action<ServiceBusReceiverBuilder>)` registers `IMessageReceiver` as a keyed singleton under `name`.
+- `UsingAzureServiceBusReceiver(string? name, Action<ServiceBusReceiverBuilder>)` registers `IMessageReceiver` as a keyed singleton under `name`.
 - `AddPolicyListener(string? name, Action<PolicyListenerBuilder>?)` captures `name` and registers a factory `IHostedService` that resolves `IKeyedServiceProvider.GetRequiredKeyedService<IMessageReceiver>(name)` at runtime.
 - A mismatch between the name on the infra side and the name on the write model side produces a clear `InvalidOperationException` at startup — not a silent mis-wiring.
 - Recommended pattern: a static constants class in the consuming application.
@@ -33,15 +33,15 @@ public static class PolicyListeners
 }
 
 // infra
-.UsingAzureServiceBusPolicyListener(asb => asb              // default — no name
+.UsingAzureServiceBusReceiver(asb => asb              // default — no name
     .WithConnectionString(conn1)
     .WithTopic("domain-events")
     .WithSubscription("policy-handler"))
-.UsingAzureServiceBusPolicyListener(PolicyListeners.Orders, asb => asb
+.UsingAzureServiceBusReceiver(PolicyListeners.Orders, asb => asb
     .WithConnectionString(conn2)
     .WithTopic("orders")
     .WithSubscription("policy-handler"))
-.UsingAzureServiceBusPolicyListener(PolicyListeners.Payments, asb => asb
+.UsingAzureServiceBusReceiver(PolicyListeners.Payments, asb => asb
     .WithConnectionString(conn3)
     .WithTopic("payments")
     .WithSubscription("policy-handler"))
@@ -55,7 +55,7 @@ public static class PolicyListeners
 ```
 
 ### Backwards compatibility
-- `UsingAzureServiceBusPolicyListener(Action<ServiceBusReceiverBuilder>)` (no name) remains — registers under key `null`.
+- `UsingAzureServiceBusReceiver(Action<ServiceBusReceiverBuilder>)` (no name) remains — registers under key `null`.
 - `UsingPolicyListener(Action<PolicyListenerBuilder>?)` remains — delegates to `AddPolicyListener(null, configure)`.
 - Single-listener consumers require zero changes.
 
@@ -81,20 +81,20 @@ Status: Complete
   (`[FromKeyedServices]` on `AzureServiceBusReceiver`'s constructor cannot be used here because the key is dynamic — factory delegates are used instead.)
 
 **`InfrastructureBuilderExtensions`** (`src/infrastructure/CascadeEsdm.Messaging.AzureServiceBus/InfrastructureBuilderExtensions.cs`):
-- Add a named overload: `UsingAzureServiceBusPolicyListener(this InfrastructureBuilder builder, string name, Action<ServiceBusReceiverBuilder> configure)` — passes `name` into `ServiceBusReceiverBuilder`.
+- Add a named overload: `UsingAzureServiceBusReceiver(this InfrastructureBuilder builder, string name, Action<ServiceBusReceiverBuilder> configure)` — passes `name` into `ServiceBusReceiverBuilder`.
 - Keep the existing no-name overload; it passes `null` to `ServiceBusReceiverBuilder` (registers under the default `null` key).
 
 - [x] Add `string? _name` to `ServiceBusReceiverBuilder` and update its internal constructor/factory method
 - [x] Change `ServiceBusProcessor` registration in `Build()` to `AddKeyedSingleton` using `_name`
 - [x] Change `IMessageReceiver` registration in `Build()` to `AddKeyedSingleton` factory using `_name`
-- [x] Add named overload `UsingAzureServiceBusPolicyListener(string name, Action<ServiceBusReceiverBuilder>)` in `InfrastructureBuilderExtensions`
+- [x] Add named overload `UsingAzureServiceBusReceiver(string name, Action<ServiceBusReceiverBuilder>)` in `InfrastructureBuilderExtensions`
 
 ### Verification Plan
 - `dotnet build src/infrastructure/CascadeEsdm.Messaging.AzureServiceBus/CascadeEsdm.Messaging.AzureServiceBus.csproj` — expect **Build succeeded, 0 error(s)**
 - `dotnet build Cascade.Esdm.slnx` — full solution builds clean
 
 ### Phase Summary
-Added `string? _name` field to `ServiceBusReceiverBuilder` (set via internal constructor). Changed `Build()` to register `ServiceBusProcessor` and `IMessageReceiver` as keyed singletons using `_name`. Added named overload `UsingAzureServiceBusPolicyListener(string? name, ...)` in `InfrastructureBuilderExtensions`; existing no-name overload delegates with `null`. Key decision: `AddKeyedSingleton(null, ...)` creates a non-keyed descriptor (`IsKeyedService == false`) but `GetRequiredKeyedService(null)` still resolves it — this is .NET runtime behaviour, handled in Phase 2's guard logic. Both verification builds passed with 0 errors.
+Added `string? _name` field to `ServiceBusReceiverBuilder` (set via internal constructor). Changed `Build()` to register `ServiceBusProcessor` and `IMessageReceiver` as keyed singletons using `_name`. Added named overload `UsingAzureServiceBusReceiver(string? name, ...)` in `InfrastructureBuilderExtensions`; existing no-name overload delegates with `null`. Key decision: `AddKeyedSingleton(null, ...)` creates a non-keyed descriptor (`IsKeyedService == false`) but `GetRequiredKeyedService(null)` still resolves it — this is .NET runtime behaviour, handled in Phase 2's guard logic. Both verification builds passed with 0 errors.
 
 ---
 
@@ -109,7 +109,7 @@ Status: Complete
 - Add `WithExceptionHandler<THandler>() where THandler : class, IMessageExceptionHandler` — stores `typeof(THandler)`, does not register in DI.
 - Refactor `Build()`:
   - Keep the `IPolicyDispatcher` guard.
-  - Update the `IMessageReceiver` guard: check that a keyed registration exists for `_name` — `_services.Any(s => s.ServiceType == typeof(IMessageReceiver) && s.IsKeyedService && Equals(s.ServiceKey, _name))`. Error message: `"No IMessageReceiver registered with key '{_name}'. Call UsingAzureServiceBusPolicyListener with the matching name."`
+  - Update the `IMessageReceiver` guard: check that a keyed registration exists for `_name` — `_services.Any(s => s.ServiceType == typeof(IMessageReceiver) && s.IsKeyedService && Equals(s.ServiceKey, _name))`. Error message: `"No IMessageReceiver registered with key '{_name}'. Call UsingAzureServiceBusReceiver with the matching name."`
   - Remove `_services.AddSingleton(options)` — options are closure-captured per listener.
   - Remove `DefaultMessageExceptionHandler` global registration.
   - Register `IHostedService` via a factory:
@@ -179,7 +179,7 @@ Existing tests and their disposition:
 - `ServiceBusReceiverBuilder_WhenAllSet_RegistersAzureServiceBusReceiverAsIMessageReceiver` — **update**: assert `IMessageReceiver` is registered as a non-keyed service (`!s.IsKeyedService`) because `AddKeyedSingleton(null, ...)` creates a non-keyed descriptor.
 
 New tests to add:
-- `UsingAzureServiceBusPolicyListener_WhenNamedOverloadUsed_RegistersKeyedReceiverWithMatchingKey` — uses the new named overload with a name string; asserts `IMessageReceiver` keyed under that name is registered.
+- `UsingAzureServiceBusReceiver_WhenNamedOverloadUsed_RegistersKeyedReceiverWithMatchingKey` — uses the new named overload with a name string; asserts `IMessageReceiver` keyed under that name is registered.
 
 **`PolicyListenerTests`** (`tests/CascadeEsdm.WriteModel.Tests/UnitTests/Policies/PolicyListenerTests.cs`):
 - No changes needed — `PolicyListener` constructor is unchanged.
@@ -193,7 +193,7 @@ New tests to add:
 - [x] Add `AddPolicyListener_WhenWithExceptionHandlerCalled_ResolvesSpecifiedType`
 - [x] Add `UsingPolicyListener_BackwardsCompatibility_StillRegistersOneHostedService`
 - [x] Update `ServiceBusReceiverBuilder_WhenAllSet_RegistersAzureServiceBusReceiverAsIMessageReceiver` for keyed assertion
-- [x] Add `UsingAzureServiceBusPolicyListener_WhenNamedOverloadUsed_RegistersKeyedReceiverWithMatchingKey`
+- [x] Add `UsingAzureServiceBusReceiver_WhenNamedOverloadUsed_RegistersKeyedReceiverWithMatchingKey`
 
 ### Verification Plan
 - `dotnet test tests/CascadeEsdm.WriteModel.Tests/CascadeEsdm.WriteModel.Tests.csproj` — all tests pass, including new ones
@@ -218,7 +218,7 @@ Status: Complete
   - Show the full multi-listener composition example (infra + write model).
   - Document `WithExceptionHandler<THandler>()` per-listener override.
   - Note that key mismatch throws `InvalidOperationException` at startup with a clear message.
-- **Azure Service Bus section** (line ~169–197): add the named overload `UsingAzureServiceBusPolicyListener(string name, ...)` to the configuration reference.
+- **Azure Service Bus section** (line ~169–197): add the named overload `UsingAzureServiceBusReceiver(string name, ...)` to the configuration reference.
 
 ### `/docs/CompositionUsage.md`
 - **"Register Policy Listener" section** (line ~148–163): update `UsingPolicyListener()` reference to mention `AddPolicyListener` as the new preferred method; update the builder tree diagram (line ~300) to show `AddPolicyListener()` alongside `UsingPolicyListener()` (alias).
@@ -265,4 +265,4 @@ Standard NuGet package publish:
 1. Merge PR to main.
 2. CI/CD pipeline builds and publishes updated packages: `CascadeEsdm.Messaging.AzureServiceBus`, `CascadeEsdm.WriteModel`, `CascadeEsdm.AIContext`.
 3. Consumer apps that use `UsingPolicyListener()` continue to work with no changes.
-4. To adopt multi-listener, consumers add named `UsingAzureServiceBusPolicyListener` and `AddPolicyListener` calls.
+4. To adopt multi-listener, consumers add named `UsingAzureServiceBusReceiver` and `AddPolicyListener` calls.
