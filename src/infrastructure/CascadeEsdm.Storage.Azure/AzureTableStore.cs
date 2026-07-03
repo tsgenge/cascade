@@ -12,8 +12,7 @@ internal class AzureTableStore<TEntity> : ITableStore<TEntity>
 
     public AzureTableStore(IEntityTableClient<TEntity> tableClient, ILogger<AzureTableStore<TEntity>> logger)
     {
-        ArgumentNullException.ThrowIfNull(tableClient);
-        _tableClient = tableClient.GetTableClient();
+        _tableClient = tableClient?.GetTableClient() ?? throw new ArgumentNullException(nameof(tableClient));
         _logger = logger;
     }
 

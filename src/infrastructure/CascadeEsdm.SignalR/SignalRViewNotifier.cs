@@ -42,7 +42,7 @@ public class SignalRViewNotifier : IViewNotificationService
         return viewType.Name.Replace("View", "").ToLower();
     }
 
-    private IList<string> GetGroupNames<TView>(IEnumerable<Projection<TView>> projections)
+    private IReadOnlyList<string> GetGroupNames<TView>(IEnumerable<Projection<TView>> projections)
         where TView : IView
     {
         var retVal = new List<string>();

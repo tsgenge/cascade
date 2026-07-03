@@ -7,8 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
-        <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
+        <None Include="docs\README.md" Pack="true" PackagePath="\"/>
+        <None Include="docs\icon.jpg" Pack="true" PackagePath="\"/>
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.Azure.SignalR.Management" Version="1.33.0"/>
@@ -16,7 +16,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\read\CascadeEsdm.ReadModel.Abstractions\CascadeEsdm.ReadModel.Abstractions.csproj"/>
-        <ProjectReference Include="..\..\read\CascadeEsdm.ReadModel\CascadeEsdm.ReadModel.csproj"/>
+        <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj"/>
     </ItemGroup>
 
 </Project>

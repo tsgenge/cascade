@@ -17,6 +17,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />
-        <ProjectReference Include="..\..\write\CascadeEsdm.WriteModel\CascadeEsdm.WriteModel.csproj" />
+        <ProjectReference Include="..\..\write\CascadeEsdm.WriteModel.Abstractions\CascadeEsdm.WriteModel.Abstractions.csproj" />
     </ItemGroup>
 </Project>
