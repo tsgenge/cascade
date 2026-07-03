@@ -10,7 +10,15 @@ public static class InfrastructureBuilderExtensions
         this InfrastructureBuilder builder,
         Action<ServiceBusReceiverBuilder> configure)
     {
-        var receiverBuilder = new ServiceBusReceiverBuilder(builder);
+        return builder.UsingAzureServiceBusPolicyListener(null, configure);
+    }
+
+    public static InfrastructureBuilder UsingAzureServiceBusPolicyListener(
+        this InfrastructureBuilder builder,
+        string? name,
+        Action<ServiceBusReceiverBuilder> configure)
+    {
+        var receiverBuilder = new ServiceBusReceiverBuilder(builder, name);
         configure(receiverBuilder);
         receiverBuilder.Build();
 

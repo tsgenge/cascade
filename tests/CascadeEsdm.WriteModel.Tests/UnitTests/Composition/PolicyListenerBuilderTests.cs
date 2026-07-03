@@ -1,3 +1,4 @@
+using CascadeEsdm.SharedKernel.Composition;
 using CascadeEsdm.SharedKernel.Infrastructure.Messaging;
 using CascadeEsdm.WriteModel.Composition;
 using CascadeEsdm.WriteModel.Policies;
@@ -14,7 +15,7 @@ public class PolicyListenerBuilderTests
     public void UsingPolicyListener_WhenPolicyDispatcherNotRegistered_ThrowsInvalidOperationException()
     {
         var services = new ServiceCollection();
-        services.AddSingleton(Substitute.For<IMessageReceiver>());
+        services.AddKeyedSingleton<IMessageReceiver>((object?)null, Substitute.For<IMessageReceiver>());
         var builder = new PolicyListenerBuilder(services);
 
         var act = () => builder.Build();
@@ -41,45 +42,75 @@ public class PolicyListenerBuilderTests
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
-        services.AddSingleton(Substitute.For<IMessageReceiver>());
+        services.AddKeyedSingleton<IMessageReceiver>((object?)null, Substitute.For<IMessageReceiver>());
         var builder = new PolicyListenerBuilder(services);
 
         builder.Build();
 
         services.Should().Contain(s =>
             s.ServiceType == typeof(IHostedService) &&
-            s.ImplementationType == typeof(PolicyListener));
+            s.ImplementationType == null);
     }
 
     [Fact]
-    public void UsingPolicyListener_WhenNoExceptionHandlerRegistered_RegistersDefaultMessageExceptionHandler()
+    public void AddPolicyListener_WhenCalledTwiceWithDifferentNames_RegistersTwoHostedServices()
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
-        services.AddSingleton(Substitute.For<IMessageReceiver>());
-        var builder = new PolicyListenerBuilder(services);
+        services.AddKeyedSingleton<IMessageReceiver>("orders", Substitute.For<IMessageReceiver>());
+        services.AddKeyedSingleton<IMessageReceiver>("payments", Substitute.For<IMessageReceiver>());
+        var builder = new WriteModelBuilder(services);
 
-        builder.Build();
+        builder.AddPolicyListener("orders");
+        builder.AddPolicyListener("payments");
 
-        services.Should().Contain(s =>
-            s.ServiceType == typeof(IMessageExceptionHandler) &&
-            s.ImplementationType == typeof(DefaultMessageExceptionHandler));
+        services.Where(s => s.ServiceType == typeof(IHostedService))
+            .Should().HaveCount(2);
     }
 
     [Fact]
-    public void UsingPolicyListener_WhenCustomExceptionHandlerRegistered_DoesNotOverrideIt()
+    public void AddPolicyListener_WhenReceiverKeyNotRegistered_ThrowsAtBuildTime()
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
-        services.AddSingleton(Substitute.For<IMessageReceiver>());
-        services.AddSingleton<IMessageExceptionHandler, CustomTestExceptionHandler>();
-        var builder = new PolicyListenerBuilder(services);
+        var builder = new PolicyListenerBuilder(services, "unknown");
 
+        var act = () => builder.Build();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*'unknown'*");
+    }
+
+    [Fact]
+    public void AddPolicyListener_WhenWithExceptionHandlerCalled_ResolvesSpecifiedType()
+    {
+        var services = new ServiceCollection();
+        services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
+        services.AddKeyedSingleton<IMessageReceiver>("test", Substitute.For<IMessageReceiver>());
+        services.AddSingleton<CustomTestExceptionHandler>();
+        services.AddLogging();
+        var builder = new PolicyListenerBuilder(services, "test");
+
+        builder.WithExceptionHandler<CustomTestExceptionHandler>();
         builder.Build();
 
-        services.Where(s => s.ServiceType == typeof(IMessageExceptionHandler))
-            .Should().HaveCount(1)
-            .And.Contain(s => s.ImplementationType == typeof(CustomTestExceptionHandler));
+        var provider = services.BuildServiceProvider();
+        var hostedService = provider.GetRequiredService<IHostedService>();
+        hostedService.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void UsingPolicyListener_BackwardsCompatibility_StillRegistersOneHostedService()
+    {
+        var services = new ServiceCollection();
+        services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
+        services.AddKeyedSingleton<IMessageReceiver>((object?)null, Substitute.For<IMessageReceiver>());
+        var builder = new WriteModelBuilder(services);
+
+        builder.UsingPolicyListener();
+
+        services.Where(s => s.ServiceType == typeof(IHostedService))
+            .Should().HaveCount(1);
     }
 }
 

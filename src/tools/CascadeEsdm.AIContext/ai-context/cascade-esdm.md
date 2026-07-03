@@ -678,7 +678,7 @@ All abstractions are in `CascadeEsdm.SharedKernel.Infrastructure.Messaging`.
 
 ### Composition
 
-Wire up the policy listener after `UsingPolicies` and an `IMessageReceiver` registration:
+Wire up the policy listener after `UsingPolicies` and an `IMessageReceiver` registration. Use `AddPolicyListener` (preferred) or `UsingPolicyListener` (backwards-compatible alias):
 
 ```csharp
 services.AddCascadeEsdm(cascade => cascade
@@ -701,15 +701,15 @@ services.AddCascadeEsdm(cascade => cascade
             .AddEventAppliersFromAssembly<OrderAggregate>())
         .UsingPolicies(policies => policies
             .AddPoliciesFromAssembly<OrderAggregate>())
-        .UsingPolicyListener()));
+        .AddPolicyListener()));
 ```
 
 ### Validation
 
-`UsingPolicyListener` validates at startup:
+`AddPolicyListener` validates at startup:
 - `IPolicyDispatcher` is registered (call `UsingPolicies` first) — throws `InvalidOperationException` if missing
-- `IMessageReceiver` is registered — throws `InvalidOperationException` if missing
-- If no `IMessageExceptionHandler` is registered, `DefaultMessageExceptionHandler` is added automatically
+- An `IMessageReceiver` is registered with the matching key — for named listeners, checks for a keyed registration; for unnamed, checks for a standard registration
+- `DefaultMessageExceptionHandler` is constructed inline when no handler is specified via `WithExceptionHandler<T>()` (not registered globally in DI)
 
 ### Custom Serialisation
 
@@ -725,17 +725,65 @@ Override the default `ForMessageBus()` serialisation settings:
 The `CascadeEsdm.Messaging.AzureServiceBus` package provides `AzureServiceBusReceiver : IMessageReceiver`, configured via `UsingAzureServiceBusPolicyListener` on the infrastructure builder:
 
 ```csharp
+// Unnamed (default) listener
 infra.UsingAzureServiceBusPolicyListener(asb => asb
     .WithConnectionString(connectionString)  // required
     .WithTopic(topicName)                    // required
     .WithSubscription(subscriptionName))     // required
+
+// Named listener
+infra.UsingAzureServiceBusPolicyListener("orders", asb => asb
+    .WithConnectionString(connectionString)
+    .WithTopic("orders")
+    .WithSubscription("policy-handler"))
 ```
 
-All three settings are required — `InvalidOperationException` if any is missing.
+All three settings are required — `InvalidOperationException` if any is missing. The named overload registers the receiver as a keyed service under the given name.
+
+### Multiple Listeners
+
+To listen to multiple Service Bus topics/subscriptions, call `AddPolicyListener` and `UsingAzureServiceBusPolicyListener` multiple times with matching name keys. Each produces an independent `IHostedService`. All share the same `IPolicyDispatcher` and policies.
+
+Recommended: define names as constants to avoid mismatches:
+
+```csharp
+public static class PolicyListeners
+{
+    public const string Orders = "orders";
+    public const string Payments = "payments";
+}
+```
+
+Composition:
+
+```csharp
+// infra
+.UsingAzureServiceBusPolicyListener(asb => asb              // default
+    .WithConnectionString(conn1)
+    .WithTopic("domain-events")
+    .WithSubscription("policy-handler"))
+.UsingAzureServiceBusPolicyListener(PolicyListeners.Orders, asb => asb
+    .WithConnectionString(conn2)
+    .WithTopic("orders")
+    .WithSubscription("policy-handler"))
+
+// write model
+.AddPolicyListener()                                        // default
+.AddPolicyListener(PolicyListeners.Orders)                  // binds to "orders" receiver
+.AddPolicyListener(PolicyListeners.Payments, l => l         // per-listener overrides
+    .WithSerialisationSettings(myOptions)
+    .WithExceptionHandler<MyExceptionHandler>())
+```
+
+Per-listener overrides:
+- `WithSerialisationSettings(JsonSerializerOptions)` — custom deserialisation
+- `WithExceptionHandler<THandler>()` — custom exception handler (must be registered in DI by caller)
+
+A name mismatch throws `InvalidOperationException` at startup.
 
 ### Custom Transport
 
-Implement `IMessageReceiver` for a different message bus and register it before `UsingPolicyListener`:
+Implement `IMessageReceiver` for a different message bus and register it before `AddPolicyListener`:
 
 ```csharp
 services.AddSingleton<IMessageReceiver, RabbitMqReceiver>();

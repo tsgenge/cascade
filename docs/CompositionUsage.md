@@ -147,20 +147,30 @@ This registers reactive policies that execute in response to domain events. Poli
 
 #### Register Policy Listener
 
-To bridge an external message bus to the policy dispatcher, call `UsingPolicyListener` after `UsingPolicies`. This requires an `IMessageReceiver` to be registered (e.g. via `UsingAzureServiceBusPolicyListener` on the infrastructure builder):
+To bridge an external message bus to the policy dispatcher, call `AddPolicyListener` after `UsingPolicies`. This requires an `IMessageReceiver` to be registered (e.g. via `UsingAzureServiceBusPolicyListener` on the infrastructure builder). `UsingPolicyListener` remains as a backwards-compatible alias for `AddPolicyListener`:
 
 ```csharp
-write.UsingPolicyListener()
+write.AddPolicyListener()
 ```
 
-Optionally override the serialisation settings:
+Optionally override the serialisation settings or exception handler:
 
 ```csharp
-write.UsingPolicyListener(listener => listener
-    .WithSerialisationSettings(myCustomOptions))
+write.AddPolicyListener(configure: listener => listener
+    .WithSerialisationSettings(myCustomOptions)
+    .WithExceptionHandler<MyExceptionHandler>())
 ```
 
-See [PolicyListener.md](PolicyListener.md) for full details on the policy listener, messaging abstractions, and the Azure Service Bus infrastructure package.
+Multiple listeners can be registered with named keys to listen to different topics/subscriptions:
+
+```csharp
+write.AddPolicyListener()                               // default — binds to unnamed receiver
+    .AddPolicyListener("orders")                         // binds to "orders" receiver
+    .AddPolicyListener("payments", l => l                // per-listener overrides
+        .WithExceptionHandler<MyExceptionHandler>())
+```
+
+See [PolicyListener.md](PolicyListener.md) for full details on the policy listener, messaging abstractions, multiple listeners, and the Azure Service Bus infrastructure package.
 
 | Method | Description |
 |---|---|
@@ -292,12 +302,14 @@ ServiceCollectionExtensions.AddCascadeEsdm()
   └── CascadeBuilder.WithInfrastructure()
         └── InfrastructureBuilder (validates required components)
               ├── UsingAzureServiceBusPolicyListener() → ServiceBusReceiverBuilder
+              ├── UsingAzureServiceBusPolicyListener(name) → ServiceBusReceiverBuilder (named)
               ├── ModelBuilder.WithWriteModel()
               │     └── WriteModelBuilder
               │           ├── UsingExecutors() → CommandExecutorBuilder
               │           ├── UsingAppliers() → EventApplierBuilder
               │           ├── UsingPolicies() → PolicyBuilder
-              │           └── UsingPolicyListener() → PolicyListenerBuilder
+              │           ├── AddPolicyListener() → PolicyListenerBuilder
+              │           └── UsingPolicyListener() → PolicyListenerBuilder (alias)
               └── ModelBuilder.WithReadModel()
                     └── ReadModelBuilder
                           └── WithViews() → ViewBuilder

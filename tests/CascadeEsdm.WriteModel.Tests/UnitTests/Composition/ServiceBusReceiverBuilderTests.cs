@@ -68,6 +68,27 @@ public class ServiceBusReceiverBuilderTests
             b.WithSubscription("my-subscription");
         });
 
-        services.Should().Contain(s => s.ServiceType == typeof(IMessageReceiver));
+        services.Should().Contain(s =>
+            s.ServiceType == typeof(IMessageReceiver) &&
+            !s.IsKeyedService);
+    }
+
+    [Fact]
+    public void UsingAzureServiceBusPolicyListener_WhenNamedOverloadUsed_RegistersKeyedReceiverWithMatchingKey()
+    {
+        var services = new ServiceCollection();
+        var infraBuilder = new InfrastructureBuilder(services);
+
+        infraBuilder.UsingAzureServiceBusPolicyListener("orders", b =>
+        {
+            b.WithConnectionString("Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=key;SharedAccessKey=value");
+            b.WithTopic("orders-topic");
+            b.WithSubscription("policy-handler");
+        });
+
+        services.Should().Contain(s =>
+            s.ServiceType == typeof(IMessageReceiver) &&
+            s.IsKeyedService &&
+            Equals(s.ServiceKey, "orders"));
     }
 }
