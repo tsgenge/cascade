@@ -74,9 +74,15 @@ public static class WriteModelBuilderExtensions
     public static WriteModelBuilder UsingPolicyListener(this WriteModelBuilder builder,
         Action<PolicyListenerBuilder>? configure = null)
     {
+        return builder.AddPolicyListener(null, configure);
+    }
+
+    public static WriteModelBuilder AddPolicyListener(this WriteModelBuilder builder,
+        string? name = null, Action<PolicyListenerBuilder>? configure = null)
+    {
         var services = builder.Services;
 
-        var listenerBuilder = new PolicyListenerBuilder(services);
+        var listenerBuilder = new PolicyListenerBuilder(services, name);
         configure?.Invoke(listenerBuilder);
         listenerBuilder.Build();
 

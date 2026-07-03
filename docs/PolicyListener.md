@@ -37,7 +37,7 @@ PolicyListener.HandleMessageAsync(message)
 
 ## Composition
 
-Wire up the policy listener using `UsingPolicyListener` on the `WriteModelBuilder`, after `UsingPolicies`:
+Wire up the policy listener using `AddPolicyListener` on the `WriteModelBuilder`, after `UsingPolicies`. `UsingPolicyListener` remains as a backwards-compatible alias for `AddPolicyListener`:
 
 ```csharp
 services.AddCascadeEsdm(cascade => cascade
@@ -49,7 +49,7 @@ services.AddCascadeEsdm(cascade => cascade
         .UsingAzureDistributedLocks(locks => locks
             .WithConnectionString(storageConnection))
         .UsingApplicationInsights()
-        .UsingAzureServiceBusPolicyListener(asb => asb
+        .UsingAzureServiceBusReceiver(asb => asb
             .WithConnectionString(serviceBusConnection)
             .WithTopic("domain-events")
             .WithSubscription("policy-handler")))
@@ -60,20 +60,22 @@ services.AddCascadeEsdm(cascade => cascade
             .AddEventAppliersFromAssembly<OrderAggregate>())
         .UsingPolicies(policies => policies
             .AddPoliciesFromAssembly<OrderAggregate>())
-        .UsingPolicyListener()));
+        .AddPolicyListener()));
 ```
 
 ### Validation
 
-`UsingPolicyListener` validates at startup that:
+`AddPolicyListener` validates at startup that:
 - `IPolicyDispatcher` is registered (call `UsingPolicies` first)
-- `IMessageReceiver` is registered (call `UsingAzureServiceBusPolicyListener` or register a custom implementation first)
+- An `IMessageReceiver` is registered with the matching key (call `UsingAzureServiceBusReceiver` with the same name, or register a custom implementation)
 
-If either is missing, an `InvalidOperationException` is thrown with a clear message.
+For named listeners, it checks for a keyed `IMessageReceiver` registration matching the listener name. For unnamed listeners, it checks for a standard (non-keyed) `IMessageReceiver` registration. A mismatch throws an `InvalidOperationException` at startup with a clear message.
 
 ### Default Exception Handler
 
-If no `IMessageExceptionHandler` is registered, `UsingPolicyListener` registers `DefaultMessageExceptionHandler`, which always returns `MessageAction.DeadLetter`. To override, implement `IMessageExceptionHandler` and register it before calling `UsingPolicyListener`:
+When no exception handler is specified, `DefaultMessageExceptionHandler` is constructed inline — it is not registered globally in DI. It always returns `MessageAction.DeadLetter`.
+
+To override per listener, call `WithExceptionHandler<THandler>()` on the builder. The handler type must be registered in DI by the caller:
 
 ```csharp
 using CascadeEsdm.SharedKernel.Infrastructure.Messaging;
@@ -99,10 +101,14 @@ internal class RetryableExceptionHandler : IMessageExceptionHandler
 }
 ```
 
-Register the custom handler in the DI container:
+Register the handler in DI and reference it in the listener builder:
 
 ```csharp
-services.AddSingleton<IMessageExceptionHandler, RetryableExceptionHandler>();
+services.AddSingleton<RetryableExceptionHandler>();
+
+// ...
+.AddPolicyListener("orders", l => l
+    .WithExceptionHandler<RetryableExceptionHandler>())
 ```
 
 ### Custom Serialisation
@@ -110,9 +116,54 @@ services.AddSingleton<IMessageExceptionHandler, RetryableExceptionHandler>();
 By default, `PolicyListener` uses `DefaultSerialisationSettings.ForMessageBus()` for deserialisation. Override via the builder:
 
 ```csharp
-.UsingPolicyListener(listener => listener
+.AddPolicyListener(configure: listener => listener
     .WithSerialisationSettings(myCustomOptions))
 ```
+
+## Multiple Listeners
+
+To listen to multiple Service Bus topics/subscriptions, call `AddPolicyListener` and `UsingAzureServiceBusReceiver` multiple times with matching name keys. Each call produces an independent `IHostedService` with its own `IMessageReceiver`, `JsonSerializerOptions`, and `IMessageExceptionHandler`. All listeners share the same registered `IPolicyDispatcher` and therefore the same set of policies.
+
+### Named Key Pattern
+
+Define listener names as constants in a static class to avoid key mismatches:
+
+```csharp
+public static class PolicyListeners
+{
+    public const string Orders = "orders";
+    public const string Payments = "payments";
+}
+```
+
+### Full Multi-Listener Example
+
+```csharp
+services.AddCascadeEsdm(cascade => cascade
+    .WithInfrastructure(infra => infra
+        // ... storage, locks, telemetry ...
+        .UsingAzureServiceBusReceiver(asb => asb              // default — no name
+            .WithConnectionString(conn1)
+            .WithTopic("domain-events")
+            .WithSubscription("policy-handler"))
+        .UsingAzureServiceBusReceiver(PolicyListeners.Orders, asb => asb
+            .WithConnectionString(conn2)
+            .WithTopic("orders")
+            .WithSubscription("policy-handler"))
+        .UsingAzureServiceBusReceiver(PolicyListeners.Payments, asb => asb
+            .WithConnectionString(conn3)
+            .WithTopic("payments")
+            .WithSubscription("policy-handler")))
+    .WithWriteModel(write => write
+        // ... executors, appliers, policies ...
+        .AddPolicyListener()                                        // default — binds to unnamed receiver
+        .AddPolicyListener(PolicyListeners.Orders)                  // binds to "orders" receiver
+        .AddPolicyListener(PolicyListeners.Payments, l => l         // per-listener overrides
+            .WithSerialisationSettings(myOptions)
+            .WithExceptionHandler<MyExceptionHandler>())));
+```
+
+A mismatch between the name on the infrastructure side and the name on the write model side throws an `InvalidOperationException` at startup with a clear message.
 
 ## Abstractions
 
@@ -177,13 +228,20 @@ dotnet add package CascadeEsdm.Messaging.AzureServiceBus
 ### Configuration
 
 ```csharp
-infra.UsingAzureServiceBusPolicyListener(asb => asb
+// Unnamed (default) listener
+infra.UsingAzureServiceBusReceiver(asb => asb
     .WithConnectionString(connectionString)  // required
     .WithTopic(topicName)                    // required
     .WithSubscription(subscriptionName))     // required
+
+// Named listener
+infra.UsingAzureServiceBusReceiver("orders", asb => asb
+    .WithConnectionString(connectionString)
+    .WithTopic("orders")
+    .WithSubscription("policy-handler"))
 ```
 
-All three settings are required — an `InvalidOperationException` is thrown if any is missing.
+All three settings are required — an `InvalidOperationException` is thrown if any is missing. The named overload registers the receiver as a keyed service under the given name.
 
 ### How It Works
 

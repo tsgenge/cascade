@@ -6,11 +6,19 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class InfrastructureBuilderExtensions
 {
-    public static InfrastructureBuilder UsingAzureServiceBusPolicyListener(
+    public static InfrastructureBuilder UsingAzureServiceBusReceiver(
         this InfrastructureBuilder builder,
         Action<ServiceBusReceiverBuilder> configure)
     {
-        var receiverBuilder = new ServiceBusReceiverBuilder(builder);
+        return builder.UsingAzureServiceBusReceiver(name: null, configure);
+    }
+
+    public static InfrastructureBuilder UsingAzureServiceBusReceiver(
+        this InfrastructureBuilder builder,
+        string? name,
+        Action<ServiceBusReceiverBuilder> configure)
+    {
+        var receiverBuilder = new ServiceBusReceiverBuilder(builder, name);
         configure(receiverBuilder);
         receiverBuilder.Build();
 

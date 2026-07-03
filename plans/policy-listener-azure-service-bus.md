@@ -84,7 +84,7 @@ New project at `src/infrastructure/CascadeEsdm.Messaging.AzureServiceBus/`:
   - `WithTopic(string)`
   - `WithSubscription(string)`
   - `Build(IServiceCollection)` — validates all three are set; registers `AzureServiceBusReceiver` as `IMessageReceiver` (singleton or scoped — decide: singleton, because `ServiceBusProcessor` is long-lived)
-- [x] `InfrastructureBuilderExtensions.UsingAzureServiceBusPolicyListener(this InfrastructureBuilder, Action<ServiceBusReceiverBuilder>)` — creates builder, calls configure, calls `Build`
+- [x] `InfrastructureBuilderExtensions.UsingAzureServiceBusReceiver(this InfrastructureBuilder, Action<ServiceBusReceiverBuilder>)` — creates builder, calls configure, calls `Build`
 - [x] Add project to `Cascade.Esdm.slnx`
 
 ### Verification Plan
@@ -92,7 +92,7 @@ New project at `src/infrastructure/CascadeEsdm.Messaging.AzureServiceBus/`:
 - `dotnet build Cascade.Esdm.slnx` — full solution builds clean
 
 ### Phase Summary
-Created new `CascadeEsdm.Messaging.AzureServiceBus` infrastructure project targeting `net10.0` with `Azure.Messaging.ServiceBus` (7.18.2). `AzureServiceBusReceiver` wraps `ServiceBusProcessor`, maps `ServiceBusReceivedMessage` → `Message` (body as string, `ApplicationProperties` filtered to string values), and routes `ApplyActionAsync` to the appropriate `ProcessMessageEventArgs` method. Introduced `AzureServiceBusMessage` (a record subclass of `Message`) to carry the original `ServiceBusReceivedMessage` and `ProcessMessageEventArgs` for action dispatch. `ServiceBusReceiverBuilder` validates connection string, topic, and subscription, then registers `ServiceBusProcessor` and `AzureServiceBusReceiver` as singletons. `InfrastructureBuilderExtensions.UsingAzureServiceBusPolicyListener` follows the existing infrastructure builder pattern. Project added to `Cascade.Esdm.slnx`. Both project and full solution build cleanly.
+Created new `CascadeEsdm.Messaging.AzureServiceBus` infrastructure project targeting `net10.0` with `Azure.Messaging.ServiceBus` (7.18.2). `AzureServiceBusReceiver` wraps `ServiceBusProcessor`, maps `ServiceBusReceivedMessage` → `Message` (body as string, `ApplicationProperties` filtered to string values), and routes `ApplyActionAsync` to the appropriate `ProcessMessageEventArgs` method. Introduced `AzureServiceBusMessage` (a record subclass of `Message`) to carry the original `ServiceBusReceivedMessage` and `ProcessMessageEventArgs` for action dispatch. `ServiceBusReceiverBuilder` validates connection string, topic, and subscription, then registers `ServiceBusProcessor` and `AzureServiceBusReceiver` as singletons. `InfrastructureBuilderExtensions.UsingAzureServiceBusReceiver` follows the existing infrastructure builder pattern. Project added to `Cascade.Esdm.slnx`. Both project and full solution build cleanly.
 
 ---
 
@@ -117,7 +117,7 @@ Status: Complete
 - [x] `WithPolicyListener_WhenNoExceptionHandlerRegistered_RegistersDefaultMessageExceptionHandler`
 - [x] `WithPolicyListener_WhenCustomExceptionHandlerRegistered_DoesNotOverrideIt`
 
-### CascadeEsdm.WriteModel.Tests — ServiceBusReceiverBuilder (inline builder tests via UsingAzureServiceBusPolicyListener extension)
+### CascadeEsdm.WriteModel.Tests — ServiceBusReceiverBuilder (inline builder tests via UsingAzureServiceBusReceiver extension)
 - [x] `ServiceBusReceiverBuilder_WhenConnectionStringMissing_ThrowsInvalidOperationException`
 - [x] `ServiceBusReceiverBuilder_WhenTopicMissing_ThrowsInvalidOperationException`
 - [x] `ServiceBusReceiverBuilder_WhenSubscriptionMissing_ThrowsInvalidOperationException`
@@ -132,7 +132,7 @@ Added 16 unit tests across 4 test classes in `CascadeEsdm.WriteModel.Tests`:
 - `PolicyListenerTests` (6 tests) — validates message deserialisation, dispatch, completion, exception handling (deadletter + abandon), and stop behaviour using handler-capture pattern with NSubstitute
 - `DefaultMessageExceptionHandlerTests` (1 test) — confirms always-deadletter behaviour
 - `PolicyListenerBuilderTests` (5 tests) — validates composition guard clauses (missing IPolicyDispatcher/IMessageReceiver), hosted service registration, default/custom exception handler registration
-- `ServiceBusReceiverBuilderTests` (4 tests) — validates builder guard clauses (missing connection string/topic/subscription) and IMessageReceiver registration, tested through the public `UsingAzureServiceBusPolicyListener` extension method
+- `ServiceBusReceiverBuilderTests` (4 tests) — validates builder guard clauses (missing connection string/topic/subscription) and IMessageReceiver registration, tested through the public `UsingAzureServiceBusReceiver` extension method
 - Added `CascadeEsdm.Messaging.AzureServiceBus` project reference to WriteModel.Tests.csproj for ServiceBusReceiverBuilder tests
 - All 219 WriteModel tests pass, all 67 SharedKernel unit tests pass, full solution builds
 
@@ -142,7 +142,7 @@ Added 16 unit tests across 4 test classes in `CascadeEsdm.WriteModel.Tests`:
 Status: Complete
 
 - [x] **Root README** — add `CascadeEsdm.Messaging.AzureServiceBus` to the packages table with a one-liner description
-- [x] **`/docs/PolicyListener.md`** — new file covering: what the policy listener is, composition API (`WithPolicies` + `WithPolicyListener`), `IMessageReceiver` abstraction, `IMessageExceptionHandler` contract, `MessageAction` values, `DefaultMessageExceptionHandler`, the ASB infrastructure package (`UsingAzureServiceBusPolicyListener`), and a complete composition example
+- [x] **`/docs/PolicyListener.md`** — new file covering: what the policy listener is, composition API (`WithPolicies` + `WithPolicyListener`), `IMessageReceiver` abstraction, `IMessageExceptionHandler` contract, `MessageAction` values, `DefaultMessageExceptionHandler`, the ASB infrastructure package (`UsingAzureServiceBusReceiver`), and a complete composition example
 - [x] **`AIContext/ai-context/`** — update the context file to cover the policy listener pattern: how to wire it up, the abstractions, and the default exception handler behaviour
 
 ### Verification Plan
@@ -164,7 +164,7 @@ Updated three documentation locations per the documentation-organization rule:
 All five phases completed across PRs #20–#24:
 - **Phase 1** (PR #20): Messaging abstractions (`Message`, `MessageAction`, `IMessageReceiver`, `IMessageExceptionHandler`) in SharedKernel.Abstractions; renamed `ForServiceBusPublishing` → `ForMessageBus`
 - **Phase 2** (PR #21): `PolicyListener` hosted service, `DefaultMessageExceptionHandler`, `PolicyListenerBuilder`, `WithPolicyListener` extension on WriteModelBuilder
-- **Phase 3** (PR #22): `CascadeEsdm.Messaging.AzureServiceBus` infrastructure project with `AzureServiceBusReceiver`, `ServiceBusReceiverBuilder`, `UsingAzureServiceBusPolicyListener` extension
+- **Phase 3** (PR #22): `CascadeEsdm.Messaging.AzureServiceBus` infrastructure project with `AzureServiceBusReceiver`, `ServiceBusReceiverBuilder`, `UsingAzureServiceBusReceiver` extension
 - **Phase 4** (PR #23): 16 unit tests covering PolicyListener, DefaultMessageExceptionHandler, PolicyListenerBuilder, and ServiceBusReceiverBuilder
 - **Phase 5** (PR #24): Documentation across README, `/docs/PolicyListener.md`, `/docs/CompositionUsage.md`, and `AIContext/ai-context/cascade-esdm.md`
 
@@ -172,6 +172,6 @@ All five phases completed across PRs #20–#24:
 
 1. Merge PR #24 to develop
 2. Bump package versions for `CascadeEsdm.SharedKernel.Abstractions`, `CascadeEsdm.SharedKernel`, `CascadeEsdm.WriteModel`, and publish the new `CascadeEsdm.Messaging.AzureServiceBus` package to NuGet
-3. Update consumer projects to reference the new packages and wire up `UsingAzureServiceBusPolicyListener` + `UsingPolicyListener` in their composition roots
+3. Update consumer projects to reference the new packages and wire up `UsingAzureServiceBusReceiver` + `UsingPolicyListener` in their composition roots
 4. Create Azure Service Bus topic and subscription for each environment (dev, staging, production)
 5. Configure connection strings via environment-specific configuration (e.g. Azure Key Vault, app settings)

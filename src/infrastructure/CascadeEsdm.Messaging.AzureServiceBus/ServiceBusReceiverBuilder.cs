@@ -8,13 +8,15 @@ namespace CascadeEsdm.Messaging.AzureServiceBus;
 public class ServiceBusReceiverBuilder
 {
     private readonly InfrastructureBuilder _infraBuilder;
+    private readonly string? _name;
     private string? _connectionString;
     private string? _topic;
     private string? _subscription;
 
-    public ServiceBusReceiverBuilder(InfrastructureBuilder infraBuilder)
+    internal ServiceBusReceiverBuilder(InfrastructureBuilder infraBuilder, string? name = null)
     {
         _infraBuilder = infraBuilder ?? throw new ArgumentNullException(nameof(infraBuilder));
+        _name = name;
     }
 
     public ServiceBusReceiverBuilder WithConnectionString(string connectionString)
@@ -46,12 +48,13 @@ public class ServiceBusReceiverBuilder
         if (string.IsNullOrEmpty(_subscription))
             throw new InvalidOperationException("Subscription is required. Call WithSubscription.");
 
-        _infraBuilder.Services.AddSingleton(_ =>
+        _infraBuilder.Services.AddKeyedSingleton<ServiceBusProcessor>(_name, (_, _) =>
         {
             var client = new ServiceBusClient(_connectionString);
             return client.CreateProcessor(_topic, _subscription);
         });
 
-        _infraBuilder.Services.AddSingleton<IMessageReceiver, AzureServiceBusReceiver>();
+        _infraBuilder.Services.AddKeyedSingleton<IMessageReceiver>(_name, (sp, key) =>
+            new AzureServiceBusReceiver(sp.GetRequiredKeyedService<ServiceBusProcessor>(key)));
     }
 }
