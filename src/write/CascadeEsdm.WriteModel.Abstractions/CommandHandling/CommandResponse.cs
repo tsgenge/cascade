@@ -6,17 +6,26 @@ namespace CascadeEsdm.WriteModel.CommandHandling;
 
 public record CommandResponse : ICommandResponse
 {
-    public CommandResponse(ICommandEnvelope cmd, Subject subject, IReadOnlyList<EventEnvelope> newEvents)
+    public CommandResponse(ICommandEnvelope envelope, Subject subject, IReadOnlyList<EventEnvelope> newEvents)
     {
-        CommandId = cmd.Id;
-        CommandType = cmd.Type;
+        CommandId = envelope.Id;
+        CommandType = envelope.Type;
         Subject = subject;
         Events = newEvents;
         Actions = new List<AvailableAction>();
     }
 
-    public CommandResponse(ICommandEnvelope cmd, Subject subject, IReadOnlyList<EventEnvelope> newEvents,
-        IReadOnlyList<AvailableAction> actions) : this(cmd, subject, newEvents)
+    public CommandResponse(ICommandEnvelope envelope, IReadOnlyList<EventEnvelope> newEvents)
+    {
+        CommandId = envelope.Id;
+        CommandType = envelope.Type;
+        Subject = envelope.Command.GetSubject(envelope);
+        Events = newEvents;
+        Actions = new List<AvailableAction>();
+    }
+
+    public CommandResponse(ICommandEnvelope envelope, Subject subject, IReadOnlyList<EventEnvelope> newEvents,
+        IReadOnlyList<AvailableAction> actions) : this(envelope, subject, newEvents)
     {
         Actions = actions;
     }

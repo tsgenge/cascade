@@ -20,11 +20,11 @@ internal class SerialisedCommandHandlerDecorator<TCommand, TResponse> : ICommand
         _lockProvider = lockProvider ?? throw new ArgumentNullException(nameof(lockProvider));
     }
 
-    public async Task<TResponse> HandleAsync(ICommandEnvelope<TCommand> command)
+    public async Task<TResponse> HandleAsync(ICommandEnvelope<TCommand> envelope)
     {
-        await using var @lock = await GetLockIfRequiredAsync(command);
+        await using var @lock = await GetLockIfRequiredAsync(envelope);
 
-        return await _inner.HandleAsync(command);
+        return await _inner.HandleAsync(envelope);
     }
 
     private bool RequiresLock(out CommandLockLevel lockType)

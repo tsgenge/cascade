@@ -18,7 +18,8 @@ internal abstract class LoggingCommandHandlerDecoratorBase<TCommand>
     protected IDisposable? BeginScope(ICommandEnvelope<TCommand> command)
     {
         var subject = command.Command.GetSubject(command);
-        return _logger.BeginScope("Commencing execution of command {Command} againsts {AggregateType} ({AggregateId}) for user {User} in Organisation {Organisation}",
+        return _logger.BeginScope(
+            "Commencing execution of command {Command} againsts {AggregateType} ({AggregateId}) for user {User} in Organisation {Organisation}",
             command.Type,
             subject.Type,
             subject.Id,
@@ -37,24 +38,26 @@ internal abstract class LoggingCommandHandlerDecoratorBase<TCommand>
     }
 }
 
-internal class LoggingCommandHandlerDecorator<TCommand> : LoggingCommandHandlerDecoratorBase<TCommand>, ICommandHandler<TCommand>
+internal class LoggingCommandHandlerDecorator<TCommand> : LoggingCommandHandlerDecoratorBase<TCommand>,
+    ICommandHandler<TCommand>
     where TCommand : ICommand
 {
     private readonly ICommandHandler<TCommand> _inner;
 
-    public LoggingCommandHandlerDecorator(ICommandHandler<TCommand> inner, ITelemetryLogger telemetryLogger, ILogger<LoggingCommandHandlerDecorator<TCommand>> logger)
+    public LoggingCommandHandlerDecorator(ICommandHandler<TCommand> inner, ITelemetryLogger telemetryLogger,
+        ILogger<LoggingCommandHandlerDecorator<TCommand>> logger)
         : base(telemetryLogger, logger)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     }
 
-    public async Task<ICommandResponse> HandleAsync(ICommandEnvelope<TCommand> command)
+    public async Task<ICommandResponse> HandleAsync(ICommandEnvelope<TCommand> envelope)
     {
         using var op = CreateOperation();
-        using var scope = BeginScope(command);
+        using var scope = BeginScope(envelope);
 
         try {
-            return await _inner.HandleAsync(command);
+            return await _inner.HandleAsync(envelope);
         }
         catch (Exception ex) {
             LogError(ex);
@@ -63,25 +66,27 @@ internal class LoggingCommandHandlerDecorator<TCommand> : LoggingCommandHandlerD
     }
 }
 
-internal class LoggingCommandHandlerDecorator<TCommand, TResponse> : LoggingCommandHandlerDecoratorBase<TCommand>, ICommandHandler<TCommand, TResponse>
+internal class LoggingCommandHandlerDecorator<TCommand, TResponse> : LoggingCommandHandlerDecoratorBase<TCommand>,
+    ICommandHandler<TCommand, TResponse>
     where TCommand : ICommand
     where TResponse : ICommandResponse
 {
     private readonly ICommandHandler<TCommand, TResponse> _inner;
 
-    public LoggingCommandHandlerDecorator(ICommandHandler<TCommand, TResponse> inner, ITelemetryLogger telemetryLogger, ILogger<LoggingCommandHandlerDecorator<TCommand>> logger)
+    public LoggingCommandHandlerDecorator(ICommandHandler<TCommand, TResponse> inner, ITelemetryLogger telemetryLogger,
+        ILogger<LoggingCommandHandlerDecorator<TCommand>> logger)
         : base(telemetryLogger, logger)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     }
 
-    public async Task<TResponse> HandleAsync(ICommandEnvelope<TCommand> command)
+    public async Task<TResponse> HandleAsync(ICommandEnvelope<TCommand> envelope)
     {
         using var op = CreateOperation();
-        using var scope = BeginScope(command);
+        using var scope = BeginScope(envelope);
 
         try {
-            return await _inner.HandleAsync(command);
+            return await _inner.HandleAsync(envelope);
         }
         catch (Exception ex) {
             LogError(ex);

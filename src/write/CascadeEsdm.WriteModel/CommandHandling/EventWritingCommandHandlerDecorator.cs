@@ -15,8 +15,7 @@ internal abstract class EventWritingCommandHandlerDecoratorBase<TCommand>
 
     protected async Task WriteEventsAsync(ICommandResponse response)
     {
-        foreach (var evt in response.Events)
-        {
+        foreach (var evt in response.Events) {
             _eventWriter.Add(evt);
         }
 
@@ -24,34 +23,36 @@ internal abstract class EventWritingCommandHandlerDecoratorBase<TCommand>
     }
 }
 
-internal class EventWritingCommandHandlerDecorator<TCommand, TResponse> : EventWritingCommandHandlerDecoratorBase<TCommand>, ICommandHandler<TCommand, TResponse>
+internal class
+    EventWritingCommandHandlerDecorator<TCommand, TResponse> : EventWritingCommandHandlerDecoratorBase<TCommand>,
+    ICommandHandler<TCommand, TResponse>
     where TCommand : ICommand
     where TResponse : CommandResponse
 {
     private readonly ICommandHandler<TCommand, TResponse> _inner;
 
-    public EventWritingCommandHandlerDecorator(ICommandHandler<TCommand, TResponse> inner, IEventStreamWriter eventWriter)
+    public EventWritingCommandHandlerDecorator(ICommandHandler<TCommand, TResponse> inner,
+        IEventStreamWriter eventWriter)
         : base(eventWriter)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     }
 
-    public async Task<TResponse> HandleAsync(ICommandEnvelope<TCommand> command)
+    public async Task<TResponse> HandleAsync(ICommandEnvelope<TCommand> envelope)
     {
-        try
-        {
-            var response = await _inner.HandleAsync(command);
+        try {
+            var response = await _inner.HandleAsync(envelope);
             await WriteEventsAsync(response);
             return response;
         }
-        catch (EventWritingException ex)
-        {
+        catch (EventWritingException ex) {
             throw new CommandProcessingException(ex);
         }
     }
 }
 
-internal class EventWritingCommandHandlerDecorator<TCommand> : EventWritingCommandHandlerDecoratorBase<TCommand>, ICommandHandler<TCommand>
+internal class EventWritingCommandHandlerDecorator<TCommand> : EventWritingCommandHandlerDecoratorBase<TCommand>,
+    ICommandHandler<TCommand>
     where TCommand : ICommand
 {
     private readonly ICommandHandler<TCommand> _inner;
@@ -62,16 +63,14 @@ internal class EventWritingCommandHandlerDecorator<TCommand> : EventWritingComma
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     }
 
-    public async Task<ICommandResponse> HandleAsync(ICommandEnvelope<TCommand> command)
+    public async Task<ICommandResponse> HandleAsync(ICommandEnvelope<TCommand> envelope)
     {
-        try
-        {
-            var response = await _inner.HandleAsync(command);
+        try {
+            var response = await _inner.HandleAsync(envelope);
             await WriteEventsAsync(response);
             return response;
         }
-        catch (EventWritingException ex)
-        {
+        catch (EventWritingException ex) {
             throw new CommandProcessingException(ex);
         }
     }
