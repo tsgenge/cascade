@@ -9,6 +9,9 @@ public static class ServiceCollectionExtensions
     {
         var builder = new CascadeBuilder(services);
         configure(builder);
+
+        //TODO: Validate the complete setup at this point.
+
         return services;
     }
 

@@ -16,8 +16,6 @@ public class CascadeBuilder
         var builder = new InfrastructureBuilder(Services);
         configure(builder);
 
-        builder.Validate();
-
         return new ModelBuilder(Services, builder);
     }
 }
