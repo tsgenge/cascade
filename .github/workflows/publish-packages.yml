@@ -92,6 +92,7 @@ jobs:
             "src/infrastructure/CascadeEsdm.Messaging.AzureServiceBus/CascadeEsdm.Messaging.AzureServiceBus.csproj"
             "src/tools/CascadeEsdm.EventExtractor/CascadeEsdm.EventExtractor.csproj"
             "src/tools/CascadeEsdm.AIContext/CascadeEsdm.AIContext.csproj"
+            "src/tools/CascadeEsdm.Testing/CascadeEsdm.Testing.csproj"
           )
           
           # Pack each project and add to local feed
