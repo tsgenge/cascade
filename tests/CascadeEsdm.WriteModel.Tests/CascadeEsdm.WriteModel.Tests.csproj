@@ -1,31 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.3" />
-    <PackageReference Include="Testcontainers.Azurite" Version="4.12.0" />
-    <PackageReference Include="Testcontainers.CosmosDb" Version="4.12.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.3"/>
+        <PackageReference Include="Testcontainers.Azurite" Version="4.13.0"/>
+        <PackageReference Include="Testcontainers.CosmosDb" Version="4.13.0"/>
+        <PackageReference Include="Testcontainers.ServiceBus" Version="4.13.0"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
+    <ItemGroup>
+        <Using Include="Xunit"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="UnitTests\Hydration\" />
-  </ItemGroup>
+    <ItemGroup>
+        <Folder Include="UnitTests\Hydration\"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\CascadeEsdm.TestDomain\CascadeEsdm.TestDomain.csproj" />
-    <ProjectReference Include="..\..\src\write\CascadeEsdm.WriteModel\CascadeEsdm.WriteModel.csproj" />
-    <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.DistributedLocks\CascadeEsdm.DistributedLocks.csproj" />
-    <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.Logging.OpenTelemetry\CascadeEsdm.Logging.OpenTelemetry.csproj" />
-    <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.Storage.CosmosDb\CascadeEsdm.Storage.CosmosDb.csproj" />
-    <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.Messaging.AzureServiceBus\CascadeEsdm.Messaging.AzureServiceBus.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\tools\CascadeEsdm.Testing\CascadeEsdm.Testing.csproj"/>
+        <ProjectReference Include="..\CascadeEsdm.TestDomain.Schema\CascadeEsdm.TestDomain.Schema.csproj"/>
+        <ProjectReference Include="..\CascadeEsdm.TestDomain\CascadeEsdm.TestDomain.csproj"/>
+        <ProjectReference Include="..\..\src\write\CascadeEsdm.WriteModel\CascadeEsdm.WriteModel.csproj"/>
+        <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.DistributedLocks\CascadeEsdm.DistributedLocks.csproj"/>
+        <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.Logging.OpenTelemetry\CascadeEsdm.Logging.OpenTelemetry.csproj"/>
+        <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.Storage.CosmosDb\CascadeEsdm.Storage.CosmosDb.csproj"/>
+        <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.Messaging.AzureServiceBus\CascadeEsdm.Messaging.AzureServiceBus.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="FunctionalTests\Environment\service-bus-config.json"/>
+        <Content Include="FunctionalTests\Environment\service-bus-config.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 
 </Project>

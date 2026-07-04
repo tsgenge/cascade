@@ -9,6 +9,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\write\CascadeEsdm.WriteModel.Abstractions\CascadeEsdm.WriteModel.Abstractions.csproj"/>
         <ProjectReference Include="..\..\src\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj"/>
+        <ProjectReference Include="..\CascadeEsdm.TestDomain.Schema\CascadeEsdm.TestDomain.Schema.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

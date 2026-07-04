@@ -5,9 +5,6 @@ namespace CascadeEsdm.Messaging.AzureServiceBus;
 
 internal record AzureServiceBusMessage : Message
 {
-    public ServiceBusReceivedMessage ReceivedMessage { get; }
-    public ProcessMessageEventArgs EventArgs { get; }
-
     public AzureServiceBusMessage(
         string body,
         IReadOnlyDictionary<string, object> applicationProperties,
@@ -18,4 +15,24 @@ internal record AzureServiceBusMessage : Message
         ReceivedMessage = receivedMessage;
         EventArgs = eventArgs;
     }
+
+    public ServiceBusReceivedMessage ReceivedMessage { get; }
+    public ProcessMessageEventArgs EventArgs { get; }
+}
+
+internal record AzureServiceBusSessionMessage : Message
+{
+    public AzureServiceBusSessionMessage(
+        string body,
+        IReadOnlyDictionary<string, object> applicationProperties,
+        ServiceBusReceivedMessage receivedMessage,
+        ProcessSessionMessageEventArgs eventArgs)
+        : base(body, applicationProperties)
+    {
+        ReceivedMessage = receivedMessage;
+        EventArgs = eventArgs;
+    }
+
+    public ServiceBusReceivedMessage ReceivedMessage { get; }
+    public ProcessSessionMessageEventArgs EventArgs { get; }
 }

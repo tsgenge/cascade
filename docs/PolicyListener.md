@@ -2,7 +2,7 @@
 
 ## Overview
 
-The policy listener bridges an external message bus to the [policy dispatcher](Policies.md). It runs as an `IHostedService`, receiving serialised `EventEnvelope` messages from an `IMessageReceiver`, deserialising them, and dispatching them to registered policies via `IPolicyDispatcher`.
+The policy listener bridges an external message bus to the [policy dispatcher](Policies.md). It runs as an `IHostedService`, consuming serialised `EventEnvelope` messages from an `IMessageReceiver`, deserialising them, and dispatching them to registered policies via `IPolicyDispatcher`.
 
 This decouples event consumption from event production — the write model publishes events to a message bus topic; a separate host subscribes, deserialises, and dispatches them through the same policy infrastructure.
 
@@ -12,9 +12,9 @@ This decouples event consumption from event production — the write model publi
 |---|---|
 | **Message** | A transport-agnostic envelope carrying a `Body` (string) and `ApplicationProperties` (`IReadOnlyDictionary<string, object>`) |
 | **MessageAction** | The action to apply to a message after processing: `Complete`, `Abandon`, `DeadLetter`, `Schedule` |
-| **IMessageReceiver** | Transport-agnostic interface for receiving messages — `StartAsync`, `StopAsync`, `ApplyActionAsync` |
+| **IMessageReceiver** | Transport-agnostic interface for receiving messages — handles low-level message catching without understanding content |
 | **IMessageExceptionHandler** | Decides what `MessageAction` to apply when message processing fails |
-| **PolicyListener** | The `IHostedService` that wires `IMessageReceiver` to `IPolicyDispatcher` |
+| **PolicyListener** | The `IHostedService` that listens to consumed messages, deserialises them, and dispatches through `IPolicyDispatcher` |
 | **DefaultMessageExceptionHandler** | Built-in handler that always returns `MessageAction.DeadLetter` |
 
 ## How It Works
@@ -34,6 +34,27 @@ PolicyListener.HandleMessageAsync(message)
     └── On exception → IMessageExceptionHandler.HandleAsync()
                           → ApplyActionAsync(returned action)
 ```
+
+## Listening or Receiving?
+
+In messaging architectures, the distinction between "receiving" and "listening" reflects different levels of understanding and intent:
+
+| Aspect | Receiving | Listening |
+|---|---|---|
+| **Responsibility** | Transport-level message handling | Application-level message processing |
+| **Awareness** | Unaware of message content or meaning | Understands message structure and purpose |
+| **Action** | Catches and forwards raw messages | Deserializes, validates, and dispatches |
+| **Layer** | Infrastructure (`IMessageReceiver`) | Application (`PolicyListener`) |
+
+**In Cascade ESDM:**
+- `IMessageReceiver` implementations (e.g., `AzureServiceBusReceiver`) **receive** messages from the transport. They handle connection management, message settlement, and low-level error handling without understanding the domain.
+- `PolicyListener` **listens** to these received messages with intent. It knows how to deserialize `EventEnvelope` objects, validate them, and dispatch them to the appropriate policies.
+
+This separation allows:
+- Transport-agnostic message handling
+- Clear separation of concerns between infrastructure and domain logic
+- Easier testing and mocking of each layer
+- Flexibility to swap message transports without changing business logic
 
 ## Composition
 
@@ -239,20 +260,54 @@ infra.UsingAzureServiceBusReceiver("orders", asb => asb
     .WithConnectionString(connectionString)
     .WithTopic("orders")
     .WithSubscription("policy-handler"))
+
+// Session-enabled listener
+infra.UsingAzureServiceBusReceiver("orders", asb => asb
+    .WithConnectionString(connectionString)
+    .WithTopic("orders")
+    .WithSubscription("policy-handler")
+    .WithSessions()                                          // enable session support
+    .WithSessionIdleTimeout(TimeSpan.FromMinutes(5))        // optional
+    .WithMaxAutoLockRenewalDuration(TimeSpan.FromMinutes(10))) // optional
 ```
 
-All three settings are required — an `InvalidOperationException` is thrown if any is missing. The named overload registers the receiver as a keyed service under the given name.
+All three base settings are required — an `InvalidOperationException` is thrown if any is missing. The named overload registers the receiver as a keyed service under the given name.
+
+### Session Support
+
+When a subscription requires sessions, call `.WithSessions()` to enable session processing:
+
+- **WithSessions()** - Enables session support and uses `ServiceBusSessionProcessor` instead of `ServiceBusProcessor`
+- **WithSessionIdleTimeout()** - Sets how long a session can be idle before timing out (default: `TimeSpan.MaxValue`)
+- **WithMaxAutoLockRenewalDuration()** - Sets how long to automatically renew message locks (default: 5 minutes)
+
+Sessions provide FIFO processing guarantees within each session and are useful for:
+- Maintaining message order per entity/customer
+- Processing related messages together
+- Implementing stateful processing patterns
+
+The framework automatically creates the appropriate receiver implementation:
+- `AzureServiceBusReceiver` for non-session processors
+- `AzureServiceBusSessionReceiver` for session processors
 
 ### How It Works
 
-`AzureServiceBusReceiver` wraps a `ServiceBusProcessor` from the `Azure.Messaging.ServiceBus` SDK:
+**Non-session receivers** (`AzureServiceBusReceiver`) wrap a `ServiceBusProcessor` from the `Azure.Messaging.ServiceBus` SDK:
 
 - **StartAsync** — subscribes to `ProcessMessageAsync` and `ProcessErrorAsync` on the processor, then calls `StartProcessingAsync`
 - **StopAsync** — calls `StopProcessingAsync`
 - **OnProcessMessageAsync** — maps `ServiceBusReceivedMessage` to a `Message` (body as UTF-8 string, all `ApplicationProperties` preserved), then invokes the handler
-- **ApplyActionAsync** — downcasts the `Message` to `AzureServiceBusMessage` (a record subclass carrying the original `ServiceBusReceivedMessage` and `ProcessMessageEventArgs`) and calls the appropriate settlement method (`CompleteMessageAsync`, `AbandonMessageAsync`, or `DeadLetterMessageAsync`)
+- **ApplyActionAsync** — downcasts the `Message` to `AzureServiceBusMessage` and calls the appropriate settlement method
 
-The `ServiceBusProcessor` and `AzureServiceBusReceiver` are registered as singletons because `ServiceBusProcessor` is a long-lived object designed for the lifetime of the application.
+**Session receivers** (`AzureServiceBusSessionReceiver`) wrap a `ServiceBusSessionProcessor`:
+
+- **StartAsync** — subscribes to `ProcessSessionMessageAsync`, `ProcessErrorAsync`, and `SessionClosingAsync` on the session processor, then calls `StartProcessingAsync`
+- **StopAsync** — calls `StopProcessingAsync`
+- **OnProcessMessageAsync** — maps `ServiceBusReceivedMessage` to a `Message` and invokes the handler within the session context
+- **ApplyActionAsync** — same settlement logic as non-session receivers
+- **OnSessionClosingAsync** — handles session cleanup (currently no-op)
+
+Both processor types and their corresponding receivers are registered as singletons because they are long-lived objects designed for the lifetime of the application.
 
 ## Implementing a Custom Transport
 

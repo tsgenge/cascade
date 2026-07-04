@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <RootNamespace>CascadeEsdm.Testing</RootNamespace>
+        <PackageId>CascadeEsdm.Testing</PackageId>
+        <Description>Tools and utilities for testing ESDM systems</Description>
+        <PackageIcon>icon.jpg</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="docs\README.md" Pack="true" PackagePath="\"/>
+        <None Include="docs\icon.jpg" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.Threading.Channels" Version="4.5.0"/>
+    </ItemGroup>
+</Project>

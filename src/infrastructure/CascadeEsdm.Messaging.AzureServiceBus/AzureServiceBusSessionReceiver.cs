@@ -3,33 +3,41 @@ using CascadeEsdm.SharedKernel.Infrastructure.Messaging;
 
 namespace CascadeEsdm.Messaging.AzureServiceBus;
 
-internal class AzureServiceBusReceiver : AzureServiceBusReceiverBase
+internal class AzureServiceBusSessionReceiver : AzureServiceBusReceiverBase
 {
-    private readonly ServiceBusProcessor _processor;
+    private readonly ServiceBusSessionProcessor _sessionProcessor;
 
-    public AzureServiceBusReceiver(ServiceBusProcessor processor)
+    public AzureServiceBusSessionReceiver(ServiceBusSessionProcessor sessionProcessor)
     {
-        _processor = processor ?? throw new ArgumentNullException(nameof(processor));
+        _sessionProcessor = sessionProcessor ?? throw new ArgumentNullException(nameof(sessionProcessor));
     }
 
     public override Task StartAsync(Func<Message, CancellationToken, Task> handler, CancellationToken cancellationToken)
     {
         _handler = handler ?? throw new ArgumentNullException(nameof(handler));
-        _processor.ProcessMessageAsync += OnProcessMessageAsync;
-        _processor.ProcessErrorAsync += OnProcessErrorAsync;
-        return _processor.StartProcessingAsync(cancellationToken);
+        _sessionProcessor.ProcessMessageAsync += OnProcessMessageAsync;
+        _sessionProcessor.ProcessErrorAsync += OnProcessErrorAsync;
+        _sessionProcessor.SessionClosingAsync += OnSessionClosingAsync;
+        return _sessionProcessor.StartProcessingAsync(cancellationToken);
     }
 
     public override Task StopAsync(CancellationToken cancellationToken)
     {
-        return _processor.StopProcessingAsync(cancellationToken);
+        return _sessionProcessor.StopProcessingAsync(cancellationToken);
+    }
+
+    private async Task OnProcessMessageAsync(ProcessSessionMessageEventArgs args)
+    {
+        var message = CreateApplicationMessage(args);
+        await _handler!(message, args.CancellationToken);
     }
 
     protected override Task ApplyActionInnerAsync(Message message, MessageAction action,
         CancellationToken cancellationToken)
     {
-        if (message is not AzureServiceBusMessage asbMessage)
-            throw new InvalidOperationException($"Message was not created by {nameof(AzureServiceBusReceiver)}.");
+        if (message is not AzureServiceBusSessionMessage asbMessage)
+            throw new InvalidOperationException(
+                $"Message was not created by {nameof(AzureServiceBusSessionReceiver)}.");
 
         var eventArgs = asbMessage.EventArgs;
 
@@ -44,20 +52,18 @@ internal class AzureServiceBusReceiver : AzureServiceBusReceiverBase
         };
     }
 
-    private async Task OnProcessMessageAsync(ProcessMessageEventArgs args)
-    {
-        var message = CreateApplicationMessage(args);
-        await _handler!(message, args.CancellationToken);
-    }
-
-    private static AzureServiceBusMessage CreateApplicationMessage(ProcessMessageEventArgs args)
+    private static AzureServiceBusSessionMessage CreateApplicationMessage(ProcessSessionMessageEventArgs args)
     {
         var message = args.Message;
-
-        return new AzureServiceBusMessage(
+        return new AzureServiceBusSessionMessage(
             message.Body.ToString(),
             message.ApplicationProperties,
             message,
             args);
+    }
+
+    private static Task OnSessionClosingAsync(ProcessSessionEventArgs args)
+    {
+        return Task.CompletedTask;
     }
 }

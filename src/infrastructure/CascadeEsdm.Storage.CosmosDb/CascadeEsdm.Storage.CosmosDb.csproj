@@ -4,19 +4,19 @@
         <Description>Provides a CosmosDb implementation of the IPartitionedContainer interface for EventStream hydration and writing.</Description>
         <PackageIcon>icon.jpg</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <AzureCosmosDisableNewtonsoftJsonCheck>true</AzureCosmosDisableNewtonsoftJsonCheck>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="docs\README.md" Pack="true" PackagePath="\" /> 
-        <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
+        <None Include="docs\README.md" Pack="true" PackagePath="\"/>
+        <None Include="docs\icon.jpg" Pack="true" PackagePath="\"/>
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.57.0"/>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
-        <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    </ItemGroup>    
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3"/>
+        <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3"/>
+    </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />
-    </ItemGroup>    
+        <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj"/>
+    </ItemGroup>
 </Project>

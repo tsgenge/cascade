@@ -22,9 +22,11 @@
   <Folder Name="/5. Tools/">
     <Project Path="src/tools/CascadeEsdm.EventExtractor/CascadeEsdm.EventExtractor.csproj" />
     <Project Path="src/tools/CascadeEsdm.AIContext/CascadeEsdm.AIContext.csproj" />
+    <Project Path="src/tools/CascadeEsdm.Testing/CascadeEsdm.Testing.csproj" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="tests/CascadeEsdm.SharedKernel.UnitTests/CascadeEsdm.SharedKernel.UnitTests.csproj" />
+    <Project Path="tests/CascadeEsdm.TestDomain.Schema/CascadeEsdm.TestDomain.Schema.csproj" />
     <Project Path="tests/CascadeEsdm.TestDomain/CascadeEsdm.TestDomain.csproj" />
     <Project Path="tests/CascadeEsdm.EventExtractor.Tests/CascadeEsdm.EventExtractor.Tests.csproj" />
     <Project Path="tests/CascadeEsdm.WriteModel.Tests/CascadeEsdm.WriteModel.Tests.csproj" />
