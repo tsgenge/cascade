@@ -25,7 +25,7 @@ public class PolicyListeningTests : TestBase
     public PolicyListeningTests(ITestOutputHelper output, WriteContext environment) : base(output, environment) { }
 
     [Fact]
-    public async Task Sand()
+    public async Task Policy_Listens_And_Invokes_Command()
     {
         var channel = Environment.ServiceProvider.GetRequiredService<MessageChannel<RemovePerson>>();
 

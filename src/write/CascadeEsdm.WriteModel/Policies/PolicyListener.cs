@@ -1,6 +1,7 @@
 using System.Text.Json;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Infrastructure.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -8,20 +9,20 @@ namespace CascadeEsdm.WriteModel.Policies;
 
 internal class PolicyListener : IHostedService
 {
-    private readonly IPolicyDispatcher _policyDispatcher;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly IMessageReceiver _messageReceiver;
     private readonly IMessageExceptionHandler _exceptionHandler;
     private readonly ILogger<PolicyListener> _logger;
     private readonly JsonSerializerOptions _serializerOptions;
 
     public PolicyListener(
-        IPolicyDispatcher policyDispatcher,
+        IServiceScopeFactory scopeFactory,
         IMessageReceiver messageReceiver,
         IMessageExceptionHandler exceptionHandler,
         ILogger<PolicyListener> logger,
         JsonSerializerOptions serializerOptions)
     {
-        _policyDispatcher = policyDispatcher;
+        _scopeFactory = scopeFactory;
         _messageReceiver = messageReceiver;
         _exceptionHandler = exceptionHandler;
         _logger = logger;
@@ -44,7 +45,9 @@ internal class PolicyListener : IHostedService
             var envelope = JsonSerializer.Deserialize<EventEnvelope>(message.Body, _serializerOptions)
                 ?? throw new JsonException("Deserialised EventEnvelope was null.");
 
-            await _policyDispatcher.DispatchAsync(envelope, cancellationToken);
+            using var scope = _scopeFactory.CreateScope();
+            var dispatcher = scope.ServiceProvider.GetRequiredService<IPolicyDispatcher>();
+            await dispatcher.DispatchAsync(envelope, cancellationToken);
             await _messageReceiver.ApplyActionAsync(message, MessageAction.Complete, cancellationToken);
         }
         catch (Exception ex) {

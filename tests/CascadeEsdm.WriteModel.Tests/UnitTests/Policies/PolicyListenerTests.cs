@@ -8,6 +8,7 @@ using CascadeEsdm.TestDomain.People.Events;
 using CascadeEsdm.WriteModel.Policies;
 using CascadeEsdm.WriteModel.Tests.UnitTests.CommandHandling;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -17,6 +18,7 @@ namespace CascadeEsdm.WriteModel.Tests.UnitTests.Policies;
 public class PolicyListenerTests
 {
     private readonly IPolicyDispatcher _mockDispatcher;
+    private readonly IServiceScopeFactory _mockScopeFactory;
     private readonly IMessageReceiver _mockReceiver;
     private readonly IMessageExceptionHandler _mockExceptionHandler;
     private readonly JsonSerializerOptions _serializerOptions;
@@ -24,13 +26,22 @@ public class PolicyListenerTests
     public PolicyListenerTests()
     {
         _mockDispatcher = Substitute.For<IPolicyDispatcher>();
+
+        var mockScope = Substitute.For<IServiceScope>();
+        var mockScopeServiceProvider = Substitute.For<IServiceProvider>();
+        mockScopeServiceProvider.GetService(typeof(IPolicyDispatcher)).Returns(_mockDispatcher);
+        mockScope.ServiceProvider.Returns(mockScopeServiceProvider);
+
+        _mockScopeFactory = Substitute.For<IServiceScopeFactory>();
+        _mockScopeFactory.CreateScope().Returns(mockScope);
+
         _mockReceiver = Substitute.For<IMessageReceiver>();
         _mockExceptionHandler = Substitute.For<IMessageExceptionHandler>();
         _serializerOptions = DefaultSerialisationSettings.UsingTypeQualifiedName();
     }
 
     private PolicyListener CreateSut() =>
-        new(_mockDispatcher, _mockReceiver, _mockExceptionHandler,
+        new(_mockScopeFactory, _mockReceiver, _mockExceptionHandler,
             NullLogger<PolicyListener>.Instance, _serializerOptions);
 
     private async Task<Func<Message, CancellationToken, Task>> CaptureHandlerAsync()

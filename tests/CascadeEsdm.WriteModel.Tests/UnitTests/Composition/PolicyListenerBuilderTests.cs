@@ -15,7 +15,7 @@ public class PolicyListenerBuilderTests
     public void UsingPolicyListener_WhenPolicyDispatcherNotRegistered_ThrowsInvalidOperationException()
     {
         var services = new ServiceCollection();
-        services.AddKeyedSingleton<IMessageReceiver>((object?)null, Substitute.For<IMessageReceiver>());
+        services.AddKeyedSingleton((object?)null, Substitute.For<IMessageReceiver>());
         var builder = new PolicyListenerBuilder(services);
 
         var act = () => builder.Build();
@@ -42,7 +42,7 @@ public class PolicyListenerBuilderTests
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
-        services.AddKeyedSingleton<IMessageReceiver>((object?)null, Substitute.For<IMessageReceiver>());
+        services.AddKeyedSingleton((object?)null, Substitute.For<IMessageReceiver>());
         var builder = new PolicyListenerBuilder(services);
 
         builder.Build();
@@ -57,7 +57,7 @@ public class PolicyListenerBuilderTests
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
-        services.AddKeyedSingleton<IMessageReceiver>("orders", Substitute.For<IMessageReceiver>());
+        services.AddKeyedSingleton("orders", Substitute.For<IMessageReceiver>());
         services.AddKeyedSingleton<IMessageReceiver>("payments", Substitute.For<IMessageReceiver>());
         var builder = new WriteModelBuilder(services);
 
@@ -86,7 +86,7 @@ public class PolicyListenerBuilderTests
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
-        services.AddKeyedSingleton<IMessageReceiver>("test", Substitute.For<IMessageReceiver>());
+        services.AddKeyedSingleton("test", Substitute.For<IMessageReceiver>());
         services.AddSingleton<CustomTestExceptionHandler>();
         services.AddLogging();
         var builder = new PolicyListenerBuilder(services, "test");
@@ -100,14 +100,14 @@ public class PolicyListenerBuilderTests
     }
 
     [Fact]
-    public void UsingPolicyListener_BackwardsCompatibility_StillRegistersOneHostedService()
+    public void AddPolicyListener_BackwardsCompatibility_StillRegistersOneHostedService()
     {
         var services = new ServiceCollection();
         services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
-        services.AddKeyedSingleton<IMessageReceiver>((object?)null, Substitute.For<IMessageReceiver>());
+        services.AddKeyedSingleton((object?)null, Substitute.For<IMessageReceiver>());
         var builder = new WriteModelBuilder(services);
 
-        builder.UsingPolicyListener();
+        builder.AddPolicyListener();
 
         services.Where(s => s.ServiceType == typeof(IHostedService))
             .Should().HaveCount(1);

@@ -55,12 +55,12 @@ public class PolicyListenerBuilder
         _services.AddTransient<IHostedService>(sp =>
         {
             var receiver = sp.GetRequiredKeyedService<IMessageReceiver>(_name);
-            var dispatcher = sp.GetRequiredService<IPolicyDispatcher>();
+            var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
             var logger = sp.GetRequiredService<ILogger<PolicyListener>>();
             var exceptionHandler = _exceptionHandlerType != null
                 ? (IMessageExceptionHandler)sp.GetRequiredService(_exceptionHandlerType)
                 : new DefaultMessageExceptionHandler();
-            return new PolicyListener(dispatcher, receiver, exceptionHandler, logger, options);
+            return new PolicyListener(scopeFactory, receiver, exceptionHandler, logger, options);
         });
     }
 }
