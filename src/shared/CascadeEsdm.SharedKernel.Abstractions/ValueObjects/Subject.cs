@@ -2,6 +2,7 @@
 using CascadeEsdm.SharedKernel.Extensions;
 using CascadeEsdm.SharedKernel.Validation;
 using System.Globalization;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace CascadeEsdm.SharedKernel.ValueObjects;
@@ -18,6 +19,7 @@ public record Subject : IValueObject<string>
         Type = type;
         Parent = parentId;
         Value = FormatValue(Type, Id, Parent);
+        RawId = id.ToString("n", CultureInfo.InvariantCulture);
     }
 
     public Subject(Guid id, string type, Guid? parentId = null)
@@ -26,6 +28,7 @@ public record Subject : IValueObject<string>
         Parent = parentId;
         Type = type;
         Value = FormatValue(Type, Id, Parent);
+        RawId = id.ToString("n", CultureInfo.InvariantCulture);
     }
 
     public Subject(string id, string type, string? parentId = null)
@@ -34,11 +37,14 @@ public record Subject : IValueObject<string>
         Parent = string.IsNullOrEmpty(parentId) ? null : parentId.ToGuid();
         Type = type;
         Value = FormatValue(Type, id, parentId);
+        RawId = id;
     }
 
     public Guid Id { get; }
     public Guid? Parent { get; }
     public string Type { get; }
+
+    [JsonIgnore] public string RawId { get; }
 
     public string Value { get; }
 
