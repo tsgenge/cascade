@@ -98,7 +98,7 @@ public record Subject : IValueObject<string>
 
         var match = Regex.Match(value, Pattern);
         if (!match.Success)
-            throw new ArgumentException("The value was formatted correctly.");
+            throw new ArgumentException("The value was formatted incorrectly for Subject.");
 
         id = Guid.Parse(match.Groups[^1].Value);
         type = match.Groups[1].Value;

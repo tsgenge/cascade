@@ -19,7 +19,7 @@ public record EventSource : IValueObject<string>
     {
         var match = Regex.Match(value, Pattern);
         if (!match.Success)
-            throw new ArgumentException("The value was formatted correctly.");
+            throw new ArgumentException("The value was formatted incorrectly for EventSource.");
 
         Aggregate = match.Groups[1].Value + "/" + match.Groups[2].Value;
         Command = match.Groups[3].Value;
