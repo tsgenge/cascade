@@ -1,4 +1,3 @@
-using System.Text.Json;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Infrastructure.Messaging;
 using CascadeEsdm.SharedKernel.Infrastructure.Serialisation;
@@ -7,20 +6,20 @@ using CascadeEsdm.SharedKernel.ValueObjects;
 using CascadeEsdm.TestDomain.People.Events;
 using CascadeEsdm.WriteModel.Policies;
 using CascadeEsdm.WriteModel.Tests.UnitTests.CommandHandling;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using System.Text.Json;
 
 namespace CascadeEsdm.WriteModel.Tests.UnitTests.Policies;
 
 public class PolicyListenerTests
 {
     private readonly IPolicyDispatcher _mockDispatcher;
-    private readonly IServiceScopeFactory _mockScopeFactory;
-    private readonly IMessageReceiver _mockReceiver;
     private readonly IMessageExceptionHandler _mockExceptionHandler;
+    private readonly IMessageReceiver _mockReceiver;
+    private readonly IServiceScopeFactory _mockScopeFactory;
     private readonly JsonSerializerOptions _serializerOptions;
 
     public PolicyListenerTests()
@@ -40,9 +39,11 @@ public class PolicyListenerTests
         _serializerOptions = DefaultSerialisationSettings.UsingTypeQualifiedName();
     }
 
-    private PolicyListener CreateSut() =>
-        new(_mockScopeFactory, _mockReceiver, _mockExceptionHandler,
+    private PolicyListener CreateSut()
+    {
+        return new PolicyListener(_mockScopeFactory, _mockReceiver, _mockExceptionHandler,
             NullLogger<PolicyListener>.Instance, _serializerOptions);
+    }
 
     private async Task<Func<Message, CancellationToken, Task>> CaptureHandlerAsync()
     {
@@ -93,7 +94,7 @@ public class PolicyListenerTests
         await handler(message, CancellationToken.None);
 
         await _mockReceiver.Received(1)
-            .ApplyActionAsync(message, MessageAction.Complete, Arg.Any<CancellationToken>());
+            .ApplyActionAsync(message, MessageAction.Complete, null, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -120,15 +121,16 @@ public class PolicyListenerTests
         var handler = await CaptureHandlerAsync();
         var message = CreateValidMessage();
 
+        var ex = new InvalidOperationException("fail");
         _mockDispatcher.DispatchAsync(Arg.Any<EventEnvelope>(), Arg.Any<CancellationToken>())
-            .ThrowsAsync(new InvalidOperationException("fail"));
+            .ThrowsAsync(ex);
         _mockExceptionHandler.HandleAsync(Arg.Any<Message>(), Arg.Any<Exception>(), Arg.Any<CancellationToken>())
             .Returns(MessageAction.DeadLetter);
 
         await handler(message, CancellationToken.None);
 
         await _mockReceiver.Received(1)
-            .ApplyActionAsync(message, MessageAction.DeadLetter, Arg.Any<CancellationToken>());
+            .ApplyActionAsync(message, MessageAction.DeadLetter, ex, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -137,15 +139,16 @@ public class PolicyListenerTests
         var handler = await CaptureHandlerAsync();
         var message = CreateValidMessage();
 
+        var ex = new InvalidOperationException("fail");
         _mockDispatcher.DispatchAsync(Arg.Any<EventEnvelope>(), Arg.Any<CancellationToken>())
-            .ThrowsAsync(new InvalidOperationException("fail"));
+            .ThrowsAsync(ex);
         _mockExceptionHandler.HandleAsync(Arg.Any<Message>(), Arg.Any<Exception>(), Arg.Any<CancellationToken>())
             .Returns(MessageAction.Abandon);
 
         await handler(message, CancellationToken.None);
 
         await _mockReceiver.Received(1)
-            .ApplyActionAsync(message, MessageAction.Abandon, Arg.Any<CancellationToken>());
+            .ApplyActionAsync(message, MessageAction.Abandon, ex, Arg.Any<CancellationToken>());
     }
 
     [Fact]

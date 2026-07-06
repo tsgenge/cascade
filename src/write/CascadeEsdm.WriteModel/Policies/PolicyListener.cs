@@ -1,18 +1,18 @@
-using System.Text.Json;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Infrastructure.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace CascadeEsdm.WriteModel.Policies;
 
 internal class PolicyListener : IHostedService
 {
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IMessageReceiver _messageReceiver;
     private readonly IMessageExceptionHandler _exceptionHandler;
     private readonly ILogger<PolicyListener> _logger;
+    private readonly IMessageReceiver _messageReceiver;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly JsonSerializerOptions _serializerOptions;
 
     public PolicyListener(
@@ -43,17 +43,17 @@ internal class PolicyListener : IHostedService
     {
         try {
             var envelope = JsonSerializer.Deserialize<EventEnvelope>(message.Body, _serializerOptions)
-                ?? throw new JsonException("Deserialised EventEnvelope was null.");
+                           ?? throw new JsonException("Deserialised EventEnvelope was null.");
 
             using var scope = _scopeFactory.CreateScope();
             var dispatcher = scope.ServiceProvider.GetRequiredService<IPolicyDispatcher>();
             await dispatcher.DispatchAsync(envelope, cancellationToken);
-            await _messageReceiver.ApplyActionAsync(message, MessageAction.Complete, cancellationToken);
+            await _messageReceiver.ApplyActionAsync(message, MessageAction.Complete, null, cancellationToken);
         }
         catch (Exception ex) {
             _logger.LogError(ex, "Error processing message");
             var action = await _exceptionHandler.HandleAsync(message, ex, cancellationToken);
-            await _messageReceiver.ApplyActionAsync(message, action, cancellationToken);
+            await _messageReceiver.ApplyActionAsync(message, action, ex, cancellationToken);
         }
     }
 }

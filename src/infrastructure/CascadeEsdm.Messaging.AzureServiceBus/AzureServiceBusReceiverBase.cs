@@ -12,12 +12,33 @@ internal abstract class AzureServiceBusReceiverBase : IMessageReceiver
 
     public abstract Task StopAsync(CancellationToken cancellationToken);
 
-    public async Task ApplyActionAsync(Message message, MessageAction action, CancellationToken cancellationToken)
+    public async Task ApplyActionAsync(Message message, MessageAction action, Exception? ex,
+        CancellationToken cancellationToken)
     {
-        await ApplyActionInnerAsync(message, action, cancellationToken);
+        await ApplyActionInnerAsync(message, action, ex, cancellationToken);
     }
 
-    protected abstract Task ApplyActionInnerAsync(Message message, MessageAction action,
+    protected string GetDeadLetterReason(Exception? exception)
+    {
+        if(exception is null)
+            return string.Empty;
+            
+        const int maxLength = 4096;
+
+        var parts = new List<string>();
+        var current = exception;
+        while (current is not null)
+        {
+            parts.Add($"{current.GetType().Name}: {current.Message}");
+            current = current.InnerException;
+        }
+
+        var reason = string.Join(" ---> ", parts);
+
+        return reason.Length <= maxLength ? reason : reason[..maxLength];
+    }
+
+    protected abstract Task ApplyActionInnerAsync(Message message, MessageAction action, Exception? ex,
         CancellationToken cancellationToken);
 
     protected static Task OnProcessErrorAsync(ProcessErrorEventArgs args)
