@@ -1,5 +1,4 @@
-﻿using CascadeEsdm.SharedKernel.Aggregates;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace CascadeEsdm.SharedKernel.ValueObjects;
 
@@ -37,13 +36,11 @@ public record EventSource : IValueObject<string>
     }
 
     public static EventSource ForAggregate<TAggregate, TCommand>(Guid commandId)
-        where TAggregate : IAggregateRoot
     {
         return new EventSource(GetUri(typeof(TAggregate)), commandId, typeof(TCommand).Name);
     }
 
     public static EventSource ForAggregate<TAggregate>(Guid commandId, string commandType)
-        where TAggregate : IAggregateRoot
     {
         return new EventSource(GetUri(typeof(TAggregate)), commandId, commandType);
     }

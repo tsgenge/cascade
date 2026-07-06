@@ -1,3 +1,5 @@
+using CascadeEsdm.SharedKernel.Aggregates;
+using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Security;
 using CascadeEsdm.SharedKernel.ValueObjects;
 using System.Text.Json.Serialization;
@@ -54,4 +56,34 @@ public abstract record CommandEnvelope : ICommandEnvelope
     public DateTimeOffset Time { get; }
     public string Type { get; protected set; } = "NotSet";
     public virtual ICommand Command { get; }
+
+    public EventEnvelope CreateEvent<TForAggregate>(IDomainEvent @event, TForAggregate aggregate)
+        where TForAggregate : class
+    {
+        var seqId = 0;
+        if (aggregate is IAggregateRoot realAggregate) {
+            realAggregate.LastSequence += 1;
+            seqId = realAggregate.LastSequence;
+        }
+
+        return new EventEnvelope(
+            EventSource.ForAggregate<TForAggregate>(Id, Type),
+            Command.GetSubject(this),
+            SecurityContext,
+            Channel,
+            @event,
+            seqId);
+    }
+
+    public EventEnvelope CreateEvent<TForAggregate>(IDomainEvent @event, int seqId = 0)
+        where TForAggregate : class
+    {
+        return new EventEnvelope(
+            EventSource.ForAggregate<TForAggregate>(Id, Type),
+            Command.GetSubject(this),
+            SecurityContext,
+            Channel,
+            @event,
+            seqId);
+    }
 }

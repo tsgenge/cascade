@@ -65,10 +65,24 @@ public async IAsyncEnumerable<IEventEnvelope> ExecuteAsync(
 
 - Validation errors should throw suitable exceptions on failure; common exceptions are in `CascadeEsdm.WriteModel.Abstractions/Exceptions`. New exceptions can be created where needed and placed into the aggregate's `/Exceptions` directory. Exceptions must inherit from `ExceptionBase` (see [Exceptions.md](Exceptions.md)).
 - Commands should not directly change the aggregate state — they should emit events that the aggregate will apply.
-- Events are emitted using the `ICommandEnvelope` extension method from `CascadeEsdm.WriteModel.Abstractions/CommandHandling/CommandExtensions.cs`.
+- Events are emitted using the `ICommandEnvelope` method from `CreateEvent`.
+
+```csharp
+yield return envelope.CreateEvent(
+    new OrderPlaced(envelope.Command.OrderId.Value, envelope.Command.Reference),
+    aggregate);
+```
 - Multiple events can be emitted by using `yield return`.
 - `GetSecurityDescriptorAsync` provides the security context for the command execution.
 - The `ICommandExecutor` for each command is discovered and registered automatically in the Composition Root.
+
+### Creating events with no aggregate
+While transforming brown field to an ESDM state, you might find you have no aggregates yet. You can still create events using the CreateEvent overload on the ICommandEnvelope, but not it is marked Obsolete. You are also responsible for setting the sequence Id.
+
+```csharp
+yield return envelope.CreateEvent<MyAggregate>(
+    new OrderPlaced(envelope.Command.OrderId.Value, envelope.Command.Reference), seqId: 1);
+```
 
 ### Command Execution Recommendations
 Commands should perform validation; does the aggregate exist? The aggregate should have a way to verify this with a boolean method or property. If the aggregate does not exist, the CommandExecutor should throw a `CascadeEsdm.WriteModel.Exceptions.NotFoundException`.
