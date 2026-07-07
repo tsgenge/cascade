@@ -51,8 +51,9 @@ internal class PolicyListener : IHostedService
             await _messageReceiver.ApplyActionAsync(message, MessageAction.Complete, null, cancellationToken);
         }
         catch (Exception ex) {
-            _logger.LogError(ex, "Error processing message");
-            var inner = new Exception("Error processing message", ex);
+            var msg = "Error processing or deserialising message";
+            _logger.LogError(ex, msg);
+            var inner = new Exception(msg, ex);
             var action = await _exceptionHandler.HandleAsync(message, inner, cancellationToken);
             await _messageReceiver.ApplyActionAsync(message, action, inner, cancellationToken);
         }

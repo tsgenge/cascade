@@ -37,9 +37,10 @@ internal class PolicyDispatcher : IPolicyDispatcher
             throw new PolicyExecutionException(failures!);
     }
 
-    private static async Task<PolicyFailure?> ExecutePolicySafeAsync(
+    private async Task<PolicyFailure?> ExecutePolicySafeAsync(
         IPolicy policy, EventEnvelope envelope, CancellationToken cancellationToken)
     {
+        using var scope = _logger.BeginScope("Executing Policy: {PolicyName}", policy.GetType().Name);
         try {
             await policy.ExecuteAsync(envelope, cancellationToken);
             return null;
