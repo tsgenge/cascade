@@ -78,9 +78,3 @@ internal class OpenTelemetryLogger : ITelemetryLogger
         };
     }
 }
-
-public sealed class NoopDisposable : IDisposable
-{
-    public static readonly NoopDisposable Instance = new();
-    public void Dispose() { }
-}

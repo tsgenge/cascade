@@ -13,6 +13,7 @@
   </Folder>
   <Folder Name="/4. Infrastructure/">
     <Project Path="src/infrastructure/CascadeEsdm.DistributedLocks/CascadeEsdm.DistributedLocks.csproj" />
+    <Project Path="src/infrastructure/CascadeEsdm.Logging.ApplicationInsights/CascadeEsdm.Logging.ApplicationInsights.csproj" />
     <Project Path="src/infrastructure/CascadeEsdm.Logging.OpenTelemetry/CascadeEsdm.Logging.OpenTelemetry.csproj" />
     <Project Path="src/infrastructure/CascadeEsdm.Storage.CosmosDb/CascadeEsdm.Storage.CosmosDb.csproj" />
     <Project Path="src/infrastructure/CascadeEsdm.SignalR/CascadeEsdm.SignalR.csproj" />

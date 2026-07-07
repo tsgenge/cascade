@@ -1,4 +1,5 @@
 using CascadeEsdm.SharedKernel.Events;
+using CascadeEsdm.SharedKernel.Infrastructure.Logging;
 using CascadeEsdm.SharedKernel.Infrastructure.Messaging;
 using CascadeEsdm.SharedKernel.Infrastructure.Serialisation;
 using CascadeEsdm.SharedKernel.Security;
@@ -17,6 +18,7 @@ namespace CascadeEsdm.WriteModel.Tests.UnitTests.Policies;
 public class PolicyListenerTests
 {
     private readonly IPolicyDispatcher _mockDispatcher;
+    private readonly ITelemetryLogger _mockTelLogger;
     private readonly IMessageExceptionHandler _mockExceptionHandler;
     private readonly IMessageReceiver _mockReceiver;
     private readonly IServiceScopeFactory _mockScopeFactory;
@@ -25,10 +27,12 @@ public class PolicyListenerTests
     public PolicyListenerTests()
     {
         _mockDispatcher = Substitute.For<IPolicyDispatcher>();
+        _mockTelLogger = Substitute.For<ITelemetryLogger>();
 
         var mockScope = Substitute.For<IServiceScope>();
         var mockScopeServiceProvider = Substitute.For<IServiceProvider>();
         mockScopeServiceProvider.GetService(typeof(IPolicyDispatcher)).Returns(_mockDispatcher);
+        mockScopeServiceProvider.GetService(typeof(ITelemetryLogger)).Returns(_mockTelLogger);
         mockScope.ServiceProvider.Returns(mockScopeServiceProvider);
 
         _mockScopeFactory = Substitute.For<IServiceScopeFactory>();
@@ -42,7 +46,7 @@ public class PolicyListenerTests
     private PolicyListener CreateSut()
     {
         return new PolicyListener(_mockScopeFactory, _mockReceiver, _mockExceptionHandler,
-            NullLogger<PolicyListener>.Instance, _serializerOptions);
+            _serializerOptions, NullLogger<PolicyListener>.Instance);
     }
 
     private async Task<Func<Message, CancellationToken, Task>> CaptureHandlerAsync()
@@ -82,6 +86,7 @@ public class PolicyListenerTests
 
         await handler(message, CancellationToken.None);
 
+        _mockTelLogger.Received(1).StartOperation(Arg.Any<string>(), null, TelemetryOperationKind.Consumer);
         await _mockDispatcher.Received(1).DispatchAsync(Arg.Any<EventEnvelope>(), Arg.Any<CancellationToken>());
     }
 

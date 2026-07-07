@@ -10,6 +10,8 @@ public class InfrastructureBuilder
     internal InfrastructureBuilder(IServiceCollection services)
     {
         Services = services ?? throw new ArgumentNullException(nameof(services));
+        
+        Services.AddScoped<ITelemetryLogger, NoopTelemetryLogger>();
     }
 
     public IServiceCollection Services { get; }

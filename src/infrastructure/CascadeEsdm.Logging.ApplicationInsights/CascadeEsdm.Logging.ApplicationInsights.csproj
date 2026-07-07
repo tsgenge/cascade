@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <PackageId>CascadeEsdm.Logging.ApplicationInsightsTelemetry</PackageId>
+        <Description>Provides an implementation of ITelemetryLogger using Microsoft.ApplicationInsights.</Description>
+        <PackageIcon>icon.jpg</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <None Include="docs\README.md" Pack="true" PackagePath="\" />
+        <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
+    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="3.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

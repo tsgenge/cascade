@@ -1,3 +1,4 @@
+using CascadeEsdm.SharedKernel.Infrastructure.Logging;
 using System.Text.Json;
 using CascadeEsdm.SharedKernel.Infrastructure.Messaging;
 using CascadeEsdm.SharedKernel.Infrastructure.Serialisation;
@@ -60,7 +61,7 @@ public class PolicyListenerBuilder
             var exceptionHandler = _exceptionHandlerType != null
                 ? (IMessageExceptionHandler)sp.GetRequiredService(_exceptionHandlerType)
                 : new DefaultMessageExceptionHandler();
-            return new PolicyListener(scopeFactory, receiver, exceptionHandler, logger, options);
+            return new PolicyListener(scopeFactory, receiver, exceptionHandler, options, logger);
         });
     }
 }
