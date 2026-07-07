@@ -130,7 +130,7 @@ public class PolicyListenerTests
         await handler(message, CancellationToken.None);
 
         await _mockReceiver.Received(1)
-            .ApplyActionAsync(message, MessageAction.DeadLetter, ex, Arg.Any<CancellationToken>());
+            .ApplyActionAsync(message, MessageAction.DeadLetter, Arg.Is<Exception>(e => e.InnerException == ex), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class PolicyListenerTests
         await handler(message, CancellationToken.None);
 
         await _mockReceiver.Received(1)
-            .ApplyActionAsync(message, MessageAction.Abandon, ex, Arg.Any<CancellationToken>());
+            .ApplyActionAsync(message, MessageAction.Abandon, Arg.Is<Exception>(e => e.InnerException == ex), Arg.Any<CancellationToken>());
     }
 
     [Fact]
