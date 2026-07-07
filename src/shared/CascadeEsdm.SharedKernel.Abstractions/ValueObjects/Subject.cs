@@ -10,16 +10,16 @@ namespace CascadeEsdm.SharedKernel.ValueObjects;
 public record Subject : IValueObject<string>
 {
     private const string Pattern =
-        $@"([\w]+)(\/({ValidationPatterns.GuidPattern}))?\/({ValidationPatterns.GuidPattern})";
+        $@"([\w]+)(\/({ValidationPatterns.GuidPattern}))?\/([\w]+)";
 
     public Subject(string value)
     {
-        Parse(value, out var id, out var parentId, out var type);
+        Parse(value, out var id, out var parentId, out var type, out string rawId);
         Id = id;
         Type = type;
         Parent = parentId;
-        Value = FormatValue(Type, Id, Parent);
-        RawId = id.ToString("n", CultureInfo.InvariantCulture);
+        Value = FormatValue(Type, rawId, Parent);
+        RawId = rawId;
     }
 
     public Subject(Guid id, string type, Guid? parentId = null)
@@ -36,8 +36,8 @@ public record Subject : IValueObject<string>
         Id = id.ToGuid();
         Parent = string.IsNullOrEmpty(parentId) ? null : parentId.ToGuid();
         Type = type;
-        Value = FormatValue(Type, id, parentId);
-        RawId = id;
+        RawId = id;        
+        Value = FormatValue(Type, RawId, parentId);
     }
 
     public Guid Id { get; }
@@ -83,6 +83,16 @@ public record Subject : IValueObject<string>
                 ? $"/{parentId.Value.ToString("n", CultureInfo.InvariantCulture)}"
                 : "");
     }
+    
+    private string FormatValue(string type, string id, Guid? parentId = null)
+    {
+        return FormatValue(
+            type,
+            id,
+            parentId.HasValue && parentId.Value != Guid.Empty
+                ? $"/{parentId.Value.ToString("n", CultureInfo.InvariantCulture)}"
+                : "");
+    }    
 
     private string FormatValue(string type, string id, string? parentId = null)
     {
@@ -90,17 +100,21 @@ public record Subject : IValueObject<string>
             $"{type}{parentId}/{id}";
     }
 
-    private void Parse(string value, out Guid id, out Guid? parentId, out string type)
+    private void Parse(string value, out Guid id, out Guid? parentId, out string type, out string rawId)
     {
         type = "NOTSET";
         id = Guid.Empty;
         parentId = null;
+        rawId = "NOTSET";
 
         var match = Regex.Match(value, Pattern);
         if (!match.Success)
             throw new ArgumentException("The value was formatted incorrectly for Subject.");
 
-        id = Guid.Parse(match.Groups[^1].Value);
+        rawId = match.Groups[^1].Value;
+        if (!Guid.TryParse(rawId, out id))
+            id = rawId.ToGuid();
+        
         type = match.Groups[1].Value;
         if (match.Groups[3].Captures.Count == 1)
             parentId = Guid.Parse(match.Groups[3].Value);

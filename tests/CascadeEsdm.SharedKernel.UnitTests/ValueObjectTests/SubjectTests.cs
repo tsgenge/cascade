@@ -22,6 +22,16 @@ public class SubjectTests
     }
 
     [Fact]
+    public void Loads_From_AuthMs()
+    {
+        var rawId = "SN8zzLjGhJON87Tr71Iy09cEw1B2";
+        var sut = new Subject($"Authentication/{rawId}");
+        sut.RawId.Should().Be(rawId);
+        sut.Id.Should().Be(rawId.ToGuid());
+        sut.Value.Should().Be($"Authentication/{rawId}");
+    }
+
+    [Fact]
     public void Constructor_FromString_ParsesSubjectWithParent()
     {
         var id = Guid.NewGuid();
