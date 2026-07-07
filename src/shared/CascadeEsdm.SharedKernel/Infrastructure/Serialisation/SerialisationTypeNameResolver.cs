@@ -28,7 +28,8 @@ internal class SerialisationTypeNameResolver : ISerialisationTypeResolver
         if (TypeCache.TryGetValue(jsonName, out var type))
             return type;
 
-        var resolved = Type.GetType(jsonName) ?? AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
+        var resolved = Type.GetType(jsonName) ?? AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(a => { try { return a.GetTypes(); } catch { return []; } })
             .FirstOrDefault(x => x.FullName == jsonName);
 
         if (resolved != null) {
