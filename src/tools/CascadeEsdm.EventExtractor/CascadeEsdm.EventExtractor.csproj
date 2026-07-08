@@ -27,8 +27,12 @@
     <None Include="docs\icon.jpg" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
     <ProjectReference Include="..\..\shared\CascadeEsdm.SharedKernel\CascadeEsdm.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
+    <PackageReference Include="CascadeEsdm.SharedKernel" Version="$(CascadeVersion)" />
   </ItemGroup>
 
   <ItemGroup>
