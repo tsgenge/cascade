@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>CascadeEsdm.OtherTestDomain.Schema</AssemblyName>
     <RootNamespace>CascadeEsdm.OtherTestDomain.Schema</RootNamespace>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
