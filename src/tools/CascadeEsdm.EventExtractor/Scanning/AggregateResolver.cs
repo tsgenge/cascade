@@ -72,7 +72,8 @@ public static class AggregateResolver
     /// Resolution order:
     /// 1. IEventApplier map (strip "Aggregate" suffix, pluralise)
     /// 2. Closest IAggregateRoot by namespace proximity (strip "Aggregate" suffix, pluralise)
-    /// 3. Namespace-based fallback (first segment after root namespace)
+    /// 3. Returns null when no aggregate can be determined, letting the caller fall back to the
+    ///    full namespace-based mapping.
     /// </summary>
     public static string? GetAggregateForEvent(
         RecordDeclarationSyntax eventRecord,
@@ -98,17 +99,8 @@ public static class AggregateResolver
             return Pluraliser.Pluralise(stripped);
         }
 
-        // Fallback: parse from namespace (e.g., CascadeEsdm.TestDomain.People.Events → People)
-        if (sourceNamespace.StartsWith(sourceRootNamespace, StringComparison.Ordinal))
-        {
-            var remainder = sourceNamespace[sourceRootNamespace.Length..].TrimStart('.');
-            var segments = remainder.Split('.');
-            if (segments.Length > 0 && !string.IsNullOrEmpty(segments[0]))
-            {
-                return segments[0];
-            }
-        }
-
+        // No applier and no aggregate root found; let the caller fall back to
+        // the full namespace-based mapping rather than guessing an aggregate name.
         return null;
     }
 

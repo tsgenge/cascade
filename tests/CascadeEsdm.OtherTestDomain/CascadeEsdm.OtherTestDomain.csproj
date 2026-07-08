@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>false</IsTestProject>
+        <RootNamespace>CascadeEsdm.OtherTestDomain</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
+      <PackageReference Include="CascadeEsdm.WriteModel.Abstractions" Version="1.0.116" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Domain\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\write\CascadeEsdm.WriteModel.Abstractions\CascadeEsdm.WriteModel.Abstractions.csproj" />
+    </ItemGroup>
+
+</Project>

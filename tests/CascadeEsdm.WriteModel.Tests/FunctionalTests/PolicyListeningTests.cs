@@ -1,15 +1,13 @@
 using Azure.Messaging.ServiceBus;
 using CascadeEsdm.Messaging.AzureServiceBus;
+using CascadeEsdm.OtherTestDomain.Schema.Domain.Monsters.Events;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.SharedKernel.Infrastructure.Serialisation;
 using CascadeEsdm.SharedKernel.Security;
 using CascadeEsdm.SharedKernel.ValueObjects;
-using CascadeEsdm.TestDomain.Monsters;
-using CascadeEsdm.TestDomain.Monsters.Commands;
 using CascadeEsdm.TestDomain.People.Commands;
 using CascadeEsdm.TestDomain.People.Events;
 using CascadeEsdm.TestDomain.People.ValueObjects;
-using CascadeEsdm.TestDomain.Schema.Monsters.Events;
 using CascadeEsdm.Testing;
 using CascadeEsdm.WriteModel.CommandHandling;
 using CascadeEsdm.WriteModel.Tests.FunctionalTests.Environment;
@@ -37,7 +35,7 @@ public class PolicyListeningTests : TestBase
         var addEvent = result.Events.First(e => e.Type == nameof(PersonAdded));
 
         var envelope = new EventEnvelope(
-            EventSource.ForAggregate(typeof(MonsterAggregate), Guid.NewGuid(), nameof(EatPerson)),
+            new EventSource("MonsterAggregate", Guid.NewGuid(), "EatPerson"),
             new Subject(Guid.NewGuid(), "Monster"),
             AuthenticatedContext.Empty,
             ClientChannel.Empty,

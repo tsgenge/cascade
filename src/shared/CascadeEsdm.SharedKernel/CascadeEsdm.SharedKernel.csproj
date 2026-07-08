@@ -27,6 +27,7 @@
     <ItemGroup>
         <InternalsVisibleTo Include="CascadeEsdm.WriteModel.Tests"/>
         <InternalsVisibleTo Include="CascadeEsdm.SharedKernel.UnitTests"/>
+        <InternalsVisibleTo Include="CascadeEsdm.EventExtractor"/>
         <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
     </ItemGroup>
 </Project>

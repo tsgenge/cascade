@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>CascadeEsdm.OtherTestDomain.Schema</AssemblyName>
+    <RootNamespace>CascadeEsdm.OtherTestDomain.Schema</RootNamespace>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CascadeEsdm.SharedKernel.Abstractions" Version="1.0.116" />
+  </ItemGroup>
+</Project>

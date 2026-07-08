@@ -222,7 +222,7 @@ public class AggregateResolverTests
     }
 
     [Fact]
-    public void GetAggregateForEvent_FallsBackToNamespace_WhenNoApplierAndNoAggregateRoot()
+    public void GetAggregateForEvent_ReturnsNull_WhenNoApplierAndNoAggregateRoot()
     {
         var file = CreateScannedFile(
             "TestDomain.Orders.Events",
@@ -235,7 +235,7 @@ public class AggregateResolverTests
         var aggregate = AggregateResolver.GetAggregateForEvent(
             eventRecord, file.SourceNamespace, "TestDomain", map, []);
 
-        aggregate.Should().Be("Orders");  // Second segment of namespace (already plural in this case)
+        aggregate.Should().BeNull();
     }
 
     [Fact]

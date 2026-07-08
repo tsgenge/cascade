@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace CascadeEsdm.SharedKernel.Infrastructure.Serialisation;
 
-internal static class SchemaTypeNameMapper
+public static class SchemaTypeNameMapper
 {
     private static readonly string[] StripSuffixes =
         [".WriteModel", ".Domain", ".Write", ".Application", ".Schema"];
@@ -41,7 +41,7 @@ internal static class SchemaTypeNameMapper
         return assemblyName + ".Schema";
     }
 
-    private static string ReplaceNamespacePrefix(
+    internal static string ReplaceNamespacePrefix(
         string typeName, string sourcePrefix, string targetPrefix)
     {
         if (typeName.StartsWith(sourcePrefix + ".", StringComparison.Ordinal))

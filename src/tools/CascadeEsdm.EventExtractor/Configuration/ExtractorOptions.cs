@@ -1,3 +1,5 @@
+using CascadeEsdm.SharedKernel.Infrastructure.Serialisation;
+
 namespace CascadeEsdm.EventExtractor.Configuration;
 
 public sealed class ExtractorOptions
@@ -25,21 +27,8 @@ public sealed class ExtractorOptions
 
     /// <summary>Resolves the effective assembly name, computing a default from RootNamespace if not supplied.</summary>
     public string ResolvedAssemblyName =>
-        AssemblyName ?? ComputeDefaultAssemblyName(RootNamespace);
+        AssemblyName ?? SchemaTypeNameMapper.ComputeSchemaAssemblyName(RootNamespace);
 
     public string ResolvedEventsNamespace => ResolvedAssemblyName;
-
-    private static readonly string[] StripSuffixes =
-        [".WriteModel", ".Domain", ".Write", ".Application"];
-
-    private static string ComputeDefaultAssemblyName(string rootNamespace)
-    {
-        foreach (var suffix in StripSuffixes)
-        {
-            if (rootNamespace.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-                return rootNamespace[..^suffix.Length] + ".Schema";
-        }
-
-        return rootNamespace + ".Schema";
-    }
 }
+

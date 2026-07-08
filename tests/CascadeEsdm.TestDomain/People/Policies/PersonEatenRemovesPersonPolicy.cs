@@ -1,7 +1,7 @@
+using CascadeEsdm.OtherTestDomain.Schema.Domain.Monsters.Events;
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.TestDomain.People.Commands;
 using CascadeEsdm.TestDomain.People.ValueObjects;
-using CascadeEsdm.TestDomain.Schema.Monsters.Events;
 using CascadeEsdm.WriteModel;
 using CascadeEsdm.WriteModel.CommandHandling;
 using CascadeEsdm.WriteModel.Policies;

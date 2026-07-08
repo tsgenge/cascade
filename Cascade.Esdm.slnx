@@ -27,10 +27,11 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="tests/CascadeEsdm.SharedKernel.UnitTests/CascadeEsdm.SharedKernel.UnitTests.csproj" />
-    <Project Path="tests/CascadeEsdm.TestDomain.Schema/CascadeEsdm.TestDomain.Schema.csproj" />
     <Project Path="tests/CascadeEsdm.TestDomain/CascadeEsdm.TestDomain.csproj" />
     <Project Path="tests/CascadeEsdm.EventExtractor.Tests/CascadeEsdm.EventExtractor.Tests.csproj" />
     <Project Path="tests/CascadeEsdm.WriteModel.Tests/CascadeEsdm.WriteModel.Tests.csproj" />
+    <Project Path="tests/CascadeEsdm.OtherTestDomain.Schema/CascadeEsdm.OtherTestDomain.Schema.csproj" />
+    <Project Path="tests/CascadeEsdm.OtherTestDomain/CascadeEsdm.OtherTestDomain.csproj" />
     <Project Path="tests/CascadeEsdm.ReadModel.Tests/CascadeEsdm.ReadModel.Tests.csproj" />
   </Folder>
 </Solution>

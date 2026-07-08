@@ -1,3 +1,5 @@
+using CascadeEsdm.SharedKernel.Infrastructure.Serialisation;
+
 namespace CascadeEsdm.EventExtractor.Generation;
 
 /// <summary>
@@ -19,21 +21,21 @@ public sealed class NamespaceMapper
     ///
     /// Example:
     ///   source:  Acme.Orders.WriteModel.Orders.Events
-    ///   target:  Acme.Orders.Events.Orders.Events
+    ///   target:  Acme.Orders.Schema.Orders.Events
     ///
     /// The source root namespace prefix is replaced with the target root namespace.
     /// </summary>
     public string MapNamespace(string sourceNamespace)
     {
-        if (sourceNamespace.StartsWith(_sourceRootNamespace, StringComparison.Ordinal))
-        {
-            var remainder = sourceNamespace[_sourceRootNamespace.Length..].TrimStart('.');
-            return string.IsNullOrEmpty(remainder)
-                ? _targetRootNamespace
-                : $"{_targetRootNamespace}.{remainder}";
-        }
+        if (sourceNamespace == _sourceRootNamespace)
+            return _targetRootNamespace;
 
-        return $"{_targetRootNamespace}.{sourceNamespace}";
+        var rewritten = SchemaTypeNameMapper.ReplaceNamespacePrefix(
+            sourceNamespace, _sourceRootNamespace, _targetRootNamespace);
+
+        return rewritten == sourceNamespace
+            ? $"{_targetRootNamespace}.{sourceNamespace}"
+            : rewritten;
     }
 
     /// <summary>

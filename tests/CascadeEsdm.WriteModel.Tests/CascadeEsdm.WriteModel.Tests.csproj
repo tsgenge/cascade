@@ -22,7 +22,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\tools\CascadeEsdm.Testing\CascadeEsdm.Testing.csproj"/>
-        <ProjectReference Include="..\CascadeEsdm.TestDomain.Schema\CascadeEsdm.TestDomain.Schema.csproj"/>
         <ProjectReference Include="..\CascadeEsdm.TestDomain\CascadeEsdm.TestDomain.csproj"/>
         <ProjectReference Include="..\..\src\write\CascadeEsdm.WriteModel\CascadeEsdm.WriteModel.csproj"/>
         <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.DistributedLocks\CascadeEsdm.DistributedLocks.csproj"/>
