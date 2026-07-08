@@ -13,10 +13,10 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
-  build-and-test:
-    name: Build and Test
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,6 +33,38 @@ jobs:
 
       - name: Build solution
         run: dotnet build --configuration Release --no-restore
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            src/**/bin/**
+            src/**/obj/**
+            tests/**/bin/**
+            tests/**/obj/**
+          if-no-files-found: error
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
 
       - name: Run tests
         run: dotnet test --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
@@ -59,7 +91,7 @@ jobs:
 
   publish-prerelease:
     name: Publish Pre-release
-    needs: build-and-test
+    needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     uses: ./.github/workflows/publish-packages.yml
     with:
@@ -68,7 +100,7 @@ jobs:
 
   publish-release:
     name: Publish Release
-    needs: build-and-test
+    needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     uses: ./.github/workflows/publish-packages.yml
     with:
