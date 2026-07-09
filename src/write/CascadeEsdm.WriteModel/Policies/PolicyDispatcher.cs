@@ -34,7 +34,7 @@ internal class PolicyDispatcher : IPolicyDispatcher
 
         var failures = results.Where(r => r is not null).ToList();
         if (failures.Count > 0)
-            throw new PolicyExecutionException(failures!);
+            throw new PolicyExecutionException(new PolicyFailures(failures!));
     }
 
     private async Task<PolicyFailure?> ExecutePolicySafeAsync(

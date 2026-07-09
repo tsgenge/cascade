@@ -2,21 +2,28 @@ using CascadeEsdm.SharedKernel.Exceptions;
 
 namespace CascadeEsdm.WriteModel.Exceptions;
 
-public class PolicyExecutionException : ExceptionBase
+public class PolicyExecutionException : AggregateExceptionBase
 {
-    public PolicyExecutionException(IReadOnlyList<PolicyFailure> failures)
-        : base(FormatMessage(failures))
+    public PolicyExecutionException(PolicyFailures failures)
+        : base(failures.ToString(), failures.Exceptions)
     {
-        Failures = failures;
     }
+}
 
-    public IReadOnlyList<PolicyFailure> Failures { get; }
-
-    private static string FormatMessage(IReadOnlyList<PolicyFailure> failures)
+public record PolicyFailures
+{
+    private readonly IReadOnlyList<PolicyFailure> _failures;
+    public PolicyFailures(IReadOnlyList<PolicyFailure> failures)
     {
-        var policyNames = string.Join(", ", failures.Select(f => f.PolicyName));
+        _failures = failures;
+    }
+    public override string ToString()
+    {
+        var policyNames = string.Join(", ", _failures.Select(f => f.PolicyName));
         return $"One or more policies failed to execute: {policyNames}";
     }
+
+    public Exception[] Exceptions => _failures.Select(f => f.Exception).ToArray();
 }
 
 public record PolicyFailure

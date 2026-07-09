@@ -18,26 +18,6 @@ internal abstract class AzureServiceBusReceiverBase : IMessageReceiver
         await ApplyActionInnerAsync(message, action, ex, cancellationToken);
     }
 
-    protected string GetDeadLetterReason(Exception? exception)
-    {
-        if(exception is null)
-            return string.Empty;
-            
-        const int maxLength = 4096;
-
-        var parts = new List<string>();
-        var current = exception;
-        while (current is not null)
-        {
-            parts.Add($"{current.GetType().Name}: {current.Message}");
-            current = current.InnerException;
-        }
-
-        var reason = string.Join(" ---> ", parts);
-
-        return reason.Length <= maxLength ? reason : reason[..maxLength];
-    }
-
     protected abstract Task ApplyActionInnerAsync(Message message, MessageAction action, Exception? ex,
         CancellationToken cancellationToken);
 

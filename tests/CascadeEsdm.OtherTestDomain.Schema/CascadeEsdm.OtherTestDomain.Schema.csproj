@@ -11,7 +11,11 @@
     <IsTestProject>false</IsTestProject>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
+    <ProjectReference Include="..\..\src\shared\CascadeEsdm.SharedKernel.Abstractions\CascadeEsdm.SharedKernel.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
     <PackageReference Include="CascadeEsdm.SharedKernel.Abstractions" Version="1.0.116" />
   </ItemGroup>
 </Project>

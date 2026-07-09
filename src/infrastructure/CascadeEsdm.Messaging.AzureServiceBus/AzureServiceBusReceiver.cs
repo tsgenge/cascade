@@ -39,7 +39,7 @@ internal class AzureServiceBusReceiver : AzureServiceBusReceiverBase
             MessageAction.Abandon => eventArgs.AbandonMessageAsync(asbMessage.ReceivedMessage,
                 cancellationToken: cancellationToken),
             MessageAction.DeadLetter => eventArgs.DeadLetterMessageAsync(asbMessage.ReceivedMessage,
-                GetDeadLetterReason(ex),
+                DeadLetterMessageFormatter.GetDeadLetterReason(ex),
                 cancellationToken: cancellationToken),
             _ => throw new ArgumentOutOfRangeException(nameof(action), action, "Unsupported message action.")
         };

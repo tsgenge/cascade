@@ -65,7 +65,7 @@ public class PolicyDispatcherTests
     public async Task DispatchAsync_WithNoSupportingPolicies_CompletesWithoutError()
     {
         _mockPolicy.Supports(Arg.Any<EventEnvelope>()).Returns(false);
-        var dispatcher = new PolicyDispatcher(new[] { _mockPolicy }, _logger);
+        var dispatcher = new PolicyDispatcher([_mockPolicy], _logger);
         var envelope = TestTools.CreateEventEnvelope();
 
         await dispatcher.DispatchAsync(envelope);
@@ -88,7 +88,7 @@ public class PolicyDispatcherTests
         var envelope = TestTools.CreateEventEnvelope();
         _mockPolicy.Supports(envelope).Returns(true);
         _mockPolicy.ExecuteAsync(envelope, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
-        var dispatcher = new PolicyDispatcher(new[] { _mockPolicy }, _logger);
+        var dispatcher = new PolicyDispatcher([_mockPolicy], _logger);
 
         await dispatcher.DispatchAsync(envelope);
 
@@ -103,7 +103,7 @@ public class PolicyDispatcherTests
         _mockPolicy2.Supports(envelope).Returns(true);
         _mockPolicy.ExecuteAsync(envelope, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         _mockPolicy2.ExecuteAsync(envelope, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
-        var dispatcher = new PolicyDispatcher(new[] { _mockPolicy, _mockPolicy2 }, _logger);
+        var dispatcher = new PolicyDispatcher([_mockPolicy, _mockPolicy2], _logger);
 
         await dispatcher.DispatchAsync(envelope);
 
@@ -118,7 +118,7 @@ public class PolicyDispatcherTests
         _mockPolicy.Supports(envelope).Returns(true);
         _mockPolicy2.Supports(envelope).Returns(false);
         _mockPolicy.ExecuteAsync(envelope, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
-        var dispatcher = new PolicyDispatcher(new[] { _mockPolicy, _mockPolicy2 }, _logger);
+        var dispatcher = new PolicyDispatcher([_mockPolicy, _mockPolicy2], _logger);
 
         await dispatcher.DispatchAsync(envelope);
 
@@ -130,29 +130,18 @@ public class PolicyDispatcherTests
     public async Task DispatchAsync_WhenPolicyFails_ThrowsPolicyExecutionException()
     {
         var envelope = TestTools.CreateEventEnvelope();
+        var policyException = new InvalidOperationException("Policy failed");
         _mockPolicy.Supports(envelope).Returns(true);
         _mockPolicy.ExecuteAsync(envelope, Arg.Any<CancellationToken>())
-            .ThrowsAsync(new InvalidOperationException("Policy failed"));
-        var dispatcher = new PolicyDispatcher(new[] { _mockPolicy }, _logger);
+            .ThrowsAsync(policyException);
+        var dispatcher = new PolicyDispatcher([_mockPolicy], _logger);
 
-        var act = () => dispatcher.DispatchAsync(envelope);
-
-        await act.Should().ThrowAsync<PolicyExecutionException>();
-    }
-
-    [Fact]
-    public async Task DispatchAsync_WhenPolicyFails_ExceptionContainsFailureDetails()
-    {
-        var envelope = TestTools.CreateEventEnvelope();
-        var failingPolicy = new FailingTestPolicy();
-        var dispatcher = new PolicyDispatcher(new IPolicy[] { failingPolicy }, _logger);
-
-        var act = () => dispatcher.DispatchAsync(envelope);
-
-        var exception = await act.Should().ThrowAsync<PolicyExecutionException>();
-        exception.Which.Failures.Should().HaveCount(1);
-        exception.Which.Failures[0].PolicyName.Should().Be(nameof(FailingTestPolicy));
-        exception.Which.Failures[0].Exception.Should().BeOfType<InvalidOperationException>();
+        var ex = await dispatcher
+            .Awaiting(d => d.DispatchAsync(envelope))
+            .Should().ThrowAsync<PolicyExecutionException>();
+        ex.Which.InnerException.Should().BeOfType<InvalidOperationException>();
+        ex.Which.InnerExceptions.Should().HaveCount(1);
+        ex.Which.Message.Should().StartWith($"One or more policies failed to execute: {_mockPolicy.GetType().Name}");
     }
 
     [Fact]
@@ -161,11 +150,11 @@ public class PolicyDispatcherTests
         var envelope = TestTools.CreateEventEnvelope();
         var successfulPolicy = new TrackingTestPolicy();
         var failingPolicy = new FailingTestPolicy();
-        var dispatcher = new PolicyDispatcher(new IPolicy[] { successfulPolicy, failingPolicy }, _logger);
+        var dispatcher = new PolicyDispatcher([successfulPolicy, failingPolicy], _logger);
 
-        var act = () => dispatcher.DispatchAsync(envelope);
-
-        await act.Should().ThrowAsync<PolicyExecutionException>();
+        await dispatcher
+            .Awaiting(d => d.DispatchAsync(envelope))
+            .Should().ThrowAsync<PolicyExecutionException>();
         successfulPolicy.Executed.Should().BeTrue();
     }
 
@@ -175,15 +164,13 @@ public class PolicyDispatcherTests
         var envelope = TestTools.CreateEventEnvelope();
         var failingPolicy1 = new FailingTestPolicy();
         var failingPolicy2 = new AnotherFailingTestPolicy();
-        var dispatcher = new PolicyDispatcher(new IPolicy[] { failingPolicy1, failingPolicy2 }, _logger);
+        var dispatcher = new PolicyDispatcher([failingPolicy1, failingPolicy2], _logger);
 
-        var act = () => dispatcher.DispatchAsync(envelope);
-
-        var exception = await act.Should().ThrowAsync<PolicyExecutionException>();
-        exception.Which.Failures.Should().HaveCount(2);
-        exception.Which.Failures.Select(f => f.PolicyName)
-            .Should().Contain(nameof(FailingTestPolicy))
-            .And.Contain(nameof(AnotherFailingTestPolicy));
+        var exception = await dispatcher
+            .Awaiting(d => d.DispatchAsync(envelope))
+            .Should().ThrowAsync<PolicyExecutionException>();
+        exception.Which.InnerExceptions.Should().HaveCount(2);
+        exception.Which.Message.Should().StartWith($"One or more policies failed to execute: {nameof(FailingTestPolicy)}, {nameof(AnotherFailingTestPolicy)}");
     }
 
     [Fact]
@@ -192,7 +179,7 @@ public class PolicyDispatcherTests
         var envelope = TestTools.CreateEventEnvelope();
         var policy1 = new TrackingTestPolicy();
         var policy2 = new TrackingTestPolicy();
-        var dispatcher = new PolicyDispatcher(new IPolicy[] { policy1, policy2 }, _logger);
+        var dispatcher = new PolicyDispatcher([policy1, policy2], _logger);
 
         await dispatcher.DispatchAsync(envelope);
 
@@ -207,7 +194,7 @@ public class PolicyDispatcherTests
         using var cts = new CancellationTokenSource();
         _mockPolicy.Supports(envelope).Returns(true);
         _mockPolicy.ExecuteAsync(envelope, cts.Token).Returns(Task.CompletedTask);
-        var dispatcher = new PolicyDispatcher(new[] { _mockPolicy }, _logger);
+        var dispatcher = new PolicyDispatcher([_mockPolicy], _logger);
 
         await dispatcher.DispatchAsync(envelope, cts.Token);
 
