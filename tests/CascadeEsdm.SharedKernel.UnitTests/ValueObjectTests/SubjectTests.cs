@@ -62,6 +62,21 @@ public class SubjectTests
     }
 
     [Fact]
+    public void Constructor_FromString_WithNonWordCharacters_Stores_RawId()
+    {
+        var id = $"cabbages-{Guid.NewGuid()}";
+        var aggregate = "PersonAggregate";
+        var value = $"PersonAggregate/{id}";
+
+        var subject = new Subject(value);
+
+        subject.RawId.Should().Be(id);
+        subject.Id.Should().Be(id.ToGuid());
+        subject.Type.Should().Be("PersonAggregate");
+        subject.Value.Should().Be(value);
+    }
+
+    [Fact]
     public void Constructor_FromString_InvalidFormat_ThrowsArgumentException()
     {
         var invalidValue = "invalid-format";

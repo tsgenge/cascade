@@ -10,7 +10,7 @@ namespace CascadeEsdm.SharedKernel.ValueObjects;
 public record Subject : IValueObject<string>
 {
     private const string Pattern =
-        $@"([\w]+)(\/({ValidationPatterns.GuidPattern}))?\/([\w]+)";
+        $@"([\w]+)(\/({ValidationPatterns.GuidPattern}))?\/([\w\-._]+)";
 
     public Subject(string value)
     {
