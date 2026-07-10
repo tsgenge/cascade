@@ -37,9 +37,15 @@ public class PolicyListenerBuilder
 
     internal void Build()
     {
-        if (!_services.Any(s => s.ServiceType == typeof(IPolicyDispatcher)))
+        var dispatcherRegistered = _name == null
+            ? _services.Any(s => s.ServiceType == typeof(IPolicyDispatcher) && !s.IsKeyedService)
+            : _services.Any(s => s.ServiceType == typeof(IPolicyDispatcher) && s.IsKeyedService && Equals(s.ServiceKey, _name));
+
+        if (!dispatcherRegistered)
             throw new InvalidOperationException(
-                "IPolicyDispatcher is not registered. Call UsingPolicies before UsingPolicyListener.");
+                _name == null
+                    ? "IPolicyDispatcher is not registered. Call UsingPolicies before UsingPolicyListener."
+                    : $"No IPolicyDispatcher registered with key '{_name}'. Call UsingPolicies with the matching key before UsingPolicyListener.");
 
         var receiverRegistered = _name == null
             ? _services.Any(s => s.ServiceType == typeof(IMessageReceiver) && !s.IsKeyedService)
@@ -61,7 +67,7 @@ public class PolicyListenerBuilder
             var exceptionHandler = _exceptionHandlerType != null
                 ? (IMessageExceptionHandler)sp.GetRequiredService(_exceptionHandlerType)
                 : new DefaultMessageExceptionHandler();
-            return new PolicyListener(scopeFactory, receiver, exceptionHandler, options, logger);
+            return new PolicyListener(scopeFactory, receiver, exceptionHandler, options, logger, _name);
         });
     }
 }

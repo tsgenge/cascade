@@ -15,16 +15,18 @@ internal class PolicyListener : IHostedService
     private readonly IMessageExceptionHandler _exceptionHandler;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly ILogger<PolicyListener> _logger;
+    private readonly string? _dispatcherKey;
 
     public PolicyListener(IServiceScopeFactory scopeFactory, IMessageReceiver messageReceiver,
         IMessageExceptionHandler exceptionHandler, JsonSerializerOptions serializerOptions,
-        ILogger<PolicyListener> logger)
+        ILogger<PolicyListener> logger, string? dispatcherKey = null)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         _messageReceiver = messageReceiver ?? throw new ArgumentNullException(nameof(messageReceiver));
         _exceptionHandler = exceptionHandler ?? throw new ArgumentNullException(nameof(exceptionHandler));
         _serializerOptions = serializerOptions ?? throw new ArgumentNullException(nameof(serializerOptions));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _dispatcherKey = dispatcherKey;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -48,7 +50,9 @@ internal class PolicyListener : IHostedService
             var telemetryLogger = scope.ServiceProvider.GetRequiredService<ITelemetryLogger>();
             using var op = telemetryLogger.StartOperation($"Processing [{envelope?.Type}] message", null, TelemetryOperationKind.Consumer);
             
-            var dispatcher = scope.ServiceProvider.GetRequiredService<IPolicyDispatcher>();
+            var dispatcher = _dispatcherKey is null
+                ? scope.ServiceProvider.GetRequiredService<IPolicyDispatcher>()
+                : scope.ServiceProvider.GetRequiredKeyedService<IPolicyDispatcher>(_dispatcherKey);
             await dispatcher.DispatchAsync(envelope!, cancellationToken);
             await _messageReceiver.ApplyActionAsync(message, MessageAction.Complete, null, cancellationToken);
         }

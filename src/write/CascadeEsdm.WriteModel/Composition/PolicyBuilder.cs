@@ -7,16 +7,26 @@ namespace CascadeEsdm.WriteModel.Composition;
 public class PolicyBuilder
 {
     private readonly IServiceCollection _services;
+    private readonly string? _key;
 
     public PolicyBuilder(IServiceCollection services)
+        : this(services, null)
+    {
+    }
+
+    public PolicyBuilder(IServiceCollection services, string? key)
     {
         _services = services;
+        _key = key;
     }
 
     public PolicyBuilder AddPolicy<TPolicy>()
         where TPolicy : class, IPolicy
     {
-        _services.AddScoped<IPolicy, TPolicy>();
+        if (_key is null)
+            _services.AddScoped<IPolicy, TPolicy>();
+        else
+            _services.AddKeyedScoped<IPolicy, TPolicy>(_key);
         return this;
     }
 
@@ -42,7 +52,10 @@ public class PolicyBuilder
     private void RegisterPolicies(IEnumerable<Type> policyTypes)
     {
         foreach (var policyType in policyTypes) {
-            _services.AddScoped(typeof(IPolicy), policyType);
+            if (_key is null)
+                _services.AddScoped(typeof(IPolicy), policyType);
+            else
+                _services.AddKeyedScoped(typeof(IPolicy), _key, policyType);
         }
     }
 
