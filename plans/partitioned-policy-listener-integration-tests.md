@@ -69,7 +69,9 @@ This keeps the same verification pattern as the current `PolicyListeningTests` a
 
 ## Phase 1: Refactor shared infrastructure into a base environment
 
-Status: Not started
+Status: Complete
+
+**Phase Summary:** Added `AsbIntegrationEnvironmentBase` (`IAsyncLifetime`) owning the Azurite/Cosmos/Service Bus containers, `ServiceProvider`, `Fixture`, container setup, `SetupEventStream` helpers, `CreateEmulatorClientOptions`, and the generic host build that calls an abstract `ConfigureServices(services, azurite, cosmos, serviceBus)`. `WriteContext` now derives from it and only overrides `ConfigureServices` with the existing command-test composition. Verified: build succeeds; `CommandLifeCycleTests`, `SerialExecutionTests`, `PolicyListeningTests` all pass (5 passed).
 
 ### What to change
 
@@ -108,7 +110,9 @@ Expected: build succeeds; existing functional tests still pass against the refac
 
 ## Phase 2: Add test commands, handlers, and policies
 
-Status: Not started
+Status: Complete
+
+**Phase Summary:** Added six `ICommand` records (`Shared/PartitionedPolicyOne|Two|Three Executed`), a generic `PolicyExecutedCommandHandler<TCommand>` returning an empty `CommandResponse`, and six `IPolicy` classes that always support and dispatch their command via `CommandEnvelope<T>` preserving the event's security context/channel. Build succeeds.
 
 ### What to change
 
@@ -146,7 +150,9 @@ Expected: build succeeds; no runtime tests yet.
 
 ## Phase 3: Add the three concrete environments
 
-Status: Not started
+Status: Complete
+
+**Phase Summary:** Added `AllSharedPoliciesEnvironment`, `MixedPartitioningEnvironment`, `OnlyPartitioningEnvironment` deriving the base, plus a shared `PolicyTestServiceRegistration.AddPolicyExecutionTracking()` extension that registers the six handlers, the open-generic `MessageChannel<>` singleton, and the `MessageChannelHandler<>` decorator. Collection definitions added in `PartitioningCollections.cs`.
 
 ### What to change
 
@@ -206,7 +212,9 @@ Expected: build succeeds; host builder wiring compiles.
 
 ## Phase 4: Update ASB emulator configuration
 
-Status: Not started
+Status: Complete
+
+**Phase Summary:** Added `second-stream`/`second-policies` and `partitioned-stream`/`partitioned-policies` topics+subscriptions to `service-bus-config.json`.
 
 ### What to change
 
@@ -271,7 +279,9 @@ Expected: tests can connect to the new topic/subscription.
 
 ## Phase 5: Add the integration test classes
 
-Status: Not started
+Status: Complete
+
+**Phase Summary:** Added `IntegrationTestBase<TEnvironment>` and the three test classes plus a `PolicyPartitioningTestHelpers` static (send serialized `EventEnvelope`, wait/negative-wait on channels). The `OnlyPartitioning` negative test reuses the `"partitioned"` `ServiceBusClient` to publish to `example-stream` (no unkeyed client exists). Verified: all 6 new tests pass.
 
 ### What to change
 
@@ -358,7 +368,9 @@ Expected: all new integration tests pass.
 
 ## Phase 6: Update `TestBase` / collection wiring for existing tests
 
-Status: Not started
+Status: Complete
+
+**Phase Summary:** `TestBase` kept as a non-generic `[Collection("FunctionalTests")]` alias of `IntegrationTestBase<WriteContext>`, so existing command/policy tests are unchanged. `TestCollection.cs` still binds `FunctionalTests` to `WriteContext`. Verified: existing functional tests pass.
 
 ### What to change
 
@@ -378,7 +390,9 @@ Expected: all functional tests pass.
 
 ## Final Recap
 
-*(To be filled in after all phases complete.)*
+All six phases complete. Shared ASB/container infra moved into `AsbIntegrationEnvironmentBase`; `WriteContext` refactored onto it with no behaviour change. Three concrete environments plus three test classes exercise the keyed policy-partitioning scenarios end-to-end (event stream → keyed/unkeyed listener → keyed/unkeyed policy pool → command handler), verified via `MessageChannel<TCommand>`. `service-bus-config.json` gained `second-stream` and `partitioned-stream` topics.
+
+**Verification result:** WriteModel.Tests build succeeds; the 6 new partitioning tests pass and the 5 existing command/policy functional tests still pass locally against Docker/Testcontainers.
 
 ## Deployment Plan
 
