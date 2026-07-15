@@ -3,15 +3,21 @@ using Xunit.Abstractions;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests;
 
-[Collection("FunctionalTests")]
-public abstract class TestBase
+public abstract class IntegrationTestBase<TEnvironment>
+    where TEnvironment : AsbIntegrationEnvironmentBase
 {
-    protected readonly WriteContext Environment;
+    protected readonly TEnvironment Environment;
     protected readonly ITestOutputHelper Output;
 
-    protected TestBase(ITestOutputHelper output, WriteContext environment)
+    protected IntegrationTestBase(ITestOutputHelper output, TEnvironment environment)
     {
         Output = output;
         Environment = environment;
     }
+}
+
+[Collection("FunctionalTests")]
+public abstract class TestBase : IntegrationTestBase<WriteContext>
+{
+    protected TestBase(ITestOutputHelper output, WriteContext environment) : base(output, environment) { }
 }
