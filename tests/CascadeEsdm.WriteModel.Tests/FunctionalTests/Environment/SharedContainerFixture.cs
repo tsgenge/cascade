@@ -1,5 +1,6 @@
 using Azure.Storage.Blobs;
 using CascadeEsdm.WriteModel.EventStream;
+using DotNet.Testcontainers.Builders;
 using Microsoft.Azure.Cosmos;
 using Testcontainers.Azurite;
 using Testcontainers.CosmosDb;
@@ -26,6 +27,8 @@ public sealed class SharedContainerFixture : IAsyncLifetime
             .Build();
 
         _cosmosContainer = new CosmosDbBuilder("mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest")
+            .WithWaitStrategy(Wait.ForUnixContainer()
+                .UntilMessageIsLogged("Started", strategy => strategy.WithTimeout(TimeSpan.FromMinutes(1))))
             .Build();
 
         _serviceBusContainer = new ServiceBusBuilder("mcr.microsoft.com/azure-messaging/servicebus-emulator:latest")
