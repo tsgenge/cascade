@@ -90,6 +90,36 @@ services.AddCascadeEsdm(cascade => cascade
     .AddPoliciesFromNamespace<SendWelcomeEmailPolicy>())
 ```
 
+## Keyed Policy Partitions
+
+By default every policy registered through `UsingPolicies` joins a single shared pool, and every [policy listener](PolicyListener.md) runs every policy. To run an isolated set of policies for a specific listener, register those policies under a key using the keyed `UsingPolicies` overload:
+
+```csharp
+.WithWriteModel(write => write
+    .UsingExecutors(/* ... */)
+    .UsingAppliers(/* ... */)
+    .UsingPolicies(policies => policies                 // shared default pool
+        .AddPolicy<SharedDefaultPolicy>())
+    .UsingPolicies("orders", policies => policies       // isolated to the "orders" partition
+        .AddPolicy<OrderPolicy>())
+    .UsingPolicies("payments", policies => policies     // isolated to the "payments" partition
+        .AddPolicy<PaymentPolicy>())
+    .AddPolicyListener()                                // runs the shared default pool
+    .AddPolicyListener("orders")                        // runs only OrderPolicy
+    .AddPolicyListener("payments"))                     // runs only PaymentPolicy
+```
+
+### Partition Semantics
+
+- `UsingPolicies(key, ...)` registers every policy inside the block under `key` (using keyed DI) and registers an `IPolicyDispatcher` keyed with the same value. That dispatcher only ever sees the policies registered under its key.
+- `UsingPolicies(...)` (no key) registers policies without a key and registers the unkeyed shared `IPolicyDispatcher`. This is the default pool.
+- A keyed [policy listener](PolicyListener.md) (`AddPolicyListener("orders")`) resolves the dispatcher keyed with the same name and therefore runs **only** the policies in that partition.
+- An unkeyed listener (`AddPolicyListener()`) resolves the unkeyed dispatcher and runs **only** the shared default policies.
+- Multiple `UsingPolicies("sameKey", ...)` calls aggregate into the same partition.
+- All discovery methods (`AddPolicy<T>`, `AddPoliciesFromAssembly<T>`, `AddPoliciesFromNamespace<T>`) honour the partition key of the enclosing `UsingPolicies` block.
+
+Existing single-listener/single-pool consumers require no changes — the keyless overload behaves exactly as before.
+
 ## Dispatching
 
 Inject `IPolicyDispatcher` wherever events are available and call `DispatchAsync`:

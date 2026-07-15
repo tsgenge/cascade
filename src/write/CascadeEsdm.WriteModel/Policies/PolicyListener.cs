@@ -15,16 +15,18 @@ internal class PolicyListener : IHostedService
     private readonly IMessageExceptionHandler _exceptionHandler;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly ILogger<PolicyListener> _logger;
+    private readonly DispatcherKey _dispatcherKey;
 
     public PolicyListener(IServiceScopeFactory scopeFactory, IMessageReceiver messageReceiver,
         IMessageExceptionHandler exceptionHandler, JsonSerializerOptions serializerOptions,
-        ILogger<PolicyListener> logger)
+        DispatcherKey dispatcherKey, ILogger<PolicyListener> logger)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         _messageReceiver = messageReceiver ?? throw new ArgumentNullException(nameof(messageReceiver));
         _exceptionHandler = exceptionHandler ?? throw new ArgumentNullException(nameof(exceptionHandler));
         _serializerOptions = serializerOptions ?? throw new ArgumentNullException(nameof(serializerOptions));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _dispatcherKey = dispatcherKey ?? throw new ArgumentNullException(nameof(dispatcherKey));
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -48,7 +50,9 @@ internal class PolicyListener : IHostedService
             var telemetryLogger = scope.ServiceProvider.GetRequiredService<ITelemetryLogger>();
             using var op = telemetryLogger.StartOperation($"Processing [{envelope?.Type}] message", null, TelemetryOperationKind.Consumer);
             
-            var dispatcher = scope.ServiceProvider.GetRequiredService<IPolicyDispatcher>();
+            var dispatcher = _dispatcherKey.IsKeyed
+                ? scope.ServiceProvider.GetRequiredKeyedService<IPolicyDispatcher>(_dispatcherKey.Value)
+                : scope.ServiceProvider.GetRequiredService<IPolicyDispatcher>();
             await dispatcher.DispatchAsync(envelope!, cancellationToken);
             await _messageReceiver.ApplyActionAsync(message, MessageAction.Complete, null, cancellationToken);
         }

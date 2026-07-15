@@ -6,6 +6,7 @@ using CascadeEsdm.WriteModel.Hydration;
 using CascadeEsdm.WriteModel.Policies;
 using CascadeEsdm.WriteModel.Security;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CascadeEsdm.WriteModel.Composition;
 
@@ -60,13 +61,25 @@ public static class WriteModelBuilderExtensions
 
     public static WriteModelBuilder UsingPolicies(this WriteModelBuilder builder,
         Action<PolicyBuilder> policies)
+        => builder.UsingPolicies(null, policies);
+
+    public static WriteModelBuilder UsingPolicies(this WriteModelBuilder builder,
+        string? key, Action<PolicyBuilder> policies)
     {
         var services = builder.Services;
 
-        var policyBuilder = new PolicyBuilder(services);
+        var policyBuilder = new PolicyBuilder(services, key);
         policies(policyBuilder);
 
-        services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
+        if (key is null) {
+            services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
+        }
+        else {
+            services.AddKeyedScoped<IPolicyDispatcher>(key, (sp, serviceKey) =>
+                new PolicyDispatcher(
+                    sp.GetKeyedServices<IPolicy>(serviceKey).ToList(),
+                    sp.GetRequiredService<ILogger<PolicyDispatcher>>()));
+        }
 
         return builder;
     }

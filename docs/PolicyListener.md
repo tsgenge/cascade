@@ -87,10 +87,12 @@ services.AddCascadeEsdm(cascade => cascade
 ### Validation
 
 `AddPolicyListener` validates at startup that:
-- `IPolicyDispatcher` is registered (call `UsingPolicies` first)
+- An `IPolicyDispatcher` is registered with the matching key (call `UsingPolicies` first — see below)
 - An `IMessageReceiver` is registered with the matching key (call `UsingAzureServiceBusReceiver` with the same name, or register a custom implementation)
 
-For named listeners, it checks for a keyed `IMessageReceiver` registration matching the listener name. For unnamed listeners, it checks for a standard (non-keyed) `IMessageReceiver` registration. A mismatch throws an `InvalidOperationException` at startup with a clear message.
+For named listeners, it checks for a keyed `IPolicyDispatcher` and a keyed `IMessageReceiver` registration matching the listener name. For unnamed listeners, it checks for the standard (non-keyed) `IPolicyDispatcher` and `IMessageReceiver` registrations. A mismatch throws an `InvalidOperationException` at startup with a clear message.
+
+A named listener therefore requires a matching keyed policy partition — `AddPolicyListener("orders")` needs a corresponding `UsingPolicies("orders", ...)`. See [Keyed Policy Partitions](Policies.md#keyed-policy-partitions).
 
 ### Default Exception Handler
 
@@ -143,7 +145,9 @@ By default, `PolicyListener` uses `DefaultSerialisationSettings.ForMessageBus()`
 
 ## Multiple Listeners
 
-To listen to multiple Service Bus topics/subscriptions, call `AddPolicyListener` and `UsingAzureServiceBusReceiver` multiple times with matching name keys. Each call produces an independent `IHostedService` with its own `IMessageReceiver`, `JsonSerializerOptions`, and `IMessageExceptionHandler`. All listeners share the same registered `IPolicyDispatcher` and therefore the same set of policies.
+To listen to multiple Service Bus topics/subscriptions, call `AddPolicyListener` and `UsingAzureServiceBusReceiver` multiple times with matching name keys. Each call produces an independent `IHostedService` with its own `IMessageReceiver`, `JsonSerializerOptions`, and `IMessageExceptionHandler`.
+
+Each listener resolves the `IPolicyDispatcher` matching its key: an unnamed listener uses the shared default pool, while a named listener uses the policy partition registered under the same key via `UsingPolicies("name", ...)`. This lets each listener run an isolated set of policies — see [Keyed Policy Partitions](Policies.md#keyed-policy-partitions). If two listeners should run the same policies, register those policies under each listener's key (or route both to the shared default pool by leaving them unnamed).
 
 ### Named Key Pattern
 
@@ -176,9 +180,15 @@ services.AddCascadeEsdm(cascade => cascade
             .WithTopic("payments")
             .WithSubscription("policy-handler")))
     .WithWriteModel(write => write
-        // ... executors, appliers, policies ...
-        .AddPolicyListener()                                        // default — binds to unnamed receiver
-        .AddPolicyListener(PolicyListeners.Orders)                  // binds to "orders" receiver
+        // ... executors, appliers ...
+        .UsingPolicies(policies => policies                         // shared default pool
+            .AddPolicy<SharedPolicy>())
+        .UsingPolicies(PolicyListeners.Orders, policies => policies // "orders" partition
+            .AddPolicy<OrderPolicy>())
+        .UsingPolicies(PolicyListeners.Payments, policies => policies
+            .AddPolicy<PaymentPolicy>())
+        .AddPolicyListener()                                        // default — binds to unnamed receiver + shared pool
+        .AddPolicyListener(PolicyListeners.Orders)                  // binds to "orders" receiver + "orders" partition
         .AddPolicyListener(PolicyListeners.Payments, l => l         // per-listener overrides
             .WithSerialisationSettings(myOptions)
             .WithExceptionHandler<MyExceptionHandler>())));

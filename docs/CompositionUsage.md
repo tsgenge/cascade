@@ -145,6 +145,17 @@ write.UsingPolicies(policies => policies
 
 This registers reactive policies that execute in response to domain events. Policies are resolved from DI and execute concurrently. See [Policies.md](Policies.md) for full details on implementing and dispatching policies.
 
+To partition policies so that a named listener runs only its own set, pass a key to `UsingPolicies`. Policies in a keyed block are isolated to the matching keyed listener; the keyless block is the shared default pool:
+
+```csharp
+write.UsingPolicies(policies => policies                 // shared default pool
+        .AddPolicy<SendWelcomeEmailPolicy>())
+    .UsingPolicies("orders", policies => policies         // isolated "orders" partition
+        .AddPolicy<OrderPolicy>())
+```
+
+See [Keyed Policy Partitions](Policies.md#keyed-policy-partitions) for the full semantics.
+
 #### Register Policy Listener
 
 To bridge an external message bus to the policy dispatcher, call `AddPolicyListener` after `UsingPolicies`. This requires an `IMessageReceiver` to be registered (e.g. via `UsingAzureServiceBusReceiver` on the infrastructure builder). `UsingPolicyListener` remains as a backwards-compatible alias for `AddPolicyListener`:
@@ -164,11 +175,13 @@ write.AddPolicyListener(configure: listener => listener
 Multiple listeners can be registered with named keys to listen to different topics/subscriptions:
 
 ```csharp
-write.AddPolicyListener()                               // default — binds to unnamed receiver
-    .AddPolicyListener("orders")                         // binds to "orders" receiver
+write.AddPolicyListener()                               // default — unnamed receiver + shared policy pool
+    .AddPolicyListener("orders")                         // "orders" receiver + "orders" policy partition
     .AddPolicyListener("payments", l => l                // per-listener overrides
         .WithExceptionHandler<MyExceptionHandler>())
 ```
+
+A named listener requires both a keyed `IMessageReceiver` and a keyed policy partition (`UsingPolicies("orders", ...)`) registered under the same key.
 
 See [PolicyListener.md](PolicyListener.md) for full details on the policy listener, messaging abstractions, multiple listeners, and the Azure Service Bus infrastructure package.
 

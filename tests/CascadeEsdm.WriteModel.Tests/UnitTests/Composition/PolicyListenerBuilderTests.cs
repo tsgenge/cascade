@@ -56,7 +56,8 @@ public class PolicyListenerBuilderTests
     public void AddPolicyListener_WhenCalledTwiceWithDifferentNames_RegistersTwoHostedServices()
     {
         var services = new ServiceCollection();
-        services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
+        services.AddKeyedSingleton<IPolicyDispatcher>("orders", Substitute.For<IPolicyDispatcher>());
+        services.AddKeyedSingleton<IPolicyDispatcher>("payments", Substitute.For<IPolicyDispatcher>());
         services.AddKeyedSingleton("orders", Substitute.For<IMessageReceiver>());
         services.AddKeyedSingleton<IMessageReceiver>("payments", Substitute.For<IMessageReceiver>());
         var builder = new WriteModelBuilder(services);
@@ -72,20 +73,20 @@ public class PolicyListenerBuilderTests
     public void AddPolicyListener_WhenReceiverKeyNotRegistered_ThrowsAtBuildTime()
     {
         var services = new ServiceCollection();
-        services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
+        services.AddKeyedSingleton<IPolicyDispatcher>("unknown", Substitute.For<IPolicyDispatcher>());
         var builder = new PolicyListenerBuilder(services, "unknown");
 
         var act = () => builder.Build();
 
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*'unknown'*");
+            .WithMessage("*IMessageReceiver*'unknown'*");
     }
 
     [Fact]
     public void AddPolicyListener_WhenWithExceptionHandlerCalled_ResolvesSpecifiedType()
     {
         var services = new ServiceCollection();
-        services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
+        services.AddKeyedSingleton<IPolicyDispatcher>("test", Substitute.For<IPolicyDispatcher>());
         services.AddKeyedSingleton("test", Substitute.For<IMessageReceiver>());
         services.AddSingleton<CustomTestExceptionHandler>();
         services.AddLogging();
