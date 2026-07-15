@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <IsPackable>false</IsPackable>
+        <CascadeEventsEnabled>false</CascadeEventsEnabled>
     </PropertyGroup>
 
     <ItemGroup>

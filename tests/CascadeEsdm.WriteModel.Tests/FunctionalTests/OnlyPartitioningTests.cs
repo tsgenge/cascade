@@ -5,11 +5,11 @@ using Xunit.Abstractions;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests;
 
-[Collection("OnlyPartitioning")]
 public class OnlyPartitioningTests : IntegrationTestBase<OnlyPartitioningEnvironment>
 {
-    public OnlyPartitioningTests(ITestOutputHelper output, OnlyPartitioningEnvironment environment)
-        : base(output, environment) { }
+    public OnlyPartitioningTests(ITestOutputHelper output, OnlyPartitioningEnvironment environment,
+        SharedContainerFixture containers)
+        : base(output, environment, containers) { }
 
     [Fact]
     public async Task Partitioned_Policies_Execute_On_Partitioned_Stream()

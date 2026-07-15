@@ -4,13 +4,12 @@ using CascadeEsdm.TestDomain.People.Policies;
 using CascadeEsdm.Testing;
 using CascadeEsdm.WriteModel.CommandHandling;
 using CascadeEsdm.WriteModel.Composition;
-using CascadeEsdm.WriteModel.EventStream;
 using CascadeEsdm.WriteModel.Tests.FunctionalTests.Decorators;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests.Environment;
 
-public class WriteContext : AsbIntegrationEnvironmentBase
+public class WriteContext : IntegrationEnvironment
 {
     protected override void ConfigureServices(IServiceCollection services, string azuriteConnectionString,
         string cosmosConnectionString, string serviceBusConnectionString)

@@ -6,28 +6,31 @@ namespace CascadeEsdm.ReadModel.Querying;
 /// <summary>
 ///     The query entry point for a view: serves both paged list queries and single-row look-ups.
 /// </summary>
-public interface IQueryHandler<TView, in TFilter, in TQuery>
-    : IPageQueryHandler<TView, TFilter>, ISingleQueryHandler<TView, TQuery, Guid>
+public interface IQueryHandler<TView, in TFilter, in TQuery, TPageResult>
+    : IPageQueryHandler<TView, TFilter, TPageResult>, ISingleQueryHandler<TView, TQuery, Guid>
     where TView : IView
     where TFilter : IPageQuery
-    where TQuery : ISingleQuery<Guid> { }
+    where TQuery : ISingleQuery<Guid>
+    where TPageResult : IPageResult<TView> { }
 
 /// <summary>
 ///     The query entry point for a view with a custom Key type: serves both paged list queries and single-row look-ups.
 /// </summary>
-public interface IQueryHandler<TView, in TFilter, in TQuery, TKey>
-    : IPageQueryHandler<TView, TFilter>, ISingleQueryHandler<TView, TQuery, TKey>
+public interface IQueryHandler<TView, in TFilter, in TQuery, TKey, TPageResult>
+    : IPageQueryHandler<TView, TFilter, TPageResult>, ISingleQueryHandler<TView, TQuery, TKey>
     where TFilter : IPageQuery
     where TQuery : ISingleQuery<TKey>
-    where TKey : IEquatable<TKey> { }
+    where TKey : IEquatable<TKey>
+    where TPageResult : IPageResult<TView> { }
 
 /// <summary>
 ///     Serves a page of <typeparamref name="TView" /> rows matching <typeparamref name="TFilter" />.
 /// </summary>
-public interface IPageQueryHandler<TView, in TFilter>
+public interface IPageQueryHandler<TView, in TFilter, TResult>
     where TFilter : IPageQuery
+    where TResult : IPageResult<TView>
 {
-    Task<IPageResult<TView>> GetPageAsync(TFilter filter, CancellationToken token = default);
+    Task<TResult> GetPageAsync(TFilter filter, CancellationToken token = default);
 }
 
 /// <summary>

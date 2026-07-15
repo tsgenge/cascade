@@ -5,7 +5,7 @@ namespace CascadeEsdm.SharedKernel.Infrastructure.Storage;
 public record PartitionedPageQuery : PageQuery
 {
     public PartitionedPageQuery(PageQuery originalQuery, string partitionKey, Dictionary<string, string> parameters)
-        : base(originalQuery.Query, originalQuery.Size, originalQuery.ContinuationToken, originalQuery.OrderBy,
+        : base(originalQuery.Query, originalQuery.PageSize, originalQuery.ContinuationToken, originalQuery.OrderBy,
             originalQuery.Descending, originalQuery.Deleted)
     {
         PartitionKey = partitionKey;

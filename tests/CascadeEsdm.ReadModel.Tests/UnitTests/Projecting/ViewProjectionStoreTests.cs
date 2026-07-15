@@ -472,7 +472,7 @@ public class ViewProjectionStoreTests
         await CreateSut().GetRowsAsync(envelope);
 
         await _container.Received(1).GetPageAsync<ViewDocument>(
-            Arg.Is<PartitionedPageQuery>(q => q.Size == 1000));
+            Arg.Is<PartitionedPageQuery>(q => q.PageSize == 1000));
     }
 
     [Fact]

@@ -5,11 +5,11 @@ using Xunit.Abstractions;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests;
 
-[Collection("AllSharedPolicies")]
 public class AllSharedPoliciesTests : IntegrationTestBase<AllSharedPoliciesEnvironment>
 {
-    public AllSharedPoliciesTests(ITestOutputHelper output, AllSharedPoliciesEnvironment environment)
-        : base(output, environment) { }
+    public AllSharedPoliciesTests(ITestOutputHelper output, AllSharedPoliciesEnvironment environment,
+        SharedContainerFixture containers)
+        : base(output, environment, containers) { }
 
     [Fact]
     public async Task All_Policies_Execute_On_Example_Stream()

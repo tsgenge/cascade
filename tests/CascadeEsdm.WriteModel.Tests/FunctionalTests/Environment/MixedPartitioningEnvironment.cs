@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests.Environment;
 
-public class MixedPartitioningEnvironment : AsbIntegrationEnvironmentBase
+public class MixedPartitioningEnvironment : IntegrationEnvironment
 {
     protected override void ConfigureServices(IServiceCollection services, string azuriteConnectionString,
         string cosmosConnectionString, string serviceBusConnectionString)

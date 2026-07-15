@@ -1,46 +1,45 @@
-using AutoFixture;
-using AutoFixture.AutoNSubstitute;
 using Azure.Storage.Blobs;
-using CascadeEsdm.SharedKernel.Events;
-using CascadeEsdm.SharedKernel.Infrastructure.Storage;
-using CascadeEsdm.SharedKernel.Querying;
 using CascadeEsdm.WriteModel.EventStream;
+using DotNet.Testcontainers.Builders;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using NSubstitute;
 using Testcontainers.Azurite;
 using Testcontainers.CosmosDb;
 using Testcontainers.ServiceBus;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests.Environment;
 
-public abstract class AsbIntegrationEnvironmentBase : IAsyncLifetime
+/// <summary>
+/// Owns the Docker test containers (Azurite, Cosmos DB, Service Bus) for the whole
+/// functional test collection. A single instance is created once and shared across
+/// every integration test class, so the containers only start once per test run.
+/// Each test class still gets its own DI configuration via <see cref="IntegrationEnvironment"/>.
+/// </summary>
+public sealed class SharedContainerFixture : IAsyncLifetime
 {
     private readonly AzuriteContainer _azuriteContainer;
     private readonly CosmosDbContainer _cosmosContainer;
     private readonly ServiceBusContainer _serviceBusContainer;
 
-    protected AsbIntegrationEnvironmentBase()
+    public SharedContainerFixture()
     {
         _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:latest")
             .WithInMemoryPersistence()
             .Build();
 
         _cosmosContainer = new CosmosDbBuilder("mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest")
+            .WithWaitStrategy(Wait.ForUnixContainer()
+                .UntilMessageIsLogged("Started", strategy => strategy.WithTimeout(TimeSpan.FromMinutes(1))))
             .Build();
 
         _serviceBusContainer = new ServiceBusBuilder("mcr.microsoft.com/azure-messaging/servicebus-emulator:latest")
             .WithAcceptLicenseAgreement(true)
             .WithConfig(GetAsbConfigPath())
             .Build();
-
-        Fixture = new Fixture();
-        Fixture.Customize(new AutoNSubstituteCustomization());
     }
 
-    public IServiceProvider ServiceProvider { get; protected set; } = null!;
-    public IFixture Fixture { get; }
+    public string AzuriteConnectionString { get; private set; } = null!;
+    public string CosmosConnectionString { get; private set; } = null!;
+    public string ServiceBusConnectionString { get; private set; } = null!;
 
     public async Task InitializeAsync()
     {
@@ -48,23 +47,13 @@ public abstract class AsbIntegrationEnvironmentBase : IAsyncLifetime
         await _cosmosContainer.StartAsync();
         await _serviceBusContainer.StartAsync();
 
-        var azuriteConnectionString = _azuriteContainer.GetConnectionString();
-        var cosmosConnectionString = _cosmosContainer.GetConnectionString().Replace("http:", "https:");
-        var serviceBusConnectionString = _serviceBusContainer.GetConnectionString();
-        Console.WriteLine($"CosmosDb connection string: {cosmosConnectionString}");
+        AzuriteConnectionString = _azuriteContainer.GetConnectionString();
+        CosmosConnectionString = _cosmosContainer.GetConnectionString().Replace("http:", "https:");
+        ServiceBusConnectionString = _serviceBusContainer.GetConnectionString();
+        Console.WriteLine($"CosmosDb connection string: {CosmosConnectionString}");
 
-        await SetupAzurite(azuriteConnectionString);
-        await SetupCosmos(cosmosConnectionString);
-
-        var builder = new HostBuilder()
-            .ConfigureAppConfiguration((context, config) => { })
-            .ConfigureServices((b, services) =>
-                ConfigureServices(services, azuriteConnectionString, cosmosConnectionString,
-                    serviceBusConnectionString));
-
-        var app = builder.Build();
-        ServiceProvider = app.Services;
-        app.Start();
+        await SetupAzurite(AzuriteConnectionString);
+        await SetupCosmos(CosmosConnectionString);
     }
 
     public async Task DisposeAsync()
@@ -74,30 +63,7 @@ public abstract class AsbIntegrationEnvironmentBase : IAsyncLifetime
         await _serviceBusContainer.DisposeAsync();
     }
 
-    protected abstract void ConfigureServices(IServiceCollection services, string azuriteConnectionString,
-        string cosmosConnectionString, string serviceBusConnectionString);
-
-    protected static string GetAsbConfigPath()
-    {
-        return Path.Combine(AppContext.BaseDirectory, "FunctionalTests", "Environment", "service-bus-config.json");
-    }
-
-    public static void SetupEventStream(IPagedContainer<EventStreamContainer> docContainer,
-        IEnumerable<EventEnvelope> events)
-    {
-        docContainer.GetPageAsync<EventDocument>(Arg.Any<PartitionedPageQuery>())
-            .Returns(new PageResult<EventDocument>(
-                events.Select(e => new EventDocument(e.Id, "fake-partition", e)).ToList(),
-                new PageContinuationToken(null)));
-    }
-
-    public void SetupEventStream(IEnumerable<EventEnvelope> events)
-    {
-        var container = ServiceProvider.GetRequiredService<IPagedContainer<EventStreamContainer>>();
-        SetupEventStream(container, events);
-    }
-
-    protected static CosmosClientOptions CreateEmulatorClientOptions()
+    public static CosmosClientOptions CreateEmulatorClientOptions()
     {
         return new CosmosClientOptions
         {
@@ -113,6 +79,11 @@ public abstract class AsbIntegrationEnvironmentBase : IAsyncLifetime
             ConnectionMode = ConnectionMode.Gateway,
             LimitToEndpoint = true
         };
+    }
+
+    private static string GetAsbConfigPath()
+    {
+        return Path.Combine(AppContext.BaseDirectory, "FunctionalTests", "Environment", "service-bus-config.json");
     }
 
     private static async Task SetupCosmos(string connectionString)

@@ -121,7 +121,7 @@ internal class CosmosDbContainer<TContainer> : IPartitionedContainer<TContainer>
                        queryDefinition, pageQuery.ContinuationToken,
                        new QueryRequestOptions
                        {
-                           MaxItemCount = Math.Max(pageQuery.Size, 50),
+                           MaxItemCount = Math.Max(pageQuery.PageSize, 50),
                            PartitionKey = new PartitionKey(pageQuery.PartitionKey)
                        })) {
                 while (resultSetIterator.HasMoreResults) {
