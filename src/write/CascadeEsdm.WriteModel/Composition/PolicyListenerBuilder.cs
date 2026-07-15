@@ -67,7 +67,7 @@ public class PolicyListenerBuilder
             var exceptionHandler = _exceptionHandlerType != null
                 ? (IMessageExceptionHandler)sp.GetRequiredService(_exceptionHandlerType)
                 : new DefaultMessageExceptionHandler();
-            return new PolicyListener(scopeFactory, receiver, exceptionHandler, options, _name, logger);
+            return new PolicyListener(scopeFactory, receiver, exceptionHandler, options, DispatcherKey.For(_name), logger);
         });
     }
 }
