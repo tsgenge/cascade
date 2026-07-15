@@ -20,7 +20,8 @@ namespace CascadeEsdm.WriteModel.Tests.FunctionalTests;
 
 public class PolicyListeningTests : TestBase
 {
-    public PolicyListeningTests(ITestOutputHelper output, WriteContext environment) : base(output, environment) { }
+    public PolicyListeningTests(ITestOutputHelper output, WriteContext environment,
+        SharedContainerFixture containers) : base(output, environment, containers) { }
 
     [Fact]
     public async Task Policy_Listens_And_Invokes_Command()

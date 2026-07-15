@@ -20,7 +20,8 @@ public class CommandLifeCycleTests : TestBase
     private readonly ICommandHandler<ChangePersonFirstName> _changeFirstNameHandler;
     private readonly IPagedContainer<EventStreamContainer> _eventStreamContainer;
 
-    public CommandLifeCycleTests(ITestOutputHelper output, WriteContext environment) : base(output, environment)
+    public CommandLifeCycleTests(ITestOutputHelper output, WriteContext environment,
+        SharedContainerFixture containers) : base(output, environment, containers)
     {
         _addPersonHandler = environment.ServiceProvider.GetRequiredService<ICommandHandler<AddPerson>>();
         _changeFirstNameHandler =

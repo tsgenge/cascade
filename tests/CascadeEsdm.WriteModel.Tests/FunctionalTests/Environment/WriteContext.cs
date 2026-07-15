@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests.Environment;
 
-public class WriteContext : AsbIntegrationEnvironmentBase
+public class WriteContext : IntegrationEnvironment
 {
     protected override void ConfigureServices(IServiceCollection services, string azuriteConnectionString,
         string cosmosConnectionString, string serviceBusConnectionString)

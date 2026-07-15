@@ -5,11 +5,11 @@ using Xunit.Abstractions;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests;
 
-[Collection("MixedPartitioning")]
 public class MixedPartitioningTests : IntegrationTestBase<MixedPartitioningEnvironment>
 {
-    public MixedPartitioningTests(ITestOutputHelper output, MixedPartitioningEnvironment environment)
-        : base(output, environment) { }
+    public MixedPartitioningTests(ITestOutputHelper output, MixedPartitioningEnvironment environment,
+        SharedContainerFixture containers)
+        : base(output, environment, containers) { }
 
     [Fact]
     public async Task Shared_Policies_Execute_Only_On_Unkeyed_Stream()

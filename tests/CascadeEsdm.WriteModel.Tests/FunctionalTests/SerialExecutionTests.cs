@@ -19,7 +19,8 @@ public class SerialExecutionTests : TestBase
     private readonly ICommandHandler<ChangePersonFirstName> _changeFirstNameHandler;
     private readonly IEventStreamReader _eventStreamReader;
 
-    public SerialExecutionTests(ITestOutputHelper output, WriteContext environment) : base(output, environment)
+    public SerialExecutionTests(ITestOutputHelper output, WriteContext environment,
+        SharedContainerFixture containers) : base(output, environment, containers)
     {
         _addPersonHandler = environment.ServiceProvider.GetRequiredService<ICommandHandler<AddPerson>>();
         _changeFirstNameHandler =
