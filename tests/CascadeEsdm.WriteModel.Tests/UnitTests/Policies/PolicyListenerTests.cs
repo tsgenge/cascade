@@ -46,7 +46,7 @@ public class PolicyListenerTests
     private PolicyListener CreateSut()
     {
         return new PolicyListener(_mockScopeFactory, _mockReceiver, _mockExceptionHandler,
-            _serializerOptions, NullLogger<PolicyListener>.Instance);
+            _serializerOptions, null, NullLogger<PolicyListener>.Instance);
     }
 
     private async Task<Func<Message, CancellationToken, Task>> CaptureHandlerAsync()

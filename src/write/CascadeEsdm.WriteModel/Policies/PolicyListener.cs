@@ -19,7 +19,7 @@ internal class PolicyListener : IHostedService
 
     public PolicyListener(IServiceScopeFactory scopeFactory, IMessageReceiver messageReceiver,
         IMessageExceptionHandler exceptionHandler, JsonSerializerOptions serializerOptions,
-        ILogger<PolicyListener> logger, string? dispatcherKey = null)
+        string? dispatcherKey, ILogger<PolicyListener> logger)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         _messageReceiver = messageReceiver ?? throw new ArgumentNullException(nameof(messageReceiver));
