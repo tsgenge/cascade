@@ -4,7 +4,6 @@ using CascadeEsdm.TestDomain.People.Policies;
 using CascadeEsdm.Testing;
 using CascadeEsdm.WriteModel.CommandHandling;
 using CascadeEsdm.WriteModel.Composition;
-using CascadeEsdm.WriteModel.EventStream;
 using CascadeEsdm.WriteModel.Tests.FunctionalTests.Decorators;
 using Microsoft.Extensions.DependencyInjection;
 

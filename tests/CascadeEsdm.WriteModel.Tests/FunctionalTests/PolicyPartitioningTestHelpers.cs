@@ -13,17 +13,17 @@ namespace CascadeEsdm.WriteModel.Tests.FunctionalTests;
 
 internal static class PolicyPartitioningTestHelpers
 {
-    public static readonly TimeSpan ReceiveTimeout = TimeSpan.FromSeconds(10);
+    public static readonly TimeSpan ReceiveTimeout = TimeSpan.FromSeconds(3);
     public static readonly TimeSpan NoReceiveTimeout = TimeSpan.FromSeconds(3);
 
     public static async Task SendEventAsync(IServiceProvider serviceProvider, string clientKey, string topic)
     {
         var envelope = new EventEnvelope(
-            new EventSource("MonsterAggregate", Guid.NewGuid(), "EatPerson"),
+            new EventSource("MonsterAggregate", Guid.NewGuid(), "TriggerPolicy"),
             new Subject(Guid.NewGuid(), "Monster"),
             AuthenticatedContext.Empty,
             ClientChannel.Empty,
-            new PersonEaten(Guid.NewGuid(), 500), 0);
+            new TestThingHappened(), 0);
 
         var payload = JsonSerializer.Serialize(envelope, DefaultSerialisationSettings.ForMessageBus());
 
@@ -33,7 +33,9 @@ internal static class PolicyPartitioningTestHelpers
     }
 
     public static Task SendToUnkeyedStreamAsync(IServiceProvider serviceProvider, string topic = "example-stream")
-        => SendEventAsync(serviceProvider, nameof(ServiceBusReceiverBuilder), topic);
+    {
+        return SendEventAsync(serviceProvider, nameof(ServiceBusReceiverBuilder), topic);
+    }
 
     public static async Task<bool> ReceivedAsync<TCommand>(IServiceProvider serviceProvider, TimeSpan timeout)
         where TCommand : ICommand

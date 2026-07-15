@@ -181,7 +181,8 @@ public class EventStreamReaderTests
 
         await reader.ReadSingleAsync<TestAggregate>(aggregateId);
 
-        await _mockContainer.Received(1).GetPageAsync<EventDocument>(Arg.Is<PartitionedPageQuery>(q => q.Size == 1));
+        await _mockContainer.Received(1)
+            .GetPageAsync<EventDocument>(Arg.Is<PartitionedPageQuery>(q => q.PageSize == 1));
     }
 
     [Fact]

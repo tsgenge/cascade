@@ -27,6 +27,7 @@ public class PolicyListeningTests : TestBase
     public async Task Policy_Listens_And_Invokes_Command()
     {
         var channel = Environment.ServiceProvider.GetRequiredService<MessageChannel<RemovePerson>>();
+        await channel.Clear();
 
         var addHandler = Environment.ServiceProvider.GetRequiredService<ICommandHandler<AddPerson>>();
         var result = await addHandler.HandleAsync(new CommandEnvelope<AddPerson>(
