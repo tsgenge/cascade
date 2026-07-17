@@ -37,7 +37,7 @@ internal class SerialisationTypeNameResolver : ISerialisationTypeResolver
             return resolved;
         }
 
-        throw new JsonException($"Could not deserialise the type ${jsonName}.");
+        throw new JsonException($"Could not deserialise the type {jsonName}. The type was unavailable in the AppDomain. Make sure Schema packages are up to date!");
     }
 
     public string GetJsonName(Type type)
