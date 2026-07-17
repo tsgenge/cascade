@@ -35,6 +35,7 @@ internal abstract class LoggingCommandHandlerDecoratorBase<TCommand>
     protected void LogError(Exception ex)
     {
         _logger.LogError(ex, "Command failed.");
+        _telemetryLogger.TrackException(ex);
     }
 }
 

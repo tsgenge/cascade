@@ -26,4 +26,9 @@ public class NoopTelemetryLogger : ITelemetryLogger
     {
         _logger.LogInformation("Not recording custom event; implement a suitable ITelemetryLogger.");
     }
+
+    public void TrackException(Exception exception)
+    {
+        _logger.LogError(exception, exception.Message);
+    }
 }

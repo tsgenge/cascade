@@ -36,6 +36,7 @@ internal class ProjectorTelemetryDecorator<TView> : IViewProjector<TView>
         }
         catch (Exception e) {
             _logger.LogError(e, "Failed to project event {Event} to view {View}", @event, typeof(TView).Name);
+            _telemetryLogger.TrackException(e);
             throw;
         }
     }

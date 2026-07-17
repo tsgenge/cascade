@@ -10,12 +10,12 @@ namespace CascadeEsdm.WriteModel.Policies;
 
 internal class PolicyListener : IHostedService
 {
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IMessageReceiver _messageReceiver;    
-    private readonly IMessageExceptionHandler _exceptionHandler;
-    private readonly JsonSerializerOptions _serializerOptions;
-    private readonly ILogger<PolicyListener> _logger;
     private readonly DispatcherKey _dispatcherKey;
+    private readonly IMessageExceptionHandler _exceptionHandler;
+    private readonly ILogger<PolicyListener> _logger;
+    private readonly IMessageReceiver _messageReceiver;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly JsonSerializerOptions _serializerOptions;
 
     public PolicyListener(IServiceScopeFactory scopeFactory, IMessageReceiver messageReceiver,
         IMessageExceptionHandler exceptionHandler, JsonSerializerOptions serializerOptions,
@@ -41,15 +41,18 @@ internal class PolicyListener : IHostedService
 
     private async Task HandleMessageAsync(Message message, CancellationToken cancellationToken)
     {
+        using var scope = _scopeFactory.CreateScope();
+        var telemetryLogger = scope.ServiceProvider.GetRequiredService<ITelemetryLogger>();
+
+
         try {
-            using var scope = _scopeFactory.CreateScope();
-            
+
             var envelope = JsonSerializer.Deserialize<EventEnvelope>(message.Body, _serializerOptions)
                            ?? throw new JsonException("Deserialised EventEnvelope was null.");
 
-            var telemetryLogger = scope.ServiceProvider.GetRequiredService<ITelemetryLogger>();
-            using var op = telemetryLogger.StartOperation($"Processing [{envelope?.Type}] message", null, TelemetryOperationKind.Consumer);
-            
+            using var op = telemetryLogger.StartOperation($"Processing [{envelope?.Type}] message", null,
+                TelemetryOperationKind.Consumer);
+
             var dispatcher = _dispatcherKey.IsKeyed
                 ? scope.ServiceProvider.GetRequiredKeyedService<IPolicyDispatcher>(_dispatcherKey.Value)
                 : scope.ServiceProvider.GetRequiredService<IPolicyDispatcher>();
@@ -57,9 +60,9 @@ internal class PolicyListener : IHostedService
             await _messageReceiver.ApplyActionAsync(message, MessageAction.Complete, null, cancellationToken);
         }
         catch (Exception ex) {
-            var msg = "Error processing or deserialising message";
-            _logger.LogError(ex, msg);
+            var msg = $"Error processing or deserialising message ({ex.Message})";
             var inner = new Exception(msg, ex);
+            telemetryLogger.TrackException(inner);
             var action = await _exceptionHandler.HandleAsync(message, inner, cancellationToken);
             await _messageReceiver.ApplyActionAsync(message, action, inner, cancellationToken);
         }

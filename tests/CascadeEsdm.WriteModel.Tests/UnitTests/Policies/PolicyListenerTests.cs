@@ -121,6 +121,23 @@ public class PolicyListenerTests
     }
 
     [Fact]
+    public async Task PolicyListener_WhenDispatchThrows_TracksException()
+    {
+        var handler = await CaptureHandlerAsync();
+        var message = CreateValidMessage();
+        var exception = new InvalidOperationException("dispatch failed");
+
+        _mockDispatcher.DispatchAsync(Arg.Any<EventEnvelope>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(exception);
+        _mockExceptionHandler.HandleAsync(Arg.Any<Message>(), Arg.Any<Exception>(), Arg.Any<CancellationToken>())
+            .Returns(MessageAction.DeadLetter);
+
+        await handler(message, CancellationToken.None);
+
+        _mockTelLogger.Received(1).TrackException(Arg.Is<Exception>(e => e.InnerException == exception));
+    }
+
+    [Fact]
     public async Task PolicyListener_WhenExceptionHandlerReturnsDeadLetter_DeadLettersMessage()
     {
         var handler = await CaptureHandlerAsync();

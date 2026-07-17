@@ -17,10 +17,11 @@ public class PolicyBuilderTests
         builder.AddPolicy<SharedTestPolicy>();
 
         services.Should().ContainSingle(s =>
-            s.ServiceType == typeof(IPolicy) &&
-            !s.IsKeyedService &&
-            s.ImplementationType == typeof(SharedTestPolicy) &&
-            s.Lifetime == ServiceLifetime.Scoped);
+            s.ServiceType == typeof(PolicyRegister) &&
+            s.ImplementationInstance is PolicyRegister &&
+            (s.ImplementationInstance as PolicyRegister)!.Key == null &&
+            (s.ImplementationInstance as PolicyRegister)!.PolicyType == typeof(SharedTestPolicy) &&
+            s.Lifetime == ServiceLifetime.Singleton);
     }
 
     [Fact]
@@ -32,11 +33,11 @@ public class PolicyBuilderTests
         builder.AddPolicy<OrdersTestPolicy>();
 
         services.Should().ContainSingle(s =>
-            s.ServiceType == typeof(IPolicy) &&
-            s.IsKeyedService &&
-            Equals(s.ServiceKey, "orders") &&
-            s.KeyedImplementationType == typeof(OrdersTestPolicy) &&
-            s.Lifetime == ServiceLifetime.Scoped);
+            s.ServiceType == typeof(PolicyRegister) &&
+            s.ImplementationInstance is PolicyRegister &&
+            (s.ImplementationInstance as PolicyRegister)!.Key == "orders" &&
+            (s.ImplementationInstance as PolicyRegister)!.PolicyType == typeof(OrdersTestPolicy) &&
+            s.Lifetime == ServiceLifetime.Singleton);
     }
 
     [Fact]
@@ -60,32 +61,60 @@ public class PolicyBuilderTests
         new PolicyBuilder(services, "payments").AddPolicy<PaymentsTestPolicy>();
         var provider = services.BuildServiceProvider();
 
-        provider.GetServices<IPolicy>().Should().ContainSingle()
-            .Which.Should().BeOfType<SharedTestPolicy>();
-        provider.GetKeyedServices<IPolicy>("orders").Should().ContainSingle()
-            .Which.Should().BeOfType<OrdersTestPolicy>();
-        provider.GetKeyedServices<IPolicy>("payments").Should().ContainSingle()
-            .Which.Should().BeOfType<PaymentsTestPolicy>();
+        var registers = provider.GetServices<PolicyRegister>().ToList();
+
+        var defaults = registers.Where(r => r.Key is null).ToList();
+        var orders = registers.Where(r => r.Key == "orders").ToList();
+        var payments = registers.Where(r => r.Key == "payments").ToList();
+
+        defaults.Should().NotBeNull();
+        orders.Should().NotBeNull();
+        payments.Should().NotBeNull();
+
+        defaults.Should().HaveCount(1);
+        defaults.First().PolicyType.Should().Be(typeof(SharedTestPolicy));
+        orders.Should().HaveCount(1);
+        orders.First().PolicyType.Should().Be(typeof(OrdersTestPolicy));
+        payments.Should().HaveCount(1);
+        payments.First().PolicyType.Should().Be(typeof(PaymentsTestPolicy));
     }
 }
 
 internal class SharedTestPolicy : IPolicy
 {
-    public bool Supports(EventEnvelope envelope) => true;
+    public bool Supports(EventEnvelope envelope)
+    {
+        return true;
+    }
+
     public Task ExecuteAsync(EventEnvelope envelope, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
+    {
+        return Task.CompletedTask;
+    }
 }
 
 internal class OrdersTestPolicy : IPolicy
 {
-    public bool Supports(EventEnvelope envelope) => true;
+    public bool Supports(EventEnvelope envelope)
+    {
+        return true;
+    }
+
     public Task ExecuteAsync(EventEnvelope envelope, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
+    {
+        return Task.CompletedTask;
+    }
 }
 
 internal class PaymentsTestPolicy : IPolicy
 {
-    public bool Supports(EventEnvelope envelope) => true;
+    public bool Supports(EventEnvelope envelope)
+    {
+        return true;
+    }
+
     public Task ExecuteAsync(EventEnvelope envelope, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
+    {
+        return Task.CompletedTask;
+    }
 }

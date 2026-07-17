@@ -2,6 +2,7 @@ using CascadeEsdm.WriteModel.Tests.FunctionalTests.Commands;
 using CascadeEsdm.WriteModel.Tests.FunctionalTests.Environment;
 using FluentAssertions;
 using Xunit.Abstractions;
+using Tools = CascadeEsdm.WriteModel.Tests.FunctionalTests.PolicyPartitioningTestHelpers;
 
 namespace CascadeEsdm.WriteModel.Tests.FunctionalTests;
 
@@ -17,14 +18,14 @@ public class AllSharedPoliciesTests : IntegrationTestBase<AllSharedPoliciesEnvir
         var sp = Environment.ServiceProvider;
         await ClearAllChannels(sp);
 
-        await PolicyPartitioningTestHelpers.SendToUnkeyedStreamAsync(sp, "example-stream");
+        await Tools.SendToUnkeyedStreamAsync(sp);
 
-        (await PolicyPartitioningTestHelpers.ReceivedAsync<SharedPolicyOneExecuted>(sp,
-            PolicyPartitioningTestHelpers.ReceiveTimeout)).Should().BeTrue();
-        (await PolicyPartitioningTestHelpers.ReceivedAsync<SharedPolicyTwoExecuted>(sp,
-            PolicyPartitioningTestHelpers.ReceiveTimeout)).Should().BeTrue();
-        (await PolicyPartitioningTestHelpers.ReceivedAsync<SharedPolicyThreeExecuted>(sp,
-            PolicyPartitioningTestHelpers.ReceiveTimeout)).Should().BeTrue();
+        (await Tools.ReceivedAsync<SharedPolicyOneExecuted>(sp,
+            Tools.ReceiveTimeout)).Should().BeTrue();
+        (await Tools.ReceivedAsync<SharedPolicyTwoExecuted>(sp,
+            Tools.ReceiveTimeout)).Should().BeTrue();
+        (await Tools.ReceivedAsync<SharedPolicyThreeExecuted>(sp,
+            Tools.ReceiveTimeout)).Should().BeTrue();
     }
 
     [Fact]
@@ -33,23 +34,23 @@ public class AllSharedPoliciesTests : IntegrationTestBase<AllSharedPoliciesEnvir
         var sp = Environment.ServiceProvider;
         await ClearAllChannels(sp);
 
-        await PolicyPartitioningTestHelpers.SendEventAsync(sp, "second-stream", "second-stream");
+        await Tools.SendEventAsync(sp, "second-stream", "second-stream");
 
-        (await PolicyPartitioningTestHelpers.ReceivedAsync<SharedPolicyOneExecuted>(sp,
-            PolicyPartitioningTestHelpers.ReceiveTimeout)).Should().BeTrue();
-        (await PolicyPartitioningTestHelpers.ReceivedAsync<SharedPolicyTwoExecuted>(sp,
-            PolicyPartitioningTestHelpers.ReceiveTimeout)).Should().BeTrue();
-        (await PolicyPartitioningTestHelpers.ReceivedAsync<SharedPolicyThreeExecuted>(sp,
-            PolicyPartitioningTestHelpers.ReceiveTimeout)).Should().BeTrue();
+        (await Tools.ReceivedAsync<SharedPolicyOneExecuted>(sp,
+            Tools.ReceiveTimeout)).Should().BeTrue();
+        (await Tools.ReceivedAsync<SharedPolicyTwoExecuted>(sp,
+            Tools.ReceiveTimeout)).Should().BeTrue();
+        (await Tools.ReceivedAsync<SharedPolicyThreeExecuted>(sp,
+            Tools.ReceiveTimeout)).Should().BeTrue();
     }
 
     private static async Task ClearAllChannels(IServiceProvider sp)
     {
-        await PolicyPartitioningTestHelpers.ClearAsync<SharedPolicyOneExecuted>(sp);
-        await PolicyPartitioningTestHelpers.ClearAsync<SharedPolicyTwoExecuted>(sp);
-        await PolicyPartitioningTestHelpers.ClearAsync<SharedPolicyThreeExecuted>(sp);
-        await PolicyPartitioningTestHelpers.ClearAsync<PartitionedPolicyOneExecuted>(sp);
-        await PolicyPartitioningTestHelpers.ClearAsync<PartitionedPolicyTwoExecuted>(sp);
-        await PolicyPartitioningTestHelpers.ClearAsync<PartitionedPolicyThreeExecuted>(sp);
+        await Tools.ClearAsync<SharedPolicyOneExecuted>(sp);
+        await Tools.ClearAsync<SharedPolicyTwoExecuted>(sp);
+        await Tools.ClearAsync<SharedPolicyThreeExecuted>(sp);
+        await Tools.ClearAsync<PartitionedPolicyOneExecuted>(sp);
+        await Tools.ClearAsync<PartitionedPolicyTwoExecuted>(sp);
+        await Tools.ClearAsync<PartitionedPolicyThreeExecuted>(sp);
     }
 }

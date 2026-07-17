@@ -23,10 +23,7 @@ public class PolicyBuilder
     public PolicyBuilder AddPolicy<TPolicy>()
         where TPolicy : class, IPolicy
     {
-        if (_key is null)
-            _services.AddScoped<IPolicy, TPolicy>();
-        else
-            _services.AddKeyedScoped<IPolicy, TPolicy>(_key);
+        RegisterPolicies([typeof(TPolicy)]);
         return this;
     }
 
@@ -52,10 +49,8 @@ public class PolicyBuilder
     private void RegisterPolicies(IEnumerable<Type> policyTypes)
     {
         foreach (var policyType in policyTypes) {
-            if (_key is null)
-                _services.AddScoped(typeof(IPolicy), policyType);
-            else
-                _services.AddKeyedScoped(typeof(IPolicy), _key, policyType);
+            _services.AddScoped(policyType);
+            _services.AddSingleton(new PolicyRegister(_key, policyType));
         }
     }
 

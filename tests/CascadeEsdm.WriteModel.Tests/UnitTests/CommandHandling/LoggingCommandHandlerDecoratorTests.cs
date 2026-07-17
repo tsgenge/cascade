@@ -225,6 +225,7 @@ public class LoggingCommandHandlerDecoratorTests
                 Arg.Any<object>(),
                 expectedException,
                 Arg.Any<Func<object, Exception?, string>>());
+            _mockTelemetryLogger.Received(1).TrackException(expectedException);
         }
 
         [Fact]
@@ -509,6 +510,7 @@ public class LoggingCommandHandlerDecoratorTests
                 Arg.Any<object>(),
                 expectedException,
                 Arg.Any<Func<object, Exception?, string>>());
+            _mockTelemetryLogger.Received(1).TrackException(expectedException);
         }
 
         [Fact]

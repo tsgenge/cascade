@@ -5,6 +5,13 @@ public interface ITelemetryLogger
     IDisposable StartOperation(string operationName, TelemetryParent? parent = null, TelemetryOperationKind kind = TelemetryOperationKind.Internal);
     void AddMetric(string name, double value);
     void AddCustomEvent(string name, IDictionary<string, string> properties);
+
+    /// <summary>
+    /// Records an exception with the telemetry provider, preserving the full exception
+    /// chain including inner exceptions.
+    /// </summary>
+    /// <param name="exception">The exception to record.</param>
+    void TrackException(Exception exception);
 }
 
 public enum TelemetryOperationKind

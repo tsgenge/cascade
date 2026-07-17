@@ -76,6 +76,23 @@ public class DeadLetterFormatProviderTests
     }
 
     [Fact]
+    public void GetDeadLetterReason_WithAggregateExceptionAndParentException_ReturnsOneLinePerChild()
+    {
+        var child1 = new InvalidOperationException("first error");
+        var child2 = new ArgumentException("second error");
+        var aggregate = new AggregateException(child1, child2);
+        var final = new Exception("final", aggregate);
+
+        var result = DeadLetterMessageFormatter.GetDeadLetterReason(final);
+
+        var lines = result.Split(Environment.NewLine);
+        lines.Should().HaveCount(2);
+        lines[0].Should().EndWith("InvalidOperationException: first error");
+        lines[0].Should().StartWith("Exception: final");
+        lines[1].Should().EndWith("ArgumentException: second error");
+    }
+
+    [Fact]
     public void GetDeadLetterReason_WithNestedAggregateException_ReturnsOneLinePerLeaf()
     {
         var leaf1 = new InvalidOperationException("leaf one");

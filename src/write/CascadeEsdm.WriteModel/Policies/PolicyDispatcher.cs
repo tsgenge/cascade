@@ -1,17 +1,26 @@
 using CascadeEsdm.SharedKernel.Events;
 using CascadeEsdm.WriteModel.Exceptions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace CascadeEsdm.WriteModel.Policies;
 
 internal class PolicyDispatcher : IPolicyDispatcher
 {
-    private readonly IEnumerable<IPolicy> _policies;
+    private readonly string? _key;
     private readonly ILogger<PolicyDispatcher> _logger;
+    private readonly IEnumerable<PolicyRegister> _policyRegisters;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public PolicyDispatcher(IEnumerable<IPolicy> policies, ILogger<PolicyDispatcher> logger)
+    public PolicyDispatcher(
+        IServiceScopeFactory scopeFactory,
+        string? key,
+        IEnumerable<PolicyRegister> policyRegisters,
+        ILogger<PolicyDispatcher> logger)
     {
-        _policies = policies ?? throw new ArgumentNullException(nameof(policies));
+        _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+        _key = key;
+        _policyRegisters = policyRegisters ?? throw new ArgumentNullException(nameof(policyRegisters));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -19,34 +28,60 @@ internal class PolicyDispatcher : IPolicyDispatcher
     {
         if (envelope is null) throw new ArgumentNullException(nameof(envelope));
 
-        var supportingPolicies = _policies.Where(p => p.Supports(envelope)).ToList();
-        if (supportingPolicies.Count == 0) {
+        var policyTypes = _policyRegisters
+            .Where(r => r.Key == _key)
+            .Select(r => r.PolicyType)
+            .ToList();
+
+        var tasks = policyTypes
+            .Select(policyType => ExecutePolicySafeAsync(policyType, envelope, cancellationToken))
+            .ToList();
+
+        var results = await Task.WhenAll(tasks);
+
+        if (results.All(r => !r.Supported)) {
             _logger.LogWarning("No supporting policies found for event {EventType} on subject {Subject}",
                 envelope.Type, envelope.Subject);
             return;
         }
 
-        var tasks = supportingPolicies
-            .Select(policy => ExecutePolicySafeAsync(policy, envelope, cancellationToken))
+        var failures = results
+            .Where(r => r.Supported && r.Failure is not null)
+            .Select(r => r.Failure!)
             .ToList();
 
-        var results = await Task.WhenAll(tasks);
-
-        var failures = results.Where(r => r is not null).ToList();
         if (failures.Count > 0)
-            throw new PolicyExecutionException(new PolicyFailures(failures!));
+            throw new PolicyExecutionException(new PolicyFailures(failures));
     }
 
-    private async Task<PolicyFailure?> ExecutePolicySafeAsync(
-        IPolicy policy, EventEnvelope envelope, CancellationToken cancellationToken)
+    private async Task<PolicyExecutionResult> ExecutePolicySafeAsync(
+        Type policyType, EventEnvelope envelope, CancellationToken cancellationToken)
     {
-        using var scope = _logger.BeginScope("Executing Policy: {PolicyName}", policy.GetType().Name);
+        using var scope = _scopeFactory.CreateScope();
+        var policy = (IPolicy)scope.ServiceProvider.GetRequiredService(policyType);
+
+        if (!policy.Supports(envelope))
+            return new PolicyExecutionResult(false, null);
+
+        using var logScope = _logger.BeginScope("Executing Policy: {PolicyName}", policy.GetType().Name);
         try {
             await policy.ExecuteAsync(envelope, cancellationToken);
-            return null;
+            return new PolicyExecutionResult(true, null);
         }
         catch (Exception ex) {
-            return new PolicyFailure(policy.GetType().Name, ex);
+            return new PolicyExecutionResult(true, new PolicyFailure(policy.GetType().Name, ex));
         }
+    }
+
+    private record PolicyExecutionResult
+    {
+        public PolicyExecutionResult(bool supported, PolicyFailure? failure)
+        {
+            Supported = supported;
+            Failure = failure;
+        }
+
+        public bool Supported { get; }
+        public PolicyFailure? Failure { get; }
     }
 }

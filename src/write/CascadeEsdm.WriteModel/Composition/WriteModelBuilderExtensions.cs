@@ -61,7 +61,9 @@ public static class WriteModelBuilderExtensions
 
     public static WriteModelBuilder UsingPolicies(this WriteModelBuilder builder,
         Action<PolicyBuilder> policies)
-        => builder.UsingPolicies(null, policies);
+    {
+        return builder.UsingPolicies(null, policies);
+    }
 
     public static WriteModelBuilder UsingPolicies(this WriteModelBuilder builder,
         string? key, Action<PolicyBuilder> policies)
@@ -71,13 +73,21 @@ public static class WriteModelBuilderExtensions
         var policyBuilder = new PolicyBuilder(services, key);
         policies(policyBuilder);
 
+
         if (key is null) {
-            services.AddScoped<IPolicyDispatcher, PolicyDispatcher>();
+            services.AddScoped<IPolicyDispatcher>(sp =>
+                new PolicyDispatcher(
+                    sp.GetRequiredService<IServiceScopeFactory>(),
+                    null,
+                    sp.GetServices<PolicyRegister>(),
+                    sp.GetRequiredService<ILogger<PolicyDispatcher>>()));
         }
         else {
             services.AddKeyedScoped<IPolicyDispatcher>(key, (sp, serviceKey) =>
                 new PolicyDispatcher(
-                    sp.GetKeyedServices<IPolicy>(serviceKey).ToList(),
+                    sp.GetRequiredService<IServiceScopeFactory>(),
+                    (string?)serviceKey,
+                    sp.GetServices<PolicyRegister>(),
                     sp.GetRequiredService<ILogger<PolicyDispatcher>>()));
         }
 

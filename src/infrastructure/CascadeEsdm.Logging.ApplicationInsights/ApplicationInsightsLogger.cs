@@ -47,6 +47,11 @@ public class ApplicationInsightsLogger : ITelemetryLogger
         _telemetryClient.TrackEvent(name, properties);
     }
 
+    public void TrackException(Exception exception)
+    {
+        _telemetryClient.TrackException(exception);
+    }
+
     private sealed class CompositeDisposable : IDisposable
     {
         private readonly IDisposable _primary;

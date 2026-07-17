@@ -48,6 +48,11 @@ internal class OpenTelemetryLogger : ITelemetryLogger
         }
     }
 
+    public void TrackException(Exception exception)
+    {
+        _logger.LogError(exception, "Exception recorded.");
+    }
+
     public IDisposable StartOperation(string operationName, TelemetryParent? parent = null, TelemetryOperationKind kind = TelemetryOperationKind.Internal)
     {
         var activityKind = ConvertKind(kind);
