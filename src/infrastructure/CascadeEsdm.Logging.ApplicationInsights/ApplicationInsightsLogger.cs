@@ -1,7 +1,7 @@
-using System.Diagnostics;
 using CascadeEsdm.SharedKernel.Infrastructure.Logging;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
+using System.Diagnostics;
 
 namespace CascadeEsdm.Logging.ApplicationInsights;
 
@@ -18,8 +18,7 @@ public class ApplicationInsightsLogger : ITelemetryLogger
         TelemetryOperationKind kind = TelemetryOperationKind.Internal)
     {
         Activity? parentActivity = null;
-        if (parent is { IsValid: true })
-        {
+        if (parent is { IsValid: true }) {
             parentActivity = new Activity(operationName);
             parentActivity.SetParentId(parent.TraceParent);
             if (!string.IsNullOrWhiteSpace(parent.TraceState))
@@ -27,7 +26,7 @@ public class ApplicationInsightsLogger : ITelemetryLogger
             parentActivity.Start();
         }
 
-        IDisposable operation = kind == TelemetryOperationKind.Server
+        IDisposable operation = IsRequest(kind)
             ? _telemetryClient.StartOperation<RequestTelemetry>(operationName)
             : _telemetryClient.StartOperation<DependencyTelemetry>(operationName);
 
@@ -50,6 +49,11 @@ public class ApplicationInsightsLogger : ITelemetryLogger
     public void TrackException(Exception exception)
     {
         _telemetryClient.TrackException(exception);
+    }
+
+    private bool IsRequest(TelemetryOperationKind kind)
+    {
+        return kind == TelemetryOperationKind.Server || kind == TelemetryOperationKind.Consumer;
     }
 
     private sealed class CompositeDisposable : IDisposable
