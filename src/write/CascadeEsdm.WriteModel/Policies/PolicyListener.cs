@@ -42,15 +42,14 @@ internal class PolicyListener : IHostedService
     private async Task HandleMessageAsync(Message message, CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
-        var telemetryLogger = scope.ServiceProvider.GetRequiredService<ITelemetryLogger>();
-
+        var telemetryLogger = GetSafeLogger(scope);
 
         try {
 
             var envelope = JsonSerializer.Deserialize<EventEnvelope>(message.Body, _serializerOptions)
                            ?? throw new JsonException("Deserialised EventEnvelope was null.");
-
-            using var op = telemetryLogger.StartOperation($"Processing [{envelope?.Type}] message", null,
+            
+            using var op = telemetryLogger?.StartOperation($"Processing [{envelope?.Type}] message", null,
                 TelemetryOperationKind.Consumer);
 
             var dispatcher = _dispatcherKey.IsKeyed
@@ -62,9 +61,20 @@ internal class PolicyListener : IHostedService
         catch (Exception ex) {
             var msg = $"Error processing or deserialising message ({ex.Message})";
             var inner = new Exception(msg, ex);
-            telemetryLogger.TrackException(inner);
+            telemetryLogger?.TrackException(inner);
             var action = await _exceptionHandler.HandleAsync(message, inner, cancellationToken);
             await _messageReceiver.ApplyActionAsync(message, action, inner, cancellationToken);
         }
+    }
+
+    private ITelemetryLogger? GetSafeLogger(IServiceScope scope)
+    {
+        try {
+            return scope.ServiceProvider.GetService<ITelemetryLogger>();
+        }
+        catch (Exception e) {
+            _logger.LogWarning(e, "Unable to create an instance of the ITelemetryLogger. Check bootstrapping.");
+        }
+        return null;        
     }
 }

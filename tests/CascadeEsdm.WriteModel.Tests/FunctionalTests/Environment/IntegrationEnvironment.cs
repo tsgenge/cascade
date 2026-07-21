@@ -78,10 +78,4 @@ public abstract class IntegrationEnvironment : IAsyncLifetime
                 events.Select(e => new EventDocument(e.Id, "fake-partition", e)).ToList(),
                 new PageContinuationToken(null)));
     }
-
-    public void SetupEventStream(IEnumerable<EventEnvelope> events)
-    {
-        var container = ServiceProvider.GetRequiredService<IPagedContainer<EventStreamContainer>>();
-        SetupEventStream(container, events);
-    }
 }

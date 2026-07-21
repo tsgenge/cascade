@@ -22,7 +22,6 @@ public class AllSharedPoliciesEnvironment : IntegrationEnvironment
                                 .WithDatabaseName("cascade")
                                 .WithEventStreamContainer<EventStreamContainer>();
                         })
-                        .UsingOpenTelemetry()
                         .UsingAzureDistributedLocks(lb => { lb.WithConnectionString(azuriteConnectionString); })
                         .UsingAzureServiceBusReceiver(r =>
                         {

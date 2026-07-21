@@ -22,7 +22,6 @@ public class MixedPartitioningEnvironment : IntegrationEnvironment
                                 .WithDatabaseName("cascade")
                                 .WithEventStreamContainer<EventStreamContainer>();
                         })
-                        .UsingOpenTelemetry()
                         .UsingAzureDistributedLocks(lb => { lb.WithConnectionString(azuriteConnectionString); })
                         .UsingAzureServiceBusReceiver(r =>
                         {
