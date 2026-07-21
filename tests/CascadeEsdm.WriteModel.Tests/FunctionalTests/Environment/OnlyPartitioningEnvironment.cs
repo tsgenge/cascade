@@ -22,7 +22,6 @@ public class OnlyPartitioningEnvironment : IntegrationEnvironment
                                 .WithDatabaseName("cascade")
                                 .WithEventStreamContainer<EventStreamContainer>();
                         })
-                        .UsingOpenTelemetry()
                         .UsingAzureDistributedLocks(lb => { lb.WithConnectionString(azuriteConnectionString); })
                         .UsingAzureServiceBusReceiver("partitioned", r =>
                         {

@@ -25,7 +25,6 @@
         <ProjectReference Include="..\CascadeEsdm.TestDomain\CascadeEsdm.TestDomain.csproj"/>
         <ProjectReference Include="..\..\src\write\CascadeEsdm.WriteModel\CascadeEsdm.WriteModel.csproj"/>
         <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.DistributedLocks\CascadeEsdm.DistributedLocks.csproj"/>
-        <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.Logging.OpenTelemetry\CascadeEsdm.Logging.OpenTelemetry.csproj"/>
         <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.Storage.CosmosDb\CascadeEsdm.Storage.CosmosDb.csproj"/>
         <ProjectReference Include="..\..\src\infrastructure\CascadeEsdm.Messaging.AzureServiceBus\CascadeEsdm.Messaging.AzureServiceBus.csproj"/>
     </ItemGroup>
